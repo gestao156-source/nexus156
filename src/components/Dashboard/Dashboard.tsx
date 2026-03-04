@@ -125,7 +125,142 @@ export default function Dashboard() {
     Object.values(solicitacoesStats).reduce((a, b) => a + b, 0) +
     Object.values(demandasStats).reduce((a, b) => a + b, 0);
 
-  // Cards agora sem navigate, apenas log de clique
+  // Função para buscar itens completos do Supabase
+  const fetchItemsByStatus = async (type: 'solicitacoes' | 'demandas', status: string) => {
+    try {
+      const { data, error } = await supabase
+        .from(type)
+        .select('*')
+        .eq('status', status)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error(`Erro ao buscar ${type} com status ${status}:`, error);
+      return [];
+    }
+  };
+
+  // Função para buscar itens atrasados
+  const fetchAtrasadosItems = async (type: 'solicitacoes' | 'demandas') => {
+    try {
+      const { data, error } = await supabase
+        .from(type)
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const items = data || [];
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      
+      return items.filter(item => {
+        if (item.status === 'finalizado' || !item.data_contato) return false;
+        
+        const dataContato = new Date(item.data_contato);
+        dataContato.setHours(0, 0, 0, 0);
+        
+        const diasUteisPassados = calcularDiasUteis(dataContato, hoje);
+        
+        if (item.status === 'aguardando') return diasUteisPassados > 1;
+        if (item.status === 'em_analise') return diasUteisPassados > 3;
+        
+        return false;
+      });
+    } catch (error) {
+      console.error(`Erro ao buscar ${type} atrasados:`, error);
+      return [];
+    }
+  };
+
+  // Lógica inteligente para clique nos cards
+  const handleCardClick = async (cardType: string) => {
+    if (cardType === 'aguardando') {
+      const solAguardando = solicitacoesStats.aguardando;
+      const demAguardando = demandasStats.aguardando;
+      
+      if (solAguardando >= demAguardando && solAguardando > 0) {
+        const items = await fetchItemsByStatus('solicitacoes', 'aguardando');
+        openModal('solicitacoes', 'aguardando', items);
+      } else if (demAguardando > 0) {
+        const items = await fetchItemsByStatus('demandas', 'aguardando');
+        openModal('demandas', 'aguardando', items);
+      } else {
+        navigate('/solicitacoes');
+      }
+    } else if (cardType === 'em_analise') {
+      const solEmAnalise = solicitacoesStats.em_analise;
+      const demEmAnalise = demandasStats.em_analise;
+      
+      if (solEmAnalise >= demEmAnalise && solEmAnalise > 0) {
+        const items = await fetchItemsByStatus('solicitacoes', 'em_analise');
+        openModal('solicitacoes', 'em_analise', items);
+      } else if (demEmAnalise > 0) {
+        const items = await fetchItemsByStatus('demandas', 'em_analise');
+        openModal('demandas', 'em_analise', items);
+      } else {
+        navigate('/solicitacoes');
+      }
+    } else if (cardType === 'atrasadas') {
+      const solAtrasadas = await fetchAtrasadosItems('solicitacoes');
+      const demAtrasadas = await fetchAtrasadosItems('demandas');
+      
+      if (solAtrasadas.length >= demAtrasadas.length && solAtrasadas.length > 0) {
+        openModal('solicitacoes', 'atrasadas', solAtrasadas);
+      } else if (demAtrasadas.length > 0) {
+        openModal('demandas', 'atrasadas', demAtrasadas);
+      } else {
+        alert('Nenhum item atrasado no momento!');
+      }
+    } else if (cardType === 'finalizados') {
+      const solFinalizados = solicitacoesStats.finalizado;
+      const demFinalizados = demandasStats.finalizado;
+      
+      if (solFinalizados >= demFinalizados && solFinalizados > 0) {
+        const items = await fetchItemsByStatus('solicitacoes', 'finalizado');
+        openModal('solicitacoes', 'finalizado', items);
+      } else if (demFinalizados > 0) {
+        const items = await fetchItemsByStatus('demandas', 'finalizado');
+        openModal('demandas', 'finalizado', items);
+      } else {
+        navigate('/solicitacoes');
+      }
+    } else if (cardType === 'total') {
+      const solTotal = Object.values(solicitacoesStats).reduce((a, b) => a + b, 0);
+      const demTotal = Object.values(demandasStats).reduce((a, b) => a + b, 0);
+      
+      if (solTotal >= demTotal) {
+        navigate('/solicitacoes');
+      } else {
+        navigate('/demandas');
+      }
+    }
+  };
+
+  // Função para abrir o modal
+  const openModal = (type: 'solicitacoes' | 'demandas', status: string, items: KanbanItem[]) => {
+    setModalType(type);
+    setModalStatus(status);
+    setModalItems(items);
+    setModalOpen(true);
+  };
+
+  // Função para fechar o modal
+  const closeModal = () => {
+    setModalOpen(false);
+    setModalItems([]);
+    setModalType('solicitacoes');
+    setModalStatus('');
+  };
+
+  // Função para clique em item no modal
+  const handleItemClick = (item: KanbanItem) => {
+    navigate(`/${modalType}?itemId=${item.id}#item-${item.id}`);
+  };
+
+  // Cards com navegação inteligente
   const cards = [
     {
       title: 'Aguardando Análise',
@@ -133,7 +268,7 @@ export default function Dashboard() {
       icon: Clock,
       bgColor: 'bg-yellow-50',
       textColor: 'text-yellow-700',
-      onClick: () => console.log('Abrir: aguardando'),
+      onClick: () => handleCardClick('aguardando'),
     },
     {
       title: 'Em Análise',
@@ -141,7 +276,7 @@ export default function Dashboard() {
       icon: PlayCircle,
       bgColor: 'bg-blue-50',
       textColor: 'text-blue-700',
-      onClick: () => console.log('Abrir: em análise'),
+      onClick: () => handleCardClick('em_analise'),
     },
     {
       title: 'Atrasadas',
@@ -149,7 +284,7 @@ export default function Dashboard() {
       icon: Clock,
       bgColor: 'bg-red-50',
       textColor: 'text-red-700',
-      onClick: () => console.log('Abrir: atrasadas'),
+      onClick: () => handleCardClick('atrasadas'),
     },
     {
       title: 'Finalizados',
@@ -157,7 +292,7 @@ export default function Dashboard() {
       icon: CheckCircle,
       bgColor: 'bg-green-50',
       textColor: 'text-green-700',
-      onClick: () => console.log('Abrir: finalizados'),
+      onClick: () => handleCardClick('finalizados'),
     },
     {
       title: 'Total Geral',
@@ -165,7 +300,7 @@ export default function Dashboard() {
       icon: Calendar,
       bgColor: 'bg-slate-50',
       textColor: 'text-slate-700',
-      onClick: () => console.log('Abrir: todas demandas'),
+      onClick: () => handleCardClick('total'),
     },
   ];
 
@@ -215,6 +350,16 @@ export default function Dashboard() {
           ]}
         />
       </div>
+
+      {/* Modal Inteligente */}
+      <DashboardItemModal
+        isOpen={modalOpen}
+        onClose={closeModal}
+        items={modalItems}
+        type={modalType}
+        status={modalStatus}
+        onItemClick={handleItemClick}
+      />
     </div>
   );
 }
