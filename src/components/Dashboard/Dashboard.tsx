@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { DashboardStats } from '../../types/index';
+import { KanbanItem } from '../../types/index';
 import { Clock, PlayCircle, CheckCircle, Calendar } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import PieChart from './PieChart';
 import BarChart from './BarChart';
+import DashboardItemModal from './DashboardItemModal';
 
 type ItemComPrazo = {
   status: string;
@@ -11,6 +14,7 @@ type ItemComPrazo = {
 };
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [solicitacoesStats, setSolicitacoesStats] = useState<DashboardStats>({
     aguardando: 0,
     em_analise: 0,
@@ -24,6 +28,12 @@ export default function Dashboard() {
 
   const [atrasadas, setAtrasadas] = useState(0);
   const [loading, setLoading] = useState(true);
+  
+  // Estados para o modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalItems, setModalItems] = useState<KanbanItem[]>([]);
+  const [modalType, setModalType] = useState<'solicitacoes' | 'demandas'>('solicitacoes');
+  const [modalStatus, setModalStatus] = useState('');
 
   useEffect(() => {
     loadStats();
