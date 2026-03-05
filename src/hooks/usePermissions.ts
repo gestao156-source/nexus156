@@ -1,5 +1,5 @@
 import { useAuth } from '../contexts/AuthContext';
-import { KanbanItem } from '../types';
+import { KanbanItem } from '../types/index';
 
 export const usePermissions = () => {
   const { profile, user } = useAuth();

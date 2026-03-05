@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { ItemStatus } from '../../types';
+import { ItemStatus } from '../../types/index';
 
 interface Item {
   id: string;
@@ -22,6 +22,7 @@ interface ItemModalProps {
   item: Item | null;
   onClose: () => void;
   onSave: () => void;
+  isViewMode?: boolean;
 }
 
 interface AssuntoPadrao {
@@ -34,7 +35,7 @@ interface PontoContato {
   nome: string;
 }
 
-export default function ItemModal({ type, item, onClose, onSave }: ItemModalProps) {
+export default function ItemModal({ type, item, onClose, onSave, isViewMode = false }: ItemModalProps) {
   const { user } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -183,7 +184,7 @@ export default function ItemModal({ type, item, onClose, onSave }: ItemModalProp
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900">
-            {item ? 'Editar' : 'Adicionar'} {type === 'solicitacoes' ? 'Solicitação' : 'Demanda'}
+            {isViewMode ? 'Visualizar' : item ? 'Editar' : 'Adicionar'} {type === 'solicitacoes' ? 'Solicitação' : 'Demanda'}
           </h2>
           <button
             onClick={onClose}
@@ -210,6 +211,7 @@ export default function ItemModal({ type, item, onClose, onSave }: ItemModalProp
                 onChange={(e) => setFormData({ ...formData, assunto: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
+                disabled={isViewMode}
               >
                 <option value="">Selecione um assunto...</option>
                 {assuntos.map((assunto) => (
@@ -230,6 +232,7 @@ export default function ItemModal({ type, item, onClose, onSave }: ItemModalProp
                 onChange={(e) => setFormData({ ...formData, protocolo: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
+                disabled={isViewMode}
               />
             </div>
 
@@ -244,6 +247,7 @@ export default function ItemModal({ type, item, onClose, onSave }: ItemModalProp
                 }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
+                disabled={isViewMode}
               >
                 <option value="aguardando">Aguardando Análise</option>
                 <option value="em_analise">Em Análise</option>
@@ -260,6 +264,7 @@ export default function ItemModal({ type, item, onClose, onSave }: ItemModalProp
                 value={formData.data_inicio}
                 onChange={(e) => setFormData({ ...formData, data_inicio: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                disabled={isViewMode}
               />
             </div>
 
@@ -272,6 +277,7 @@ export default function ItemModal({ type, item, onClose, onSave }: ItemModalProp
                 value={formData.data_contato}
                 onChange={(e) => setFormData({ ...formData, data_contato: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                disabled={isViewMode}
               />
             </div>
 
@@ -286,6 +292,7 @@ export default function ItemModal({ type, item, onClose, onSave }: ItemModalProp
                   setFormData({ ...formData, data_finalizado: e.target.value })
                 }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                disabled={isViewMode}
               />
             </div>
 
@@ -300,6 +307,7 @@ export default function ItemModal({ type, item, onClose, onSave }: ItemModalProp
                   setFormData({ ...formData, responsavel: e.target.value })
                 }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                disabled={isViewMode}
               />
             </div>
 
@@ -312,6 +320,7 @@ export default function ItemModal({ type, item, onClose, onSave }: ItemModalProp
                 onChange={(e) => setFormData({ ...formData, ponto_contato: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
+                disabled={isViewMode}
               >
                 <option value="">Selecione um ponto...</option>
                 {pontosContato.map((ponto) => (
@@ -333,13 +342,14 @@ export default function ItemModal({ type, item, onClose, onSave }: ItemModalProp
                 }
                 rows={4}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg resize-none"
+                disabled={isViewMode}
               />
             </div>
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t border-gray-200">
             <div>
-              {item && (
+              {item && !isViewMode && (
                 <button
                   type="button"
                   onClick={handleDelete}
@@ -357,15 +367,17 @@ export default function ItemModal({ type, item, onClose, onSave }: ItemModalProp
                 onClick={onClose}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
               >
-                Cancelar
+                {isViewMode ? 'Fechar' : 'Cancelar'}
               </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
-              >
-                {loading ? 'Salvando...' : 'Salvar'}
-              </button>
+              {!isViewMode && (
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {loading ? 'Salvando...' : 'Salvar'}
+                </button>
+              )}
             </div>
           </div>
         </form>

@@ -1,15 +1,16 @@
 import KanbanCard from './KanbanCard';
-import { KanbanItem } from '../../types';
+import { KanbanItem } from '../../types/index';
 
 interface KanbanColumnProps {
   title: string;
   color: string;
   items: KanbanItem[];
   onEdit: (item: KanbanItem) => void;
+  onView: (item: KanbanItem) => void;
   getResponsavelName?: (id: string) => string;
 }
 
-export default function KanbanColumn({ title, color, items, onEdit, getResponsavelName }: KanbanColumnProps) {
+export default function KanbanColumn({ title, color, items, onEdit, onView, getResponsavelName }: KanbanColumnProps) {
   return (
     <div className={`rounded-xl border-2 ${color} p-4 min-h-[500px]`}>
       <div className="flex items-center justify-between mb-4">
@@ -25,6 +26,7 @@ export default function KanbanColumn({ title, color, items, onEdit, getResponsav
             key={item.id} 
             item={item} 
             onEdit={onEdit}
+            onView={onView}
             responsavelName={getResponsavelName?.(item.responsavel)}
           />
         ))}

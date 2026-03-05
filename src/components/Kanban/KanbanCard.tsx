@@ -1,15 +1,16 @@
-import { Calendar, FileText, User, Phone, Edit, Lock, AlertTriangle } from 'lucide-react';
-import { KanbanItem } from '../../types';
+import { Calendar, FileText, User, Phone, Edit, AlertTriangle } from 'lucide-react';
+import { KanbanItem } from '../../types/index';
 import { usePermissions } from '../../hooks/usePermissions';
 import { verificarAtraso } from '../../utils/calculoDiasUteis';
 
 interface KanbanCardProps {
   item: KanbanItem;
   onEdit: (item: KanbanItem) => void;
+  onView: (item: KanbanItem) => void;
   responsavelName?: string;
 }
 
-export default function KanbanCard({ item, onEdit, responsavelName }: KanbanCardProps) {
+export default function KanbanCard({ item, onEdit, onView, responsavelName }: KanbanCardProps) {
   const { canEdit } = usePermissions();
   const canEditItem = canEdit(item);
   
@@ -28,9 +29,21 @@ export default function KanbanCard({ item, onEdit, responsavelName }: KanbanCard
     onEdit(item);
   };
 
+  const handleView = () => {
+    onView(item);
+  };
+
+  const handleClick = () => {
+    if (canEditItem) {
+      handleEdit();
+    } else {
+      handleView();
+    }
+  };
+
   return (
     <div
-      onClick={handleEdit}
+      onClick={handleClick}
       className={`p-4 rounded-lg shadow-sm border transition-all relative ${
         estaAtrasado 
           ? 'bg-red-50 border-red-300 animate-pulse' 
@@ -38,7 +51,7 @@ export default function KanbanCard({ item, onEdit, responsavelName }: KanbanCard
       } ${
         canEditItem 
           ? 'hover:shadow-md cursor-pointer' 
-          : 'border-gray-100 opacity-75 cursor-not-allowed'
+          : 'hover:shadow-md cursor-pointer border-gray-100 opacity-90'
       }`}
     >
       {/* Indicador de atraso */}
@@ -54,7 +67,7 @@ export default function KanbanCard({ item, onEdit, responsavelName }: KanbanCard
           {canEditItem ? (
             <Edit className="w-3 h-3 text-blue-600" />
           ) : (
-            <Lock className="w-3 h-3 text-gray-400" />
+            <Edit className="w-3 h-3 text-gray-400" />
           )}
         </div>
       </div>
@@ -107,7 +120,7 @@ export default function KanbanCard({ item, onEdit, responsavelName }: KanbanCard
 
       {!canEditItem && (
         <div className="mt-3 pt-3 border-t border-gray-100">
-          <p className="text-xs text-gray-400 italic">Apenas visualização</p>
+          <p className="text-xs text-gray-400 italic">Clique para visualizar detalhes</p>
         </div>
       )}
     </div>

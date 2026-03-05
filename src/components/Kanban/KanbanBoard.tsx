@@ -60,6 +60,18 @@ export default function KanbanBoard({ items, type, onRefresh }: KanbanBoardProps
     setIsModalOpen(true);
   };
 
+  // Visualizar sempre permitido
+  const handleView = (item: KanbanItem) => {
+    setEditingItem(item);
+    setIsModalOpen(true);
+  };
+
+  // Verificar se o modal deve abrir em modo visualização
+  const getIsViewMode = () => {
+    if (!editingItem) return false; // Novo item sempre é edição
+    return !canEdit(editingItem); // Item existente é visualização se não pode editar
+  };
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingItem(null);
@@ -98,6 +110,7 @@ export default function KanbanBoard({ items, type, onRefresh }: KanbanBoardProps
             color={column.color}
             items={items.filter((item) => item.status === column.status)}
             onEdit={handleEdit}
+            onView={handleView}
             getResponsavelName={getResponsavelName}
           />
         ))}
@@ -109,6 +122,7 @@ export default function KanbanBoard({ items, type, onRefresh }: KanbanBoardProps
           item={editingItem}
           onClose={handleCloseModal}
           onSave={handleSave}
+          isViewMode={getIsViewMode()}
         />
       )}
     </div>
