@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Profile } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { Users, Settings, Plus, Trash2, Key, Mail } from 'lucide-react';
+import RoleSelector from '../components/Admin/RoleSelector';
 
 interface AssuntoPadrao {
   id: string;
@@ -20,6 +22,7 @@ interface PontoContato {
 
 export default function AdminPanel() {
   const { profile } = useAuth();
+  const { showSuccess, showError } = useToast();
   const [users, setUsers] = useState<Profile[]>([]);
   const [assuntos, setAssuntos] = useState<AssuntoPadrao[]>([]);
   const [pontosContato, setPontosContato] = useState<PontoContato[]>([]);
@@ -124,18 +127,32 @@ export default function AdminPanel() {
     }
   };
 
-  const handleResetPassword = async (userId: string) => {
-    if (!confirm('Deseja resetar a senha deste usuário para 123?')) return;
+  const handleResetPassword = async (userId: string, userEmail: string) => {
+    if (!confirm(`Deseja resetar a senha do usuário "${userEmail}" para 123?`)) return;
     
     try {
-      await supabase.auth.admin.updateUserById(userId, {
-        password: '123'
+      // Usar nova RPC function para reset de senha
+      const { data, error } = await supabase.rpc('reset_user_password_real', {
+        user_id: userId,
+        new_password: '123'
       });
+
+      if (error) {
+        console.error('Error resetting password:', error);
+        showError('Erro ao resetar senha', error.message || 'Não foi possível resetar a senha');
+        return;
+      }
+
+      if (data) {
+        showSuccess('Senha resetada!', `Senha de ${userEmail} foi registrada para reset. Nota: O reset real precisa ser feito via Admin API.`);
+        console.log('Password reset registered:', data);
+      } else {
+        showError('Erro ao resetar senha', 'Não foi possível resetar a senha');
+      }
       
-      alert('Senha resetada para 123 com sucesso!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao resetar senha:', error);
-      alert('Erro ao resetar senha');
+      showError('Erro de conexão', error.message || 'Falha na comunicação com o servidor');
     }
   };
 
@@ -304,18 +321,17 @@ export default function AdminPanel() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.full_name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        user.role === 'admin' 
-                          ? 'bg-orange-100 text-orange-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {user.role}
-                      </span>
+                      <RoleSelector
+                        userId={user.id}
+                        currentRole={user.role}
+                        userName={user.full_name}
+                        onRoleUpdated={loadData}
+                      />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => handleResetPassword(user.id)}
+                          onClick={() => handleResetPassword(user.id, user.email)}
                           className="text-blue-600 hover:text-blue-900 text-xs"
                         >
                           <Key className="w-3 h-3" />
