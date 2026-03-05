@@ -4,6 +4,7 @@ import { DashboardStats } from '../../types/index';
 import { KanbanItem } from '../../types/index';
 import { Clock, PlayCircle, CheckCircle, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../contexts/ToastContext';
 import PieChart from './PieChart';
 import BarChart from './BarChart';
 import DashboardItemModal from './DashboardItemModal';
@@ -15,6 +16,7 @@ type ItemComPrazo = {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { showSuccess, showError, showInfo } = useToast();
   const [solicitacoesStats, setSolicitacoesStats] = useState<DashboardStats>({
     aguardando: 0,
     em_analise: 0,
@@ -212,7 +214,7 @@ export default function Dashboard() {
       } else if (demAtrasadas.length > 0) {
         openModal('demandas', 'atrasadas', demAtrasadas);
       } else {
-        alert('Nenhum item atrasado no momento!');
+        showInfo('Nenhum item atrasado', 'Todos os itens estão dentro dos prazos!');
       }
     } else if (cardType === 'finalizados') {
       const solFinalizados = solicitacoesStats.finalizado;
