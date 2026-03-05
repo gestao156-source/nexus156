@@ -5,6 +5,7 @@ import { KanbanItem } from '../../types/index';
 import { Clock, PlayCircle, CheckCircle, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../contexts/ToastContext';
+import { verificarAtraso } from '../../utils/calculoDiasUteis';
 import PieChart from './PieChart';
 import BarChart from './BarChart';
 import DashboardItemModal from './DashboardItemModal';
@@ -16,7 +17,7 @@ type ItemComPrazo = {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { showSuccess, showError, showInfo } = useToast();
+  const { showInfo } = useToast();
   const [solicitacoesStats, setSolicitacoesStats] = useState<DashboardStats>({
     aguardando: 0,
     em_analise: 0,
@@ -34,7 +35,7 @@ export default function Dashboard() {
   // Estados para o modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalItems, setModalItems] = useState<KanbanItem[]>([]);
-  const [modalType, setModalType] = useState<'solicitacoes' | 'demandas'>('solicitacoes');
+  const [modalType, setModalType] = useState<'solicitacoes' | 'demandas' | 'todos'>('todos');
   const [modalStatus, setModalStatus] = useState('');
 
   useEffect(() => {
@@ -79,47 +80,9 @@ export default function Dashboard() {
     finalizado: items.filter(i => i.status === 'finalizado').length,
   });
 
-  // Função para calcular dias úteis entre duas datas
-  const calcularDiasUteis = (dataInicio: Date, dataFim: Date): number => {
-    let diasUteis = 0;
-    const dataAtual = new Date(dataInicio);
-    
-    while (dataAtual <= dataFim) {
-      const diaSemana = dataAtual.getDay();
-      // 0 = Domingo, 6 = Sábado
-      if (diaSemana !== 0 && diaSemana !== 6) {
-        diasUteis++;
-      }
-      dataAtual.setDate(dataAtual.getDate() + 1);
-    }
-    
-    return diasUteis;
-  };
-
   const countAtrasadas = (items: ItemComPrazo[]) => {
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0); // Zerar horas para comparação correta
-    
     return items.filter(item => {
-      // Ignorar itens finalizados
-      if (item.status === 'finalizado' || !item.data_contato) {
-        return false;
-      }
-      
-      const dataContato = new Date(item.data_contato);
-      dataContato.setHours(0, 0, 0, 0); // Zerar horas para comparação correta
-      
-      // Calcular dias úteis desde a data de contato
-      const diasUteisPassados = calcularDiasUteis(dataContato, hoje);
-      
-      // Aplicar regras de prazo por status
-      if (item.status === 'aguardando') {
-        return diasUteisPassados > 1; // 1 dia útil de prazo
-      } else if (item.status === 'em_analise') {
-        return diasUteisPassados > 3; // 3 dias úteis de prazo
-      }
-      
-      return false;
+      return verificarAtraso(item.status, item.data_contato || null);
     }).length;
   };
 
@@ -155,21 +118,9 @@ export default function Dashboard() {
       if (error) throw error;
       
       const items = data || [];
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
       
       return items.filter(item => {
-        if (item.status === 'finalizado' || !item.data_contato) return false;
-        
-        const dataContato = new Date(item.data_contato);
-        dataContato.setHours(0, 0, 0, 0);
-        
-        const diasUteisPassados = calcularDiasUteis(dataContato, hoje);
-        
-        if (item.status === 'aguardando') return diasUteisPassados > 1;
-        if (item.status === 'em_analise') return diasUteisPassados > 3;
-        
-        return false;
+        return verificarAtraso(item.status, item.data_contato);
       });
     } catch (error) {
       console.error(`Erro ao buscar ${type} atrasados:`, error);
@@ -177,55 +128,45 @@ export default function Dashboard() {
     }
   };
 
-  // Lógica inteligente para clique nos cards
+  // Lógica inteligente para clique nos cards - Mostra ambos os tipos
   const handleCardClick = async (cardType: string) => {
     if (cardType === 'aguardando') {
-      const solAguardando = solicitacoesStats.aguardando;
-      const demAguardando = demandasStats.aguardando;
+      const solItems = await fetchItemsByStatus('solicitacoes', 'aguardando');
+      const demItems = await fetchItemsByStatus('demandas', 'aguardando');
+      const allItems = [...solItems, ...demItems];
       
-      if (solAguardando >= demAguardando && solAguardando > 0) {
-        const items = await fetchItemsByStatus('solicitacoes', 'aguardando');
-        openModal('solicitacoes', 'aguardando', items);
-      } else if (demAguardando > 0) {
-        const items = await fetchItemsByStatus('demandas', 'aguardando');
-        openModal('demandas', 'aguardando', items);
+      if (allItems.length > 0) {
+        openModal('todos', 'aguardando', allItems);
       } else {
         navigate('/solicitacoes');
       }
     } else if (cardType === 'em_analise') {
-      const solEmAnalise = solicitacoesStats.em_analise;
-      const demEmAnalise = demandasStats.em_analise;
+      const solItems = await fetchItemsByStatus('solicitacoes', 'em_analise');
+      const demItems = await fetchItemsByStatus('demandas', 'em_analise');
+      const allItems = [...solItems, ...demItems];
       
-      if (solEmAnalise >= demEmAnalise && solEmAnalise > 0) {
-        const items = await fetchItemsByStatus('solicitacoes', 'em_analise');
-        openModal('solicitacoes', 'em_analise', items);
-      } else if (demEmAnalise > 0) {
-        const items = await fetchItemsByStatus('demandas', 'em_analise');
-        openModal('demandas', 'em_analise', items);
+      if (allItems.length > 0) {
+        openModal('todos', 'em_analise', allItems);
       } else {
         navigate('/solicitacoes');
       }
     } else if (cardType === 'atrasadas') {
       const solAtrasadas = await fetchAtrasadosItems('solicitacoes');
       const demAtrasadas = await fetchAtrasadosItems('demandas');
+      const allAtrasadas = [...solAtrasadas, ...demAtrasadas];
       
-      if (solAtrasadas.length >= demAtrasadas.length && solAtrasadas.length > 0) {
-        openModal('solicitacoes', 'atrasadas', solAtrasadas);
-      } else if (demAtrasadas.length > 0) {
-        openModal('demandas', 'atrasadas', demAtrasadas);
+      if (allAtrasadas.length > 0) {
+        openModal('todos', 'atrasadas', allAtrasadas);
       } else {
         showInfo('Nenhum item atrasado', 'Todos os itens estão dentro dos prazos!');
       }
     } else if (cardType === 'finalizados') {
-      const solFinalizados = solicitacoesStats.finalizado;
-      const demFinalizados = demandasStats.finalizado;
+      const solItems = await fetchItemsByStatus('solicitacoes', 'finalizado');
+      const demItems = await fetchItemsByStatus('demandas', 'finalizado');
+      const allItems = [...solItems, ...demItems];
       
-      if (solFinalizados >= demFinalizados && solFinalizados > 0) {
-        const items = await fetchItemsByStatus('solicitacoes', 'finalizado');
-        openModal('solicitacoes', 'finalizado', items);
-      } else if (demFinalizados > 0) {
-        const items = await fetchItemsByStatus('demandas', 'finalizado');
-        openModal('demandas', 'finalizado', items);
+      if (allItems.length > 0) {
+        openModal('todos', 'finalizados', allItems);
       } else {
         navigate('/solicitacoes');
       }
@@ -242,7 +183,7 @@ export default function Dashboard() {
   };
 
   // Função para abrir o modal
-  const openModal = (type: 'solicitacoes' | 'demandas', status: string, items: KanbanItem[]) => {
+  const openModal = (type: 'solicitacoes' | 'demandas' | 'todos', status: string, items: KanbanItem[]) => {
     setModalType(type);
     setModalStatus(status);
     setModalItems(items);

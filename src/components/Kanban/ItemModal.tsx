@@ -87,13 +87,14 @@ export default function ItemModal({ type, item, onClose, onSave }: ItemModalProp
         ponto_contato: item.ponto_contato || '',
       });
     } else {
-      // Criando novo item - responsável automático
+      // Criando novo item - responsável e datas automáticas
+      const hoje = new Date().toISOString().split('T')[0];
       setFormData({
         assunto: '',
         protocolo: '',
         status: 'aguardando' as ItemStatus,
-        data_inicio: '',
-        data_contato: '',
+        data_inicio: hoje,
+        data_contato: hoje,
         data_finalizado: '',
         observacoes: '',
         responsavel: user?.id || '', // ✅ Automático!

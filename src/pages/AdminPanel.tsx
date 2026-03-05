@@ -67,18 +67,34 @@ export default function AdminPanel() {
 
   const handleCreateUser = async () => {
     try {
-      const email = prompt('Email do novo usuário:');
-      const fullName = prompt('Nome completo:');
-      const role = prompt('Role (admin/user):') as 'admin' | 'user';
+      // Solicitar email com validação
+      let email = prompt('Email do novo usuário:');
+      if (!email || !email.includes('@')) {
+        alert('Email inválido!');
+        return;
+      }
       
-      if (!email || !fullName) return;
+      // Solicitar nome completo com validação
+      let fullName = prompt('Nome completo:');
+      if (!fullName || fullName.trim().length < 3) {
+        alert('Nome completo é obrigatório!');
+        return;
+      }
+      
+      // Role sempre será 'user' por padrão
+      const role = 'user';
+      
+      // Confirmar criação
+      if (!confirm(`Criar usuário:\nEmail: ${email}\nNome: ${fullName}\nRole: ${role}`)) {
+        return;
+      }
       
       const { data } = await supabase.auth.signUp({
         email,
         password: '123', // Senha padrão
         options: {
           data: {
-            full_name: fullName,
+            full_name: fullName.trim(),
             role: role
           }
         }
@@ -92,12 +108,12 @@ export default function AdminPanel() {
             {
               id: data.user.id,
               email: data.user.email,
-              full_name: fullName,
+              full_name: fullName.trim(),
               role: role
             }
           ]);
         
-        alert('Usuário criado com sucesso! Senha padrão: 123');
+        showSuccess('Usuário criado com sucesso! Senha padrão: 123');
         loadData();
       }
     } catch (error) {
@@ -110,20 +126,30 @@ export default function AdminPanel() {
     if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
     
     try {
-      // Deletar perfil
-      await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId);
+      // Atualização otimista: remover do estado local imediatamente
+      setUsers(prev => prev.filter(user => user.id !== userId));
       
-      // Deletar usuário auth
-      await supabase.auth.admin.deleteUser(userId);
+      // Usar RPC function para deletar completamente (perfil + auth)
+      const { error } = await supabase.rpc('delete_user_complete', {
+        user_id_to_delete: userId
+      });
       
-      alert('Usuário excluído com sucesso!');
+      if (error) {
+        // Se falhar, recarrega os dados para restaurar estado correto
+        loadData();
+        throw error;
+      }
+      
+      showSuccess('Usuário excluído com sucesso!');
+      
+      // Pequeno delay para garantir processamento no Supabase
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Recarregar dados para garantir consistência
       loadData();
     } catch (error) {
       console.error('Erro ao excluir usuário:', error);
-      alert('Erro ao excluir usuário');
+      showError('Erro ao excluir usuário');
     }
   };
 

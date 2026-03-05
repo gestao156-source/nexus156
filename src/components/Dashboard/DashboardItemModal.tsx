@@ -7,7 +7,7 @@ interface DashboardItemModalProps {
   isOpen: boolean;
   onClose: () => void;
   items: KanbanItem[];
-  type: 'solicitacoes' | 'demandas';
+  type: 'solicitacoes' | 'demandas' | 'todos';
   status: string;
   onItemClick: (item: KanbanItem) => void;
 }

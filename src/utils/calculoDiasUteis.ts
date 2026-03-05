@@ -27,20 +27,28 @@ export const verificarAtraso = (status: string, dataContato: string | null): boo
     return false;
   }
   
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0); // Zerar horas para comparação correta
+  // Extrair apenas a parte da data (YYYY-MM-DD) sem timezone
+  const dataContatoOnly = dataContato.split('T')[0];
+  const hojeOnly = new Date().toISOString().split('T')[0];
   
-  const dataContatoDate = new Date(dataContato);
-  dataContatoDate.setHours(0, 0, 0, 0); // Zerar horas para comparação correta
+  // Se for hoje, não está atrasado
+  if (dataContatoOnly === hojeOnly) {
+    return false;
+  }
   
-  // Calcular dias úteis desde a data de contato
-  const diasUteisPassados = calcularDiasUteis(dataContatoDate, hoje);
+  // Calcular dias úteis (usando datas sem timezone)
+  const dataContatoDate = new Date(dataContatoOnly + 'T00:00:00');
+  const hoje = new Date(hojeOnly + 'T00:00:00');
+  
+  // Calcular dias úteis até ontem (excluir hoje da contagem)
+  const ontem = new Date(hoje.getTime() - 86400000); // Subtrair 1 dia
+  const diasUteisPassados = calcularDiasUteis(dataContatoDate, ontem);
   
   // Aplicar regras de prazo por status
   if (status === 'aguardando') {
-    return diasUteisPassados > 1; // 1 dia útil de prazo
+    return diasUteisPassados >= 1; // Atrasa após 1 dia útil completo
   } else if (status === 'em_analise') {
-    return diasUteisPassados > 3; // 3 dias úteis de prazo
+    return diasUteisPassados >= 3; // Atrasa após 3 dias úteis completos
   }
   
   return false;
