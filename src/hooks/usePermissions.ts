@@ -8,8 +8,8 @@ export const usePermissions = () => {
     // Admin pode editar tudo
     if (profile?.role === 'admin') return true;
     
-    // Usuário só pode editar se for responsável
-    return item.responsavel === user?.id;
+    // Usuário só pode editar se for o criador do item
+    return item.user_id === user?.id;
   };
   
   const isOwner = (item: KanbanItem) => {
