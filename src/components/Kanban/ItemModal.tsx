@@ -30,6 +30,12 @@ interface AssuntoPadrao {
   nome: string;
 }
 
+interface Profile {
+  id: string;
+  full_name: string;
+  email: string;
+}
+
 interface PontoContato {
   id: string;
   nome: string;
@@ -37,6 +43,21 @@ interface PontoContato {
 
 export default function ItemModal({ type, item, onClose, onSave, isViewMode = false }: ItemModalProps) {
   const { user } = useAuth();
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+
+  // Carregar perfis para o dropdown de responsável
+  useEffect(() => {
+    const loadProfiles = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .order('full_name');
+      
+      setProfiles(data || []);
+    };
+
+    loadProfiles();
+  }, []);
 
   const [formData, setFormData] = useState({
     assunto: '',
@@ -98,7 +119,7 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
         data_contato: hoje,
         data_finalizado: '',
         observacoes: '',
-        responsavel: user?.id || '', // ✅ Automático!
+        responsavel: user?.id || '', // Auto-fill com ID do usuário (mantém compatibilidade)
         ponto_contato: '',
       });
     }
@@ -300,15 +321,20 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Responsável
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.responsavel}
-                onChange={(e) =>
-                  setFormData({ ...formData, responsavel: e.target.value })
-                }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                onChange={(e) => setFormData({ ...formData, responsavel: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
                 disabled={isViewMode}
-              />
+              >
+                <option value="">Selecione um responsável...</option>
+                {profiles.map((profile) => (
+                  <option key={profile.id} value={profile.id}>
+                    {profile.full_name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
