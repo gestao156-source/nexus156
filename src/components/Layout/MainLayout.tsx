@@ -1,5 +1,5 @@
 import { useAuth } from '../../contexts/AuthContext';
-import { LayoutDashboard, FileText, ClipboardList, LogOut, Shield, User, Settings } from 'lucide-react';
+import { LayoutDashboard, FileText, ClipboardList, LogOut, Shield, User, Settings, BarChart3 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../../assets/logo-nexus-156.png';
 
@@ -21,6 +21,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
     { id: 'solicitacoes', name: 'Solicitações', icon: FileText },
     { id: 'demandas', name: 'Demandas', icon: ClipboardList },
+    { id: 'relatorios', name: 'Relatórios', icon: BarChart3 },
   ];
 
   const adminTabs = [
