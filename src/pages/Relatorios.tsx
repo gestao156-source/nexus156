@@ -7,6 +7,8 @@ import CampoSelector from '../components/Relatorios/CampoSelector';
 import FiltroRelatorios from '../components/Relatorios/FiltroRelatorios';
 import TabelaDinamica from '../components/Relatorios/TabelaDinamica';
 import ExportButtons, { ExportInfo } from '../components/Relatorios/ExportButtons';
+import RelatorioPreview from '../components/Relatorios/RelatorioPreview';
+import CampoBuilder from '../components/Relatorios/CampoBuilder';
 
 const getDefaultFiltros = (): FiltrosType => ({
   periodo: { inicio: '', fim: '' },
@@ -72,6 +74,37 @@ export default function Relatorios() {
     // Navegar para o item específico
     const tipo = item.tipo === 'solicitacao' ? 'solicitacoes' : 'demandas';
     window.open(`/${tipo}?itemId=${item.id}#item-${item.id}`, '_blank');
+  };
+
+  const handleExportar = (formato: 'csv' | 'excel' | 'pdf') => {
+    // Implementar exportação diferenciada
+    if (formato === 'csv') {
+      import('../utils/exportCSV').then(({ exportCSV }) => {
+        exportCSV({
+          dados,
+          camposSelecionados,
+          filename: 'relatorio_nexus156_csv',
+        });
+      });
+    } else if (formato === 'excel') {
+      import('../utils/exportExcel').then(({ exportExcel }) => {
+        exportExcel({
+          dados,
+          camposSelecionados,
+          filename: 'relatorio_nexus156_excel',
+          sheetName: 'Relatório Nexus156',
+        });
+      });
+    } else if (formato === 'pdf') {
+      // TODO: Implementar exportação PDF
+      console.log('Exportação PDF em desenvolvimento');
+    }
+  };
+
+  const handleSalvarModelo = () => {
+    // TODO: Implementar salvamento de modelo
+    console.log('Salvar modelo em desenvolvimento');
+    setShowCampoSelector(true);
   };
 
   return (
@@ -329,13 +362,29 @@ export default function Relatorios() {
             </div>
           </div>
 
-          {/* Tabela de Resultados */}
-          <TabelaDinamica
+          {/* Preview do Relatório em Tempo Real */}
+          <RelatorioPreview
             dados={dados}
             camposSelecionados={camposSelecionados}
+            filtros={filtros}
             loading={loading}
-            onVisualizarItem={handleVisualizarItem}
+            onSalvarModelo={handleSalvarModelo}
+            onExportar={handleExportar}
           />
+
+          {/* Tabela Completa (opcional - pode ser removida depois) */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium text-gray-700">Tabela Completa</h3>
+              <span className="text-xs text-gray-500">Todos os {dados.length} registros</span>
+            </div>
+            <TabelaDinamica
+              dados={dados}
+              camposSelecionados={camposSelecionados}
+              loading={loading}
+              onVisualizarItem={handleVisualizarItem}
+            />
+          </div>
         </div>
       </div>
 
@@ -379,11 +428,9 @@ export default function Relatorios() {
                 </button>
               </div>
               
-              <CampoSelector
+              <CampoBuilder
                 camposSelecionados={camposSelecionados}
                 onCampoChange={handleCampoChange}
-                onSelecionarTodos={handleSelecionarTodosCampos}
-                onLimparSelecao={handleLimparSelecaoCampos}
               />
             </div>
           </div>
