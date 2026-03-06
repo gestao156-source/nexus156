@@ -9,6 +9,7 @@ interface RelatorioPreviewProps {
   camposSelecionados: string[];
   filtros: any;
   loading?: boolean;
+  compact?: boolean;
   onSalvarModelo?: () => void;
   onExportar?: (formato: 'csv' | 'excel' | 'pdf') => void;
 }
@@ -18,6 +19,7 @@ export default function RelatorioPreview({
   camposSelecionados, 
   filtros, 
   loading = false,
+  compact = false,
   onSalvarModelo,
   onExportar 
 }: RelatorioPreviewProps) {
@@ -28,11 +30,12 @@ export default function RelatorioPreview({
   // Atualizar preview quando dados ou campos mudarem
   useEffect(() => {
     if (dados && camposSelecionados) {
-      const preview = dados.slice(0, 10); // Primeiros 10 registros para preview
+      const limit = compact ? 5 : 10; // Modo compacto mostra menos registros
+      const preview = dados.slice(0, limit);
       setPreviewData(preview);
       setLastUpdate(new Date());
     }
-  }, [dados, camposSelecionados]);
+  }, [dados, camposSelecionados, compact]);
 
   const getTempoDesdeAtualizacao = () => {
     const agora = new Date();
@@ -100,6 +103,74 @@ export default function RelatorioPreview({
           <p className="text-sm text-gray-500">
             Ajuste os filtros para visualizar o preview do relatório
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Modo compacto
+  if (compact) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center space-x-2">
+            <Eye className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-medium text-gray-900">Preview</span>
+            <span className="text-xs text-gray-500">📊 {dados.length} | 📋 {camposSelecionados.length}</span>
+          </div>
+          
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={() => onExportar?.('csv')}
+              className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs hover:bg-green-200"
+            >
+              CSV
+            </button>
+            <button
+              onClick={() => onExportar?.('excel')}
+              className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200"
+            >
+              Excel
+            </button>
+          </div>
+        </div>
+
+        <div className="max-h-32 overflow-y-auto border border-gray-200 rounded">
+          <table className="w-full text-xs">
+            <thead className="bg-gray-50 sticky top-0">
+              <tr>
+                {getHeaders().map((header, index) => (
+                  <th
+                    key={index}
+                    className="px-2 py-1 text-xs font-medium text-gray-700 text-center border-b border-gray-200"
+                  >
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {previewData.map((item) => (
+                <tr key={item.id} className="hover:bg-gray-50">
+                  {camposSelecionados.map(campoId => {
+                    const valor = item[campoId as keyof RelatorioItem];
+                    return (
+                      <td
+                        key={campoId}
+                        className="px-2 py-1 text-center border-b border-gray-100 text-gray-700"
+                      >
+                        {getCellValue(item, campoId)}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mt-2 text-xs text-gray-500 text-center">
+          Mostrando {previewData.length} de {dados.length} registros
         </div>
       </div>
     );

@@ -6,9 +6,10 @@ interface CampoBuilderProps {
   camposSelecionados: string[];
   onCampoChange: (campo: string, selecionado: boolean) => void;
   onReorder?: (campoId: string, direcao: 'up' | 'down') => void;
+  onSelecionarObrigatorios?: () => void;
 }
 
-export default function CampoBuilder({ camposSelecionados, onCampoChange, onReorder }: CampoBuilderProps) {
+export default function CampoBuilder({ camposSelecionados, onCampoChange, onReorder, onSelecionarObrigatorios }: CampoBuilderProps) {
   const [busca, setBusca] = useState('');
   const [grupoExpandido, setGrupoExpandido] = useState<string[]>(CAMPOS_GRUPOS);
 
@@ -187,12 +188,7 @@ export default function CampoBuilder({ camposSelecionados, onCampoChange, onReor
         
         <div className="flex space-x-2">
           <button
-            onClick={() => {
-              // Selecionar todos os campos obrigatórios
-              Object.values(CAMPOS_DISPONIVEIS)
-                .filter(c => c.obrigatorio)
-                .forEach(c => onCampoChange(c.id, true));
-            }}
+            onClick={onSelecionarObrigatorios}
             className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
           >
             Obrigatórios

@@ -107,6 +107,27 @@ export default function Relatorios() {
     setShowCampoSelector(true);
   };
 
+  const [mensagemInfo, setMensagemInfo] = useState<string>('');
+  const [mensagemSucesso, setMensagemSucesso] = useState<string>('');
+
+  const handleSelecionarObrigatorios = () => {
+    const obrigatorios = Object.values(CAMPOS_DISPONIVEIS)
+      .filter(c => c.obrigatorio)
+      .map(c => c.id);
+    
+    const jaSelecionados = obrigatorios.filter(id => camposSelecionados.includes(id));
+    const faltantes = obrigatorios.filter(id => !camposSelecionados.includes(id));
+    
+    if (faltantes.length === 0) {
+      setMensagemInfo('Todos os campos obrigatórios já estão selecionados');
+      setTimeout(() => setMensagemInfo(''), 3000);
+    } else {
+      faltantes.forEach(id => handleCampoChange(id, true));
+      setMensagemSucesso(`${faltantes.length} campos obrigatórios adicionados`);
+      setTimeout(() => setMensagemSucesso(''), 3000);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -291,6 +312,19 @@ export default function Relatorios() {
                 </>
               )}
 
+              {/* Mensagens de Feedback */}
+              {mensagemInfo && (
+                <div className="bg-blue-50 border border-blue-200 text-blue-700 px-3 py-2 rounded-lg text-sm mb-3">
+                  ℹ️ {mensagemInfo}
+                </div>
+              )}
+              
+              {mensagemSucesso && (
+                <div className="bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded-lg text-sm mb-3">
+                  ✅ {mensagemSucesso}
+                </div>
+              )}
+
               {/* Ações */}
               <div className="flex justify-between pt-2 border-t border-gray-200">
                 <button
@@ -362,16 +396,6 @@ export default function Relatorios() {
             </div>
           </div>
 
-          {/* Preview do Relatório em Tempo Real */}
-          <RelatorioPreview
-            dados={dados}
-            camposSelecionados={camposSelecionados}
-            filtros={filtros}
-            loading={loading}
-            onSalvarModelo={handleSalvarModelo}
-            onExportar={handleExportar}
-          />
-
           {/* Tabela Completa (opcional - pode ser removida depois) */}
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <div className="flex items-center justify-between mb-4">
@@ -385,6 +409,21 @@ export default function Relatorios() {
               onVisualizarItem={handleVisualizarItem}
             />
           </div>
+        </div>
+      </div>
+
+      {/* Preview Compacto Abaixo das Ações */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="lg:col-span-1">
+          <RelatorioPreview
+            dados={dados}
+            camposSelecionados={camposSelecionados}
+            filtros={filtros}
+            loading={loading}
+            compact={true}
+            onSalvarModelo={handleSalvarModelo}
+            onExportar={handleExportar}
+          />
         </div>
       </div>
 
@@ -431,6 +470,7 @@ export default function Relatorios() {
               <CampoBuilder
                 camposSelecionados={camposSelecionados}
                 onCampoChange={handleCampoChange}
+                onSelecionarObrigatorios={handleSelecionarObrigatorios}
               />
             </div>
           </div>
