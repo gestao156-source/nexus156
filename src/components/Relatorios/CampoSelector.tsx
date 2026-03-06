@@ -93,9 +93,9 @@ export default function CampoSelector({
 
           return (
             <div key={grupo} className="border border-gray-200 rounded-lg overflow-hidden">
-              <button
+              <div
                 onClick={() => toggleGrupo(grupo)}
-                className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between"
+                className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between cursor-pointer"
               >
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center">
@@ -135,7 +135,7 @@ export default function CampoSelector({
                     </svg>
                   </div>
                 </div>
-              </button>
+              </div>
 
               {isExpandido && (
                 <div className="p-4 bg-white space-y-2">
