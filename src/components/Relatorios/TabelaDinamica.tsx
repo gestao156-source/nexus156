@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ArrowUpDown, ArrowUp, ArrowDown, Eye } from 'lucide-react';
 import { CAMPOS_DISPONIVEIS, formatarValorCampo } from '../../utils/campoConfig';
 import { RelatorioItem } from '../../hooks/useRelatoriosData';
@@ -7,6 +7,7 @@ interface TabelaDinamicaProps {
   dados: RelatorioItem[];
   camposSelecionados: string[];
   loading?: boolean;
+  compact?: boolean;
   onVisualizarItem?: (item: RelatorioItem) => void;
 }
 
@@ -16,6 +17,7 @@ export default function TabelaDinamica({
   dados, 
   camposSelecionados, 
   loading = false, 
+  compact = false,
   onVisualizarItem 
 }: TabelaDinamicaProps) {
   const [sortConfig, setSortConfig] = useState<{ campo: string; direction: SortDirection }>({
@@ -30,7 +32,7 @@ export default function TabelaDinamica({
     }));
   };
 
-  const sortedDados = useState(() => {
+  const sortedData = useMemo(() => {
     if (!sortConfig.direction || !sortConfig.campo) return dados;
 
     return [...dados].sort((a, b) => {
@@ -59,7 +61,14 @@ export default function TabelaDinamica({
 
       return sortConfig.direction === 'asc' ? comparacao : -comparacao;
     });
-  })[0];
+  }, [dados, sortConfig]);
+
+  const getHeaders = () => {
+    return camposSelecionados.map(campoId => {
+      const campo = CAMPOS_DISPONIVEIS[campoId];
+      return campo?.label || campoId;
+    });
+  };
 
   const getSortIcon = (campo: string) => {
     if (sortConfig.campo !== campo || !sortConfig.direction) {
@@ -145,62 +154,65 @@ export default function TabelaDinamica({
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+      {/* Header */}
+      {!compact && (
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Resultados</h3>
+        </div>
+      )}
+
+      {/* Tabela */}
+      <div className={`overflow-x-auto ${compact ? '' : 'p-6'}`}>
+        <table className={`w-full ${compact ? 'text-xs' : ''}`}>
+          <thead className={`${compact ? 'bg-gray-50 sticky top-0' : 'bg-gray-50'}`}>
             <tr>
-              {camposSelecionados.map(campoId => {
-                const campo = CAMPOS_DISPONIVEIS[campoId];
-                if (!campo) return null;
-                
-                return (
-                  <th
-                    key={campoId}
-                    onClick={() => handleSort(campoId)}
-                    className={`px-3 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors ${getCellStyle(campoId)}`}
-                  >
-                    <div className="flex items-center justify-center space-x-1">
-                      <span>{campo.label}</span>
-                      {getSortIcon(campoId)}
-                    </div>
-                  </th>
-                );
-              })}
-              {onVisualizarItem && (
-                <th className="px-3 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider text-center w-20">
+              {getHeaders().map((header, index) => (
+                <th
+                  key={index}
+                  className={`px-3 py-3 text-left font-medium text-gray-700 uppercase tracking-wider border-b border-gray-200 ${
+                    compact ? 'px-2 py-1 text-xs' : ''
+                  }`}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>{header}</span>
+                    {getSortIcon(header)}
+                  </div>
+                </th>
+              ))}
+              {!compact && (
+                <th className="px-3 py-3 text-center font-medium text-gray-700 uppercase tracking-wider border-b border-gray-200">
                   Ações
                 </th>
               )}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
-            {sortedDados.map((item, index) => (
-              <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                {camposSelecionados.map(campoId => {
-                  const campo = CAMPOS_DISPONIVEIS[campoId];
+          <tbody className={`${compact ? 'divide-y divide-gray-100' : 'divide-y divide-gray-200'}`}>
+            {sortedData.map((item: RelatorioItem) => (
+              <tr key={item.id} className={`${compact ? 'hover:bg-gray-50' : 'hover:bg-gray-50'}`}>
+                {getHeaders().map((header) => {
+                  const campo = Object.values(CAMPOS_DISPONIVEIS).find(c => c.label === header);
                   if (!campo) return null;
                   
                   const valor = item[campo.accessor as keyof RelatorioItem];
-                  const valorFormatado = formatarValorCampo(campoId, valor);
+                  const cellClass = getCellClass(campo.id, valor);
                   
                   return (
-                    <td
-                      key={campoId}
-                      className={getCellClass(campoId, valor)}
-                    >
-                      {valorFormatado || '-'}
+                    <td key={campo.id} className={cellClass}>
+                      {formatarValorCampo(campo.id, valor)}
                     </td>
                   );
                 })}
-                
-                {onVisualizarItem && (
-                  <td className="px-3 py-2 text-center">
-                    <button
-                      onClick={() => onVisualizarItem(item)}
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                    >
-                      Visualizar
-                    </button>
+                {!compact && (
+                  <td className="px-3 py-4 text-center border-b border-gray-200">
+                    {onVisualizarItem && (
+                      <button
+                        onClick={() => onVisualizarItem(item)}
+                        className="text-blue-600 hover:text-blue-800 p-1"
+                        title="Visualizar item"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    )}
                   </td>
                 )}
               </tr>
@@ -208,18 +220,16 @@ export default function TabelaDinamica({
           </tbody>
         </table>
       </div>
-      
-      {/* Rodapé com informações */}
-      <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-        <div className="flex items-center justify-between text-sm text-gray-600">
-          <span>
-            Total de registros: <span className="font-medium text-gray-900">{dados.length}</span>
-          </span>
-          <span>
-            Campos exibidos: <span className="font-medium text-gray-900">{camposSelecionados.length}</span>
-          </span>
+
+      {/* Footer */}
+      {!compact && (
+        <div className="px-6 py-4 border-t border-gray-200">
+          <div className="flex items-center justify-between text-sm text-gray-600">
+            <span>Total de registros: {dados.length}</span>
+            <span>Campos exibidos: {camposSelecionados.length}</span>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -1,14 +1,11 @@
 import { useState, useEffect } from 'react';
-import { BarChart3, Filter, Download, RefreshCw, Settings } from 'lucide-react';
+import { BarChart3, Filter, RefreshCw, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRelatoriosData, FiltrosType } from '../hooks/useRelatoriosData';
 import { CAMPOS_DISPONIVEIS } from '../utils/campoConfig';
 import CampoSelector from '../components/Relatorios/CampoSelector';
 import FiltroRelatorios from '../components/Relatorios/FiltroRelatorios';
 import TabelaDinamica from '../components/Relatorios/TabelaDinamica';
-import ExportButtons, { ExportInfo } from '../components/Relatorios/ExportButtons';
-import RelatorioPreview from '../components/Relatorios/RelatorioPreview';
-import CampoBuilder from '../components/Relatorios/CampoBuilder';
 
 const getDefaultFiltros = (): FiltrosType => ({
   periodo: { inicio: '', fim: '' },
@@ -101,33 +98,6 @@ export default function Relatorios() {
     }
   };
 
-  const handleSalvarModelo = () => {
-    // TODO: Implementar salvamento de modelo
-    console.log('Salvar modelo em desenvolvimento');
-    setShowCampoSelector(true);
-  };
-
-  const [mensagemInfo, setMensagemInfo] = useState<string>('');
-  const [mensagemSucesso, setMensagemSucesso] = useState<string>('');
-
-  const handleSelecionarObrigatorios = () => {
-    const obrigatorios = Object.values(CAMPOS_DISPONIVEIS)
-      .filter(c => c.obrigatorio)
-      .map(c => c.id);
-    
-    const jaSelecionados = obrigatorios.filter(id => camposSelecionados.includes(id));
-    const faltantes = obrigatorios.filter(id => !camposSelecionados.includes(id));
-    
-    if (faltantes.length === 0) {
-      setMensagemInfo('Todos os campos obrigatórios já estão selecionados');
-      setTimeout(() => setMensagemInfo(''), 3000);
-    } else {
-      faltantes.forEach(id => handleCampoChange(id, true));
-      setMensagemSucesso(`${faltantes.length} campos obrigatórios adicionados`);
-      setTimeout(() => setMensagemSucesso(''), 3000);
-    }
-  };
-
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -173,9 +143,9 @@ export default function Relatorios() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Painel Lateral - Configurações Compactas */}
-        <div className="space-y-4">
+      <div className="space-y-6">
+        {/* Seção Superior - Filtros e Campos Lado a Lado */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Filtros Rápidos */}
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <div className="flex items-center justify-between mb-4">
@@ -273,7 +243,7 @@ export default function Relatorios() {
             </div>
           </div>
 
-          {/* Seleção de Campos Compacta */}
+          {/* Campos */}
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-gray-900">Campos ({camposSelecionados.length})</h3>
@@ -312,19 +282,6 @@ export default function Relatorios() {
                 </>
               )}
 
-              {/* Mensagens de Feedback */}
-              {mensagemInfo && (
-                <div className="bg-blue-50 border border-blue-200 text-blue-700 px-3 py-2 rounded-lg text-sm mb-3">
-                  ℹ️ {mensagemInfo}
-                </div>
-              )}
-              
-              {mensagemSucesso && (
-                <div className="bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded-lg text-sm mb-3">
-                  ✅ {mensagemSucesso}
-                </div>
-              )}
-
               {/* Ações */}
               <div className="flex justify-between pt-2 border-t border-gray-200">
                 <button
@@ -342,87 +299,37 @@ export default function Relatorios() {
               </div>
             </div>
           </div>
-
-          {/* Ações Rápidas */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900">Ações</h3>
-              <RefreshCw className="w-4 h-4 text-gray-600" />
-            </div>
-            
-            <div className="space-y-2">
-              <button
-                onClick={recarregar}
-                disabled={loading}
-                className="w-full px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
-              >
-                {loading ? 'Atualizando...' : 'Atualizar dados'}
-              </button>
-              
-              <button
-                onClick={() => {
-                  handleLimparFiltros();
-                  handleLimparSelecaoCampos();
-                }}
-                className="w-full px-3 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-sm"
-              >
-                Resetar tudo
-              </button>
-            </div>
-          </div>
         </div>
 
-        {/* Área Principal - Dados e Exportação */}
-        <div className="space-y-4">
-          {/* Export Buttons */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Exportação</h3>
-              <Download className="w-5 h-5 text-gray-600" />
-            </div>
-            
-            <div className="space-y-4">
-              <ExportButtons
-                dados={dados}
-                camposSelecionados={camposSelecionados}
-                loading={loading}
-                disabled={!dados.length || !camposSelecionados.length}
-              />
-              
-              <ExportInfo
-                dados={dados}
-                camposSelecionados={camposSelecionados}
-              />
+        {/* Seção Inferior - Resultados 100% */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Resultados</h3>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-500">{dados.length} registros</span>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => handleExportar('csv')}
+                  className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors"
+                  disabled={!dados.length || !camposSelecionados.length}
+                >
+                  CSV
+                </button>
+                <button
+                  onClick={() => handleExportar('excel')}
+                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
+                  disabled={!dados.length || !camposSelecionados.length}
+                >
+                  Excel
+                </button>
+              </div>
             </div>
           </div>
-
-          {/* Tabela Completa (opcional - pode ser removida depois) */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-700">Tabela Completa</h3>
-              <span className="text-xs text-gray-500">Todos os {dados.length} registros</span>
-            </div>
-            <TabelaDinamica
-              dados={dados}
-              camposSelecionados={camposSelecionados}
-              loading={loading}
-              onVisualizarItem={handleVisualizarItem}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Preview Compacto Abaixo das Ações */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="lg:col-span-1">
-          <RelatorioPreview
+          <TabelaDinamica
             dados={dados}
             camposSelecionados={camposSelecionados}
-            filtros={filtros}
             loading={loading}
-            compact={true}
-            onSalvarModelo={handleSalvarModelo}
-            onExportar={handleExportar}
+            onVisualizarItem={handleVisualizarItem}
           />
         </div>
       </div>
@@ -431,7 +338,7 @@ export default function Relatorios() {
       {showAdvancedFilters && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto">
-            <div className="p-6">
+            <div className="p-6 mb-2">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Filtros Avançados</h3>
                 <button
@@ -456,7 +363,7 @@ export default function Relatorios() {
       {showCampoSelector && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto">
-            <div className="p-6">
+            <div className="p-6 mb-2">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Seleção de Campos</h3>
                 <button
@@ -467,10 +374,11 @@ export default function Relatorios() {
                 </button>
               </div>
               
-              <CampoBuilder
+              <CampoSelector
                 camposSelecionados={camposSelecionados}
                 onCampoChange={handleCampoChange}
-                onSelecionarObrigatorios={handleSelecionarObrigatorios}
+                onSelecionarTodos={handleSelecionarTodosCampos}
+                onLimparSelecao={handleLimparSelecaoCampos}
               />
             </div>
           </div>
