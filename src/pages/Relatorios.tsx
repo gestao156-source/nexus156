@@ -336,8 +336,10 @@ export default function Relatorios() {
 
       {/* Seções Expansivas - Filtros Avançados e Seleção de Campos */}
       {showAdvancedFilters && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+             onClick={() => setShowAdvancedFilters(false)}>
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto"
+               onClick={(e) => e.stopPropagation()}>
             <div className="p-6 mb-2">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Filtros Avançados</h3>
@@ -361,8 +363,10 @@ export default function Relatorios() {
       )}
 
       {showCampoSelector && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+             onClick={() => setShowCampoSelector(false)}>
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto"
+               onClick={(e) => e.stopPropagation()}>
             <div className="p-6 mb-2">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Seleção de Campos</h3>
