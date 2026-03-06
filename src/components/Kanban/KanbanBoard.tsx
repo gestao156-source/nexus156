@@ -38,10 +38,19 @@ export default function KanbanBoard({ items, type, onRefresh }: KanbanBoardProps
     loadProfiles();
   }, []);
 
-  // Função para obter nome do responsável
-  const getResponsavelName = (responsavelId: string) => {
-    const profile = profiles.find(p => p.id === responsavelId);
-    return profile?.full_name || responsavelId;
+  // Função para obter nome do responsável (com fallback robusto)
+  const getResponsavelName = (responsavelValue: string) => {
+    // Se for vazio ou nulo, retornar padrão
+    if (!responsavelValue) return 'Não informado';
+    
+    // Se for UUID (formato xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx), tentar buscar nome
+    if (responsavelValue.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      const profile = profiles.find(p => p.id === responsavelValue);
+      if (profile?.full_name) return profile.full_name;
+    }
+    
+    // Se não for UUID ou não encontrar profile, retornar como está (pode ser nome já salvo)
+    return responsavelValue;
   };
 
   const columns: { status: ItemStatus; title: string; color: string }[] = [

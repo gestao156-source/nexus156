@@ -119,7 +119,7 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
         data_contato: hoje,
         data_finalizado: '',
         observacoes: '',
-        responsavel: user?.id || '', // Auto-fill com ID do usuário (mantém compatibilidade)
+        responsavel: user?.user_metadata?.full_name || user?.email || '', // Auto-fill com nome do usuário (em vez de ID)
         ponto_contato: '',
       });
     }
