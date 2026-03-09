@@ -178,6 +178,83 @@ export const CAMPOS_DISPONIVEIS: Record<string, CampoConfig> = {
     accessor: 'role_criador',
     format: (value: string) => value === 'admin' ? 'Administrador' : 'Usuário',
   },
+
+  // Endereço
+  endereco_cep: {
+    id: 'endereco_cep',
+    label: 'CEP',
+    obrigatorio: false,
+    grupo: 'Endereço',
+    accessor: 'endereco_cep',
+  },
+  endereco_rua: {
+    id: 'endereco_rua',
+    label: 'Rua/Avenida',
+    obrigatorio: false,
+    grupo: 'Endereço',
+    accessor: 'endereco_rua',
+  },
+  endereco_numero: {
+    id: 'endereco_numero',
+    label: 'Número',
+    obrigatorio: false,
+    grupo: 'Endereço',
+    accessor: 'endereco_numero',
+  },
+  endereco_bairro: {
+    id: 'endereco_bairro',
+    label: 'Bairro',
+    obrigatorio: false,
+    grupo: 'Endereço',
+    accessor: 'endereco_bairro',
+  },
+  endereco_localidade: {
+    id: 'endereco_localidade',
+    label: 'Localidade/Cidade',
+    obrigatorio: false,
+    grupo: 'Endereço',
+    accessor: 'endereco_localidade',
+  },
+  endereco_complemento: {
+    id: 'endereco_complemento',
+    label: 'Complemento',
+    obrigatorio: false,
+    grupo: 'Endereço',
+    accessor: 'endereco_complemento',
+  },
+  endereco_completo: {
+    id: 'endereco_completo',
+    label: 'Endereço Completo',
+    obrigatorio: false,
+    grupo: 'Endereço',
+    accessor: 'endereco_completo',
+    format: (value: any) => {
+      if (!value || typeof value !== 'object') return '';
+      const partes = [];
+      if (value.endereco_rua) {
+        partes.push(value.endereco_rua);
+        if (value.endereco_numero) partes.push(value.endereco_numero);
+      }
+      if (value.endereco_bairro) partes.push(`- ${value.endereco_bairro}`);
+      if (value.endereco_localidade) partes.push(`, ${value.endereco_localidade}`);
+      if (value.endereco_cep) partes.push(`- CEP: ${value.endereco_cep}`);
+      return partes.join(' ');
+    },
+  },
+  coordenadas: {
+    id: 'coordenadas',
+    label: 'Coordenadas (Lat, Lng)',
+    obrigatorio: false,
+    grupo: 'Endereço',
+    accessor: 'coordenadas',
+    format: (value: any) => {
+      if (!value || typeof value !== 'object') return '';
+      if (value.latitude && value.longitude) {
+        return `${value.latitude.toFixed(6)}, ${value.longitude.toFixed(6)}`;
+      }
+      return '';
+    },
+  },
 };
 
 export const CAMPOS_GRUPOS = [
@@ -185,6 +262,7 @@ export const CAMPOS_GRUPOS = [
   'Datas e Prazos',
   'Cálculos e Métricas',
   'Informações Adicionais',
+  'Endereço',
 ];
 
 export const getCamposPorGrupo = (grupo: string): CampoConfig[] => {

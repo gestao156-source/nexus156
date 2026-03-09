@@ -1,0 +1,121 @@
+/* Estilos CSS para Leaflet Map */
+
+/* Importar estilos base do Leaflet */
+@import 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+
+/* Correções para React + Leaflet */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+}
+
+.leaflet-control-container {
+  font-family: inherit;
+}
+
+/* Ajustes para modal */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+}
+
+.leaflet-popup-content {
+  font-family: inherit;
+  margin: 12px 16px;
+}
+
+/* Zoom controls */
+.leaflet-control-zoom {
+  border: 2px solid rgba(0,0,0,0.2);
+  border-radius: 6px;
+}
+
+.leaflet-control-zoom a {
+  background-color: #fff;
+  color: #333;
+  border-bottom: 1px solid #ccc;
+  font-weight: bold;
+  text-decoration: none;
+  display: block;
+  height: 26px;
+  width: 26px;
+  line-height: 26px;
+  text-align: center;
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: #f4f4f4;
+}
+
+.leaflet-control-zoom a:last-child {
+  border-bottom: none;
+}
+
+/* Marker */
+.leaflet-marker-icon {
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Tooltip */
+.leaflet-tooltip {
+  background: rgba(0,0,0,0.8);
+  border: none;
+  border-radius: 4px;
+  color: white;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+/* Attribution */
+.leaflet-control-attribution {
+  background: rgba(255,255,255,0.8);
+  font-size: 11px;
+  padding: 2px 6px;
+}
+
+/* Scale */
+.leaflet-control-scale {
+  background: rgba(255,255,255,0.8);
+  border: 2px solid rgba(0,0,0,0.2);
+  border-radius: 4px;
+  line-height: 1.1;
+  padding: 2px 5px 1px;
+  font-size: 11px;
+}
+
+/* Loading spinner */
+.leaflet-container.loading {
+  position: relative;
+}
+
+.leaflet-container.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  z-index: 1000;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .leaflet-control-zoom {
+    zoom: 0.8;
+  }
+  
+  .leaflet-control-attribution {
+    font-size: 10px;
+  }
+}

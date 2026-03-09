@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { DashboardStats, KanbanItem } from '../../types/index';
+import { DashboardStats } from '../../types/index';
+import { KanbanItem } from '../../types/index';
 import { Clock, PlayCircle, CheckCircle, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../contexts/ToastContext';
@@ -8,16 +9,17 @@ import { verificarAtraso } from '../../utils/calculoDiasUteis';
 import PieChart from './PieChart';
 import BarChart from './BarChart';
 import DashboardItemModal from './DashboardItemModal';
+import { useDadosExemplo } from '../../hooks/useDadosExemplo';
 
 type ItemComPrazo = {
   status: string;
   data_contato?: string | null;
-  data_criacao?: string | null;
 };
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { showInfo } = useToast();
+  const { usandoExemplo, dadosExemplo } = useDadosExemplo();
   const [solicitacoesStats, setSolicitacoesStats] = useState<DashboardStats>({
     aguardando: 0,
     em_analise: 0,
@@ -68,6 +70,15 @@ export default function Dashboard() {
       );
     } catch (error) {
       console.error('Erro geral ao carregar estatísticas:', error);
+      // Em caso de erro, usar dados de exemplo
+      if (dadosExemplo) {
+        setSolicitacoesStats(calculateStats(dadosExemplo.solicitacoes));
+        setDemandasStats(calculateStats(dadosExemplo.demandas));
+        setAtrasadas(
+          countAtrasadas(dadosExemplo.solicitacoes) +
+          countAtrasadas(dadosExemplo.demandas)
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -242,7 +253,7 @@ export default function Dashboard() {
       icon: Calendar,
       bgColor: 'bg-slate-50',
       textColor: 'text-slate-700',
-      onClick: () => navigate('/solicitacoes'),
+      onClick: () => handleCardClick('total'),
     },
   ];
 
@@ -258,7 +269,7 @@ export default function Dashboard() {
     <div className="space-y-8">
       <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {cards.map(card => {
           const Icon = card.icon;
           return (

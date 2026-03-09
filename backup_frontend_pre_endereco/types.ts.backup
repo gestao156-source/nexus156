@@ -27,16 +27,6 @@ export interface KanbanItem {
   updated_at: string;
   created_by_user_name?: string;
   created_by_user_email?: string;
-  
-  // Campos de endereço (opcionais - compatível)
-  endereco_rua?: string;
-  endereco_numero?: string;
-  endereco_bairro?: string;
-  endereco_localidade?: string;
-  endereco_cep?: string;
-  endereco_complemento?: string;
-  latitude?: number;
-  longitude?: number;
 }
 
 export interface DashboardStats {
