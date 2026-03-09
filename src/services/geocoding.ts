@@ -21,6 +21,7 @@ export interface EnderecoCompleto {
   numero: string;
   bairro: string;
   localidade: string;
+  uf: string;
   complemento: string;
   latitude?: number;
   longitude?: number;
@@ -75,49 +76,140 @@ export class GeocodingService {
         return null;
       }
 
+      console.log('🔍 Buscando coordenadas para:', endereco);
+
       // Verificar cache
       const cacheKey = endereco.toLowerCase().trim();
       if (this.coordenadasCache.has(cacheKey)) {
+        console.log('✅ Coordenadas encontradas no cache');
         return this.coordenadasCache.get(cacheKey)!;
       }
 
-      const query = `${endereco}, Brasil`;
+      // Estratégia de busca múltipla com fallback
+      const buscas = this.gerarVariacoesBusca(endereco);
+      
+      for (const query of buscas) {
+        console.log('🔍 Tentando busca com:', query);
+        
+        const coords = await this.buscarCoordenadasSingle(query);
+        if (coords) {
+          // Salvar no cache com a chave original
+          this.coordenadasCache.set(cacheKey, coords);
+          console.log('✅ Coordenadas encontradas:', coords);
+          return coords;
+        }
+      }
+
+      console.log('❌ Nenhuma variação encontrou coordenadas para:', endereco);
+      return null;
+    } catch (error) {
+      console.error('❌ Erro ao buscar coordenadas:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Gera variações de busca para aumentar chances de sucesso
+   */
+  private static gerarVariacoesBusca(endereco: string): string[] {
+    const partes = endereco.split(',').map(p => p.trim());
+    const [rua, numero, bairro, cidade, uf, pais] = partes;
+    
+    const variacoes = [];
+    
+    // 1. Busca completa (prioridade máxima - mais precisa)
+    variacoes.push(endereco);
+    
+    // 2. Sem número (se busca completa falhar)
+    if (numero) {
+      variacoes.push(`${rua}, ${bairro}, ${cidade}, ${uf}, ${pais}`);
+    }
+    
+    // 3. Apenas rua + cidade
+    variacoes.push(`${rua}, ${cidade}, ${uf}, ${pais}`);
+    
+    // 4. Rua + bairro + cidade
+    if (bairro) {
+      variacoes.push(`${rua}, ${bairro}, ${cidade}, ${uf}, ${pais}`);
+    }
+    
+    // 5. Bairro + cidade (fallback)
+    if (bairro) {
+      variacoes.push(`${bairro}, ${cidade}, ${uf}, ${pais}`);
+    }
+    
+    // 6. Apenas cidade (último recurso)
+    variacoes.push(`${cidade}, ${uf}, ${pais}`);
+    
+    // Remover duplicatas e limitar a 6 tentativas
+    return [...new Set(variacoes)].slice(0, 6);
+  }
+
+  /**
+   * Busca coordenadas para uma única query
+   */
+  private static async buscarCoordenadasSingle(query: string): Promise<Coordenadas | null> {
+    try {
+      // Tentar apenas Nominatim (OpenCage removido para evitar erros 401)
+      const coords = await this.buscarNominatim(query);
+      if (coords) {
+        return coords;
+      }
+
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Busca usando Nominatim API
+   */
+  private static async buscarNominatim(query: string): Promise<Coordenadas | null> {
+    try {
       const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
 
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'Nexus156 Sistema Gerenciamento'
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 segundos
+
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent': 'Nexus156 Sistema Gerenciamento'
+          },
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          return null;
         }
-      });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
+        const data = await response.json();
 
-      const data = await response.json();
+        if (data.length === 0) {
+          return null;
+        }
 
-      if (data.length === 0) {
+        const coords: Coordenadas = {
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon)
+        };
+
+        // Validar coordenadas
+        if (isNaN(coords.lat) || isNaN(coords.lng) || 
+            coords.lat < -90 || coords.lat > 90 || 
+            coords.lng < -180 || coords.lng > 180) {
+          return null;
+        }
+
+        return coords;
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
         return null;
       }
-
-      const coords: Coordenadas = {
-        lat: parseFloat(data[0].lat),
-        lng: parseFloat(data[0].lon)
-      };
-
-      // Validar coordenadas
-      if (isNaN(coords.lat) || isNaN(coords.lng) || 
-          coords.lat < -90 || coords.lat > 90 || 
-          coords.lng < -180 || coords.lng > 180) {
-        return null;
-      }
-
-      // Salvar no cache
-      this.coordenadasCache.set(cacheKey, coords);
-
-      return coords;
     } catch (error) {
-      console.error('Erro ao buscar coordenadas:', error);
       return null;
     }
   }
@@ -176,6 +268,10 @@ export class GeocodingService {
     if (endereco.numero) partes.push(endereco.numero);
     if (endereco.bairro) partes.push(endereco.bairro);
     if (endereco.localidade) partes.push(endereco.localidade);
+    if (endereco.uf) partes.push(endereco.uf);
+
+    // Adicionar "Brasil" para melhor precisão
+    partes.push('Brasil');
 
     return partes.join(', ');
   }
@@ -242,22 +338,24 @@ export class GeocodingService {
         return null;
       }
 
-      // 2. Montar endereço para buscar coordenadas
-      const enderecoParaBusca = `${dadosCEP.logradouro}, ${numero || ''}, ${dadosCEP.bairro}, ${dadosCEP.localidade}, ${dadosCEP.uf}`;
-
-      // 3. Buscar coordenadas
-      const coords = await this.buscarCoordenadas(enderecoParaBusca);
-
+      // 2. Montar endereço completo
       const enderecoCompleto: EnderecoCompleto = {
         cep: dadosCEP.cep,
         rua: dadosCEP.logradouro,
         numero: numero || '',
         bairro: dadosCEP.bairro,
         localidade: dadosCEP.localidade,
-        complemento: dadosCEP.complemento || '',
-        latitude: coords?.lat,
-        longitude: coords?.lng
+        uf: dadosCEP.uf || 'CE', // Default para CE se não especificado
+        complemento: ''
       };
+
+      // 3. Buscar coordenadas
+      const enderecoParaBusca = this.formatarEnderecoParaBusca(enderecoCompleto);
+      const coords = await this.buscarCoordenadas(enderecoParaBusca);
+
+      // 4. Adicionar coordenadas ao endereço
+      enderecoCompleto.latitude = coords?.lat;
+      enderecoCompleto.longitude = coords?.lng;
 
       return enderecoCompleto;
     } catch (error) {
@@ -272,6 +370,16 @@ export class GeocodingService {
   static limparCache(): void {
     this.coordenadasCache.clear();
     this.enderecoCache.clear();
+    console.log('🗑️ Cache de geocoding limpo');
+  }
+
+  /**
+   * Limpar cache de coordenadas específicas
+   */
+  static limparCacheCoordenadas(endereco: string): void {
+    const cacheKey = endereco.toLowerCase().trim();
+    this.coordenadasCache.delete(cacheKey);
+    console.log('🗑️ Cache removido para:', endereco);
   }
 
   /**

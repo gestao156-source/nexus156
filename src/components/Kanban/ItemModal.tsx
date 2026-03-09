@@ -16,6 +16,9 @@ interface Item {
   observacoes: string;
   responsavel: string;
   ponto_contato: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
   // Campos de endereço
   endereco_rua?: string;
   endereco_numero?: string;
@@ -25,6 +28,8 @@ interface Item {
   endereco_complemento?: string;
   latitude?: number;
   longitude?: number;
+  endereco_latitude?: number;
+  endereco_longitude?: number;
 }
 
 interface ItemModalProps {
@@ -99,15 +104,19 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
     // Carregar assuntos e pontos de contato do Supabase
     const loadData = async () => {
       try {
+        console.log('🔍 Carregando assuntos e pontos de contato...');
         const [assuntosResult, pontosResult] = await Promise.all([
           supabase.from('assuntos_padrao').select('*').order('nome'),
           supabase.from('pontos_contato').select('*').order('nome')
         ]);
         
+        console.log('✅ Assuntos carregados:', assuntosResult.data?.length || 0, assuntosResult.error);
+        console.log('✅ Pontos de contato carregados:', pontosResult.data?.length || 0, pontosResult.error);
+        
         setAssuntos(assuntosResult.data || []);
         setPontosContato(pontosResult.data || []);
       } catch (error) {
-        console.error('Erro ao carregar dados:', error);
+        console.error('❌ Erro ao carregar dados:', error);
       }
     };
 
@@ -133,8 +142,8 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
         endereco_localidade: item.endereco_localidade || '',
         endereco_cep: item.endereco_cep || '',
         endereco_complemento: item.endereco_complemento || '',
-        latitude: item.latitude,
-        longitude: item.longitude,
+        latitude: item.endereco_latitude,
+        longitude: item.endereco_longitude,
       });
     } else {
       // Criando novo item - responsável e datas automáticas
@@ -190,8 +199,8 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
         endereco_localidade: formData.endereco_localidade || null,
         endereco_cep: formData.endereco_cep || null,
         endereco_complemento: formData.endereco_complemento || null,
-        latitude: formData.latitude || null,
-        longitude: formData.longitude || null,
+        endereco_latitude: formData.latitude || null,
+        endereco_longitude: formData.longitude || null,
       };
 
       // UPDATE (sem user_id)

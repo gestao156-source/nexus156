@@ -37,10 +37,87 @@ export interface KanbanItem {
   endereco_complemento?: string;
   latitude?: number;
   longitude?: number;
+  endereco_latitude?: number;
+  endereco_longitude?: number;
 }
 
 export interface DashboardStats {
   aguardando: number;
   em_analise: number;
   finalizado: number;
+}
+
+// Tipos para o Mapa Interativo
+export interface MapaFilters {
+  status: string[];
+  tipo: string;
+  periodo: { inicio: Date; fim: Date };
+  regional: number;
+  apenasComCoordenadas: boolean;
+  ordenarPor: string;
+  ordem: string;
+}
+
+export interface MapaItem {
+  id: string;
+  tipo: 'solicitacao' | 'demanda';
+  assunto: string;
+  protocolo: string;
+  status: string;
+  responsavel: string;
+  ponto_contato: string;
+  endereco_rua: string;
+  endereco_numero: string;
+  endereco_bairro: string;
+  endereco_complemento: string;
+  endereco_cep: string;
+  endereco_cidade: string;
+  endereco_uf: string;
+  endereco_latitude?: number;
+  endereco_longitude?: number;
+  endereco_regional: number;
+  endereco_geocoding_status: 'pendente' | 'sucesso' | 'falha' | 'manual';
+  endereco_validado: boolean;
+  possui_coordenadas: boolean;
+  usuario_nome: string;
+  usuario_email: string;
+  created_at: string;
+  data_inicio?: string;
+  data_contato?: string;
+  data_finalizado?: string;
+}
+
+export interface MapaStats {
+  total: number;
+  comCoordenadas: number;
+  semCoordenadas: number;
+  porRegional: Record<number, number>;
+  porStatus: Record<string, number>;
+  ultimoUpdate: Date;
+}
+
+export interface RegionalConfig {
+  id: number;
+  nome: string;
+  territorios: { [key: number]: string[] };
+  bairros: string[];
+  coordenadas_centrais: { lat: number; lng: number };
+  cor: string;
+  limite_pins: number;
+}
+
+export interface Coordenadas {
+  lat: number;
+  lng: number;
+}
+
+export interface EnderecoCompleto {
+  cep: string;
+  rua: string;
+  numero: string;
+  bairro: string;
+  localidade: string;
+  complemento: string;
+  latitude?: number;
+  longitude?: number;
 }

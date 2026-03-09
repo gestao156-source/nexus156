@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { DashboardStats, KanbanItem } from '../../types/index';
-import { Clock, PlayCircle, CheckCircle, Calendar } from 'lucide-react';
+import { Clock, PlayCircle, CheckCircle, Calendar, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../contexts/ToastContext';
 import { verificarAtraso } from '../../utils/calculoDiasUteis';
@@ -235,6 +235,14 @@ export default function Dashboard() {
       bgColor: 'bg-green-50',
       textColor: 'text-green-700',
       onClick: () => handleCardClick('finalizados'),
+    },
+    {
+      title: 'Mapa Interativo',
+      value: 'Ver no Mapa',
+      icon: MapPin,
+      bgColor: 'bg-purple-50',
+      textColor: 'text-purple-700',
+      onClick: () => navigate('/mapa-fortaleza'),
     },
     {
       title: 'Total Geral',

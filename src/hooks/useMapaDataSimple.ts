@@ -1,0 +1,163 @@
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '../lib/supabase';
+import { MapaFilters, MapaItem, MapaStats } from '../types';
+
+export function useMapaDataSimple(initialFilters: MapaFilters) {
+  const [dados, setDados] = useState<MapaItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState<MapaStats>({
+    total: 0,
+    comCoordenadas: 0,
+    semCoordenadas: 0,
+    porRegional: {},
+    porStatus: {},
+    ultimoUpdate: new Date()
+  });
+
+  // Função super simples - busca direto das tabelas
+  const fetchDadosSimples = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Buscar diretamente das tabelas (só colunas que existem)
+      const { data: solicitacoes, error: errorSol } = await supabase
+        .from('solicitacoes')
+        .select(`
+          id, assunto, protocolo, status, created_at, data_inicio, 
+          data_contato, data_finalizado, observacoes, user_id,
+          endereco_rua, endereco_numero, endereco_bairro, endereco_localidade,
+          endereco_cep, endereco_complemento, endereco_latitude, endereco_longitude,
+          profiles!inner (full_name, email)
+        `)
+        .limit(50);
+
+      if (errorSol) {
+        throw errorSol;
+      }
+
+      // Buscar demandas
+      const { data: demandas, error: errorDem } = await supabase
+        .from('demandas')
+        .select(`
+          id, assunto, protocolo, status, created_at, data_inicio, 
+          data_contato, data_finalizado, observacoes, user_id,
+          endereco_rua, endereco_numero, endereco_bairro, endereco_localidade,
+          endereco_cep, endereco_complemento, endereco_latitude, endereco_longitude,
+          profiles!inner (full_name, email)
+        `)
+        .limit(50);
+
+      if (errorDem) {
+        throw errorDem;
+      }
+
+      // Transformar dados para o formato esperado
+      const transformarItem = (item: any, tipo: 'solicitacao' | 'demanda'): MapaItem => {
+        const possuiCoords = !!(item.endereco_latitude && item.endereco_longitude);
+        
+        console.log(`🔍 Item ${tipo} ${item.id}:`, {
+          possui_coordenadas: possuiCoords,
+          latitude: item.endereco_latitude,
+          longitude: item.endereco_longitude,
+          endereco_rua: item.endereco_rua
+        });
+        
+        return {
+          tipo,
+          id: item.id,
+          assunto: item.assunto || 'Sem assunto',
+          protocolo: item.protocolo || 'N/A',
+          status: item.status || 'desconhecido',
+          responsavel: 'Não definido', // Campo não existe na tabela original
+          ponto_contato: '', // Campo não existe na tabela original
+          created_at: item.created_at || new Date().toISOString(),
+          data_inicio: item.data_inicio,
+          data_contato: item.data_contato,
+          data_finalizado: item.data_finalizado,
+          endereco_rua: item.endereco_rua || '',
+          endereco_numero: item.endereco_numero || '',
+          endereco_bairro: item.endereco_bairro || '',
+          endereco_complemento: item.endereco_complemento || '',
+          endereco_cep: item.endereco_cep || '',
+          endereco_cidade: item.endereco_localidade || 'Fortaleza',
+          endereco_uf: 'CE',
+          endereco_latitude: item.endereco_latitude,
+          endereco_longitude: item.endereco_longitude,
+          endereco_regional: 0,
+          endereco_geocoding_status: possuiCoords ? 'sucesso' : 'pendente',
+          endereco_validado: possuiCoords,
+          possui_coordenadas: possuiCoords,
+          usuario_nome: item.profiles?.full_name || 'Anônimo',
+          usuario_email: item.profiles?.email || ''
+        };
+      };
+
+      const solicitacoesFormatadas = (solicitacoes || []).map(item => transformarItem(item, 'solicitacao'));
+      const demandasFormatadas = (demandas || []).map(item => transformarItem(item, 'demanda'));
+
+      const todosDados = [...solicitacoesFormatadas, ...demandasFormatadas];
+      
+      console.log('🔍 Dados totais:', todosDados.length);
+      console.log('📍 Com coordenadas:', todosDados.filter(d => d.possui_coordenadas).length);
+      console.log('❌ Sem coordenadas:', todosDados.filter(d => !d.possui_coordenadas).length);
+      
+      // Aplicar filtro de coordenadas se necessário
+      const dadosFiltrados = initialFilters.apenasComCoordenadas 
+        ? todosDados.filter(d => d.possui_coordenadas)
+        : todosDados;
+      
+      console.log('🗺️ Dados para o mapa (filtrados):', dadosFiltrados.length);
+      console.log('📍 Itens com coordenadas:', dadosFiltrados.map(d => ({
+        id: d.id,
+        tipo: d.tipo,
+        possui_coordenadas: d.possui_coordenadas,
+        lat: d.endereco_latitude,
+        lng: d.endereco_longitude
+      })));
+      
+      setDados(dadosFiltrados);
+
+      // Calcular estatísticas (baseado nos dados totais, não filtrados)
+      const statsCalculadas: MapaStats = {
+        total: todosDados.length,
+        comCoordenadas: todosDados.filter(d => d.possui_coordenadas).length,
+        semCoordenadas: todosDados.filter(d => !d.possui_coordenadas).length,
+        porRegional: todosDados.reduce((acc, item) => {
+          acc[item.endereco_regional] = (acc[item.endereco_regional] || 0) + 1;
+          return acc;
+        }, {} as Record<number, number>),
+        porStatus: todosDados.reduce((acc, item) => {
+          acc[item.status] = (acc[item.status] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>),
+        ultimoUpdate: new Date()
+      };
+
+      setStats(statsCalculadas);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Carregar dados iniciais
+  useEffect(() => {
+    fetchDadosSimples();
+  }, [fetchDadosSimples]);
+
+  return {
+    dados,
+    loading,
+    error,
+    stats,
+    refetch: fetchDadosSimples,
+    carregarMais: () => fetchDadosSimples(),
+    geocodificarEndereco: async (item: MapaItem) => {
+      // Geocoding não implementado na versão simples
+    }
+  };
+}
