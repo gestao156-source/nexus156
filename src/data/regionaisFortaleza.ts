@@ -1,0 +1,218 @@
+export interface RegionalConfig {
+  id: number;
+  nome: string;
+  territorios: { [key: number]: string[] };
+  bairros: string[];
+  coordenadas_centrais: { lat: number; lng: number };
+  cor: string;
+  limite_pins: number;
+}
+
+export const REGIONAIS_FORTALEZA: RegionalConfig[] = [
+  {
+    id: 1,
+    nome: 'Regional 1',
+    territorios: {
+      2: ['Vila Velha', 'Jardim Guanabara'],
+      3: ['Barra do Ceará'],
+      4: ['Cristo Redentor', 'Pirambu'],
+      5: ['Carlito Pamplona', 'Jacarecanga'],
+      6: ['Jardim Iracema', 'Floresta', 'Álvaro Weyne']
+    },
+    bairros: [
+      'Vila Velha', 'Jardim Guanabara', 'Barra do Ceará', 
+      'Cristo Redentor', 'Pirambu', 'Carlito Pamplona', 
+      'Jacarecanga', 'Jardim Iracema', 'Floresta', 'Álvaro Weyne'
+    ],
+    coordenadas_centrais: { lat: -3.7319, lng: -38.5267 },
+    cor: '#FF6B6B',
+    limite_pins: 200
+  },
+  {
+    id: 2,
+    nome: 'Regional 2',
+    territorios: {
+      7: ['Meireles', 'Aldeota'],
+      8: ['Varjota', 'Papicu', 'De Lourdes'],
+      9: ['Cais do Porto', 'Mucuripe', 'Vicente Pinzón'],
+      10: ['Joaquim Távora', 'Dionísio Torres', 'São João do Tauape']
+    },
+    bairros: [
+      'Meireles', 'Aldeota', 'Varjota', 'Papicu', 'De Lourdes',
+      'Cais do Porto', 'Mucuripe', 'Vicente Pinzón',
+      'Joaquim Távora', 'Dionísio Torres', 'São João do Tauape'
+    ],
+    coordenadas_centrais: { lat: -3.7325, lng: -38.5023 },
+    cor: '#4ECDC4',
+    limite_pins: 200
+  },
+  {
+    id: 3,
+    nome: 'Regional 3',
+    territorios: {
+      11: ['Quintino Cunha', 'Olavo Oliveira', 'Antônio Bezerra'],
+      12: ['Padre Andrade', 'Presidente Kennedy'],
+      13: ['Vila Ellery', 'Monte Castelo', 'São Gerardo', 'Farias Brito'],
+      14: ['Parque Araxá', 'Parquelândia', 'Amadeu Furtado', 'Rodolfo Teófilo']
+    },
+    bairros: [
+      'Quintino Cunha', 'Olavo Oliveira', 'Antônio Bezerra',
+      'Padre Andrade', 'Presidente Kennedy', 'Vila Ellery',
+      'Monte Castelo', 'São Gerardo', 'Farias Brito',
+      'Parque Araxá', 'Parquelândia', 'Amadeu Furtado', 'Rodolfo Teófilo'
+    ],
+    coordenadas_centrais: { lat: -3.7452, lng: -38.5435 },
+    cor: '#45B7D1',
+    limite_pins: 200
+  },
+  {
+    id: 4,
+    nome: 'Regional 4',
+    territorios: {
+      15: ['José Bonifácio', 'Benfica', 'Fátima'],
+      16: ['Damas', 'Jardim América', 'Bom Futuro', 'Montese'],
+      17: ['Itaoca', 'Parangaba', 'Vila Peri'],
+      18: ['Parreão', 'Vila União', 'Aeroporto']
+    },
+    bairros: [
+      'José Bonifácio', 'Benfica', 'Fátima', 'Damas',
+      'Jardim América', 'Bom Futuro', 'Montese', 'Itaoca',
+      'Parangaba', 'Vila Peri', 'Parreão', 'Vila União', 'Aeroporto'
+    ],
+    coordenadas_centrais: { lat: -3.7748, lng: -38.5496 },
+    cor: '#96CEB4',
+    limite_pins: 200
+  },
+  {
+    id: 5,
+    nome: 'Regional 5',
+    territorios: {
+      39: ['Granja Lisboa', 'Granja Portugal', 'Bom Jardim', 'Siqueira', 'Bonsucesso']
+    },
+    bairros: [
+      'Granja Lisboa', 'Granja Portugal', 'Bom Jardim', 'Siqueira', 'Bonsucesso'
+    ],
+    coordenadas_centrais: { lat: -3.8034, lng: -38.6039 },
+    cor: '#FFEAA7',
+    limite_pins: 200
+  },
+  {
+    id: 6,
+    nome: 'Regional 6',
+    territorios: {
+      26: ['Alto da Balança', 'Aerolândia'],
+      27: ['Jardim das Oliveiras', 'Cidade dos Funcionários', 'Parque Manibura'],
+      28: ['Parque Iracema', 'Cambeba', 'Messejana'],
+      29: ['José de Alencar', 'Curió', 'Guajeru', 'Lagoa Redonda'],
+      30: ['Coaçu', 'São Bento', 'Paupina']
+    },
+    bairros: [
+      'Alto da Balança', 'Aerolândia', 'Jardim das Oliveiras',
+      'Cidade dos Funcionários', 'Parque Manibura', 'Parque Iracema',
+      'Cambeba', 'Messejana', 'José de Alencar', 'Curió',
+      'Guajeru', 'Lagoa Redonda', 'Coaçu', 'São Bento', 'Paupina'
+    ],
+    coordenadas_centrais: { lat: -3.8341, lng: -38.5175 },
+    cor: '#DDA0DD',
+    limite_pins: 200
+  },
+  {
+    id: 7,
+    nome: 'Regional 7',
+    territorios: {
+      22: ['Praia do Futuro I', 'Praia do Futuro II'],
+      23: ['Cocó', 'Cidade 2000', 'Manuel Dias Branco'],
+      24: ['Salinas', 'Guararapes', 'Luciano Cavalcante'],
+      25: ['Edson Queiroz', 'Sapiranga', 'Coité', 'Sabiaguaba']
+    },
+    bairros: [
+      'Praia do Futuro I', 'Praia do Futuro II', 'Cocó',
+      'Cidade 2000', 'Manuel Dias Branco', 'Salinas',
+      'Guararapes', 'Luciano Cavalcante', 'Edson Queiroz',
+      'Sapiranga', 'Coité', 'Sabiaguaba'
+    ],
+    coordenadas_centrais: { lat: -3.7624, lng: -38.4123 },
+    cor: '#98D8C8',
+    limite_pins: 200
+  },
+  {
+    id: 8,
+    nome: 'Regional 8',
+    territorios: {
+      19: ['Serrinha', 'Itaperi', 'Dendê'],
+      20: ['Dias Macêdo', 'Boa Vista', 'Parque Dois Irmãos', 'Passaré'],
+      21: ['Planalto Ayrton Senna', 'Prefeito José Walter']
+    },
+    bairros: [
+      'Serrinha', 'Itaperi', 'Dendê', 'Dias Macêdo',
+      'Boa Vista', 'Parque Dois Irmãos', 'Passaré',
+      'Planalto Ayrton Senna', 'Prefeito José Walter'
+    ],
+    coordenadas_centrais: { lat: -3.7849, lng: -38.5479 },
+    cor: '#F7DC6F',
+    limite_pins: 200
+  },
+  {
+    id: 9,
+    nome: 'Regional 9',
+    territorios: {
+      31: ['Cajazeiras', 'Barroso'],
+      32: ['Conjunto Palmeiras', 'Jangurussu'],
+      33: ['Parque Santa Maria', 'Ancuri', 'Pedras']
+    },
+    bairros: [
+      'Cajazeiras', 'Barroso', 'Conjunto Palmeiras',
+      'Jangurussu', 'Parque Santa Maria', 'Ancuri', 'Pedras'
+    ],
+    coordenadas_centrais: { lat: -3.8178, lng: -38.4987 },
+    cor: '#BB8FCE',
+    limite_pins: 200
+  },
+  {
+    id: 10,
+    nome: 'Regional 10',
+    territorios: {
+      34: ['Parque São José', 'Novo Mondubim', 'Canindezinho', 'Conjunto Esperança', 'Parque Santa Rosa', 'Parque Presidente Vargas', 'Aracapé'],
+      35: ['Maraponga', 'Jardim Cearense', 'Mondubim', 'Vila Manoel Sátiro']
+    },
+    bairros: [
+      'Parque São José', 'Novo Mondubim', 'Canindezinho',
+      'Conjunto Esperança', 'Parque Santa Rosa', 'Parque Presidente Vargas',
+      'Aracapé', 'Maraponga', 'Jardim Cearense', 'Mondubim', 'Vila Manoel Sátiro'
+    ],
+    coordenadas_centrais: { lat: -3.8415, lng: -38.5634 },
+    cor: '#85C1E9',
+    limite_pins: 200
+  },
+  {
+    id: 11,
+    nome: 'Regional 11',
+    territorios: {
+      36: ['Pici', 'Bela Vista', 'Panamericano', 'Couto Fernandes', 'Demócrito Rocha'],
+      37: ['Autran Nunes', 'Dom Lustosa', 'Henrique Jorge', 'Jóquei Clube', 'João XXIII'],
+      38: ['Genibaú', 'Conjunto Ceará I', 'Conjunto Ceará II']
+    },
+    bairros: [
+      'Pici', 'Bela Vista', 'Panamericano', 'Couto Fernandes',
+      'Demócrito Rocha', 'Autran Nunes', 'Dom Lustosa',
+      'Henrique Jorge', 'Jóquei Clube', 'João XXIII',
+      'Genibaú', 'Conjunto Ceará I', 'Conjunto Ceará II'
+    ],
+    coordenadas_centrais: { lat: -3.7356, lng: -38.5112 },
+    cor: '#F8B739',
+    limite_pins: 200
+  },
+  {
+    id: 12,
+    nome: 'Regional 12',
+    territorios: {
+      1: ['Centro', 'Moura Brasil', 'Praia de Iracema']
+    },
+    bairros: [
+      'Centro', 'Moura Brasil', 'Praia de Iracema'
+    ],
+    coordenadas_centrais: { lat: -3.7317, lng: -38.5267 },
+    cor: '#52B788',
+    limite_pins: 200
+  }
+];
