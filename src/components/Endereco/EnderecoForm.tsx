@@ -4,11 +4,10 @@ import { Icon } from 'leaflet';
 import { MapPin, Search, Loader2, X } from 'lucide-react';
 import { GeocodingService, EnderecoCompleto, Coordenadas } from '../../services/geocoding';
 
-// Fix para problema de ícones do Leaflet
-delete (Icon.Default.prototype as any)._getIconUrl;
-Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+// Criar ícone personalizado explícito
+const customIcon = new Icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
@@ -79,6 +78,7 @@ const MapaInterativo = ({
         {coordenada && (
           <Marker
             position={[coordenada.lat, coordenada.lng]}
+            icon={customIcon}
           />
         )}
       </MapContainer>

@@ -3,12 +3,15 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaf
 import { Icon, LatLngBounds } from 'leaflet';
 import { MapaItem } from '../../types';
 
-// Fix para ícones do Leaflet
-delete (Icon.Default.prototype as any)._getIconUrl;
-Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+// Criar ícone personalizado explícito (idêntico ao do EnderecoForm)
+const customIcon = new Icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
 });
 
 interface MapaInterativoProps {
@@ -69,31 +72,6 @@ export default function MapaInterativo({
     return dadosComCoordenadas.length > 200 && clusteringEnabled;
   }, [dados, clusteringEnabled]);
 
-  // Ícones responsivos
-  const getIcon = (status: string, tipo: string) => {
-    const tamanho = isMobile ? 30 : 40;
-    const cores: Record<string, string> = {
-      aguardando: '#F59E0B',
-      em_analise: '#3B82F6',
-      finalizado: '#10B981'
-    };
-
-    return new Icon({
-      iconUrl: `data:image/svg+xml;base64,${btoa(`
-        <svg width="${tamanho}" height="${tamanho * 1.6}" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
-          <path fill="${cores[status] || '#6B7280'}" d="M12.5 0C5.6 0 0 5.6 0 12.5S5.6 25 12.5 25 25 19.4 25 12.5 19.4 12.5 25z"/>
-          <circle fill="white" cx="12.5" cy="12.5" r="${tamanho/8}"/>
-          <text x="12.5" y="12.5" text-anchor="middle" dy="3" fill="white" font-size="${tamanho/10}" font-weight="bold">
-            ${tipo === 'solicitacao' ? 'S' : 'D'}
-          </text>
-        </svg>
-      `)}`,
-      iconSize: [tamanho, tamanho * 1.6],
-      iconAnchor: [tamanho/2, tamanho * 1.6],
-      popupAnchor: [1, -tamanho * 1.4],
-    });
-  };
-
   // Renderizar marcadores
   const marcadores = useMemo(() => {
     const dadosFiltrados = dados.filter(item => item.possui_coordenadas);
@@ -104,7 +82,7 @@ export default function MapaInterativo({
         <Marker
           key={item.id}
           position={[item.endereco_latitude!, item.endereco_longitude!]}
-          icon={getIcon(item.status, item.tipo)}
+          icon={customIcon}
           eventHandlers={{
             click: () => onItemSelect(item)
           }}
@@ -120,7 +98,7 @@ export default function MapaInterativo({
       <Marker
         key={item.id}
         position={[item.endereco_latitude!, item.endereco_longitude!]}
-        icon={getIcon(item.status, item.tipo)}
+        icon={customIcon}
         eventHandlers={{
           click: () => onItemSelect(item)
         }}
