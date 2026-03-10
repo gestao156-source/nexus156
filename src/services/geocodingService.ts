@@ -89,14 +89,8 @@ export async function atualizarCoordenadasSolicitacao(
     endereco_rua: rua,
     endereco_numero: numero,
     endereco_bairro: bairro,
-    endereco_cidade: 'Fortaleza',
-    endereco_uf: 'CE',
     endereco_latitude: resultado.latitude,
-    endereco_longitude: resultado.longitude,
-    endereco_regional: resultado.regional,
-    endereco_geocoding_status: resultado.status,
-    endereco_geocoding_last_attempt: new Date().toISOString(),
-    endereco_validado: resultado.status === 'sucesso'
+    endereco_longitude: resultado.longitude
   };
   
   const { error } = await supabase
@@ -124,14 +118,8 @@ export async function atualizarCoordenadasDemanda(
     endereco_rua: rua,
     endereco_numero: numero,
     endereco_bairro: bairro,
-    endereco_cidade: 'Fortaleza',
-    endereco_uf: 'CE',
     endereco_latitude: resultado.latitude,
-    endereco_longitude: resultado.longitude,
-    endereco_regional: resultado.regional,
-    endereco_geocoding_status: resultado.status,
-    endereco_geocoding_last_attempt: new Date().toISOString(),
-    endereco_validado: resultado.status === 'sucesso'
+    endereco_longitude: resultado.longitude
   };
   
   const { error } = await supabase

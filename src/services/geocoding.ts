@@ -222,6 +222,17 @@ export class GeocodingService {
   }
 
   /**
+   * Extrai número da regional (ex: "Regional 4" -> 4)
+   */
+  static extrairNumeroRegional(regional: string): number {
+    if (!regional) return 0;
+    
+    // Extrair número da regional (ex: "Regional 4" -> 4)
+    const match = regional.match(/Regional (\d+)/);
+    return match ? parseInt(match[1]) : 0;
+  }
+
+  /**
    * Busca endereço pelo CEP usando API ViaCEP
    */
   static async buscarPorCEP(cep: string): Promise<EnderecoViaCEP | null> {

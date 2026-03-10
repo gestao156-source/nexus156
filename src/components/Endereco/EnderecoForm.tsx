@@ -133,7 +133,6 @@ export default function EnderecoForm({
 
       // Atualizar campos do endereço
       const regional = GeocodingService.buscarRegionalPorBairro(dadosCEP.bairro || '');
-      console.log('🔍 Bairro:', dadosCEP.bairro, '-> Regional:', regional);
       
       const novoEndereco = {
         ...value,
@@ -145,8 +144,6 @@ export default function EnderecoForm({
         regional: regional
       };
       
-      console.log('📝 Endereço atualizado:', novoEndereco);
-      console.log('🔔 Chamando onChange com regional:', novoEndereco.regional);
       onChange(novoEndereco);
 
       // Buscar coordenadas automaticamente

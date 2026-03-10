@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { ItemStatus } from '../../types/index';
 import { atualizarCoordenadasSolicitacao, atualizarCoordenadasDemanda } from '../../services/geocodingService';
+import { GeocodingService } from '../../services/geocoding';
 import EnderecoForm from '../Endereco/EnderecoForm';
 
 interface Item {
@@ -144,7 +145,7 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
         endereco_localidade: item.endereco_localidade || '',
         endereco_cep: item.endereco_cep || '',
         endereco_complemento: item.endereco_complemento || '',
-        endereco_regional: (item as any).endereco_regional || '',
+        endereco_regional: GeocodingService.buscarRegionalPorBairro(item.endereco_bairro || ''),
         latitude: item.endereco_latitude,
         longitude: item.endereco_longitude,
       });
@@ -203,7 +204,6 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
         endereco_localidade: formData.endereco_localidade || null,
         endereco_cep: formData.endereco_cep || null,
         endereco_complemento: formData.endereco_complemento || null,
-        endereco_regional: formData.endereco_regional || null,
         endereco_latitude: formData.latitude || null,
         endereco_longitude: formData.longitude || null,
       };
