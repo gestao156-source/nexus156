@@ -94,12 +94,20 @@ export default function Dashboard() {
     try {
       const { data, error } = await supabase
         .from(type)
-        .select('*')
+        .select(`
+          *,
+          profiles!inner(full_name)
+        `)
         .eq('status', status)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      // Transformar dados para incluir nome do responsável
+      return (data || []).map(item => ({
+        ...item,
+        responsavel: item.profiles?.full_name || 'Não definido'
+      }));
     } catch (error) {
       console.error(`Erro ao buscar ${type} com status ${status}:`, error);
       return [];
@@ -111,16 +119,23 @@ export default function Dashboard() {
     try {
       const { data, error } = await supabase
         .from(type)
-        .select('*')
+        .select(`
+          *,
+          profiles!inner(full_name)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
       const items = data || [];
       
+      // Filtrar itens atrasados e transformar dados
       return items.filter(item => {
         return verificarAtraso(item.status, item.data_contato);
-      });
+      }).map(item => ({
+        ...item,
+        responsavel: item.profiles?.full_name || 'Não definido'
+      }));
     } catch (error) {
       console.error(`Erro ao buscar ${type} atrasados:`, error);
       return [];
