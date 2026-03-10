@@ -21,7 +21,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
     { id: 'solicitacoes', name: 'Solicitações', icon: FileText },
     { id: 'demandas', name: 'Demandas', icon: ClipboardList },
-    { id: 'mapa-fortaleza', name: 'Mapa Interativo', icon: Map },
+    { id: 'mapa-fortaleza', name: 'Mapa', icon: Map },
     { id: 'relatorios', name: 'Relatórios', icon: BarChart3 },
   ];
 
@@ -36,7 +36,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-8">
               <a href="/dashboard" className="flex items-center">
-                <img src={logo} alt="Nexus 156" className="h-16 w-auto object-contain" />
+                <img src={logo} alt="Nexus 156" className="h-14 w-auto object-contain" />
               </a>
 
               <div className="hidden md:flex space-x-1">
