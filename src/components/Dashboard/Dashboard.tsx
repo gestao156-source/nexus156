@@ -308,6 +308,7 @@ export default function Dashboard() {
             { name: 'Aguardando', value: solicitacoesStats.aguardando + demandasStats.aguardando, color: '#EAB308' },
             { name: 'Em Análise', value: solicitacoesStats.em_analise + demandasStats.em_analise, color: '#3B82F6' },
             { name: 'Finalizados', value: solicitacoesStats.finalizado + demandasStats.finalizado, color: '#22C55E' },
+            { name: 'Atrasadas', value: atrasadas, color: '#FF3737' },
           ]}
         />
         <BarChart
