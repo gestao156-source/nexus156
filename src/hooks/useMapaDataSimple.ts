@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { MapaFilters, MapaItem, MapaStats } from '../types';
+import { GeocodingService } from '../services/geocoding';
 
 export function useMapaDataSimple(filters: MapaFilters) {
   const [dados, setDados] = useState<MapaItem[]>([]);
@@ -55,17 +56,13 @@ export function useMapaDataSimple(filters: MapaFilters) {
 
       // Transformar dados para o formato esperado
       const transformarItem = (item: any, tipo: 'solicitacao' | 'demanda'): MapaItem => {
-        const possuiCoords = !!(item.endereco_latitude && item.endereco_longitude);
+        const possuiCoords = item.endereco_latitude && item.endereco_longitude;
         
-        console.log(`🔍 Item ${tipo} ${item.id}:`, {
-          possui_coordenadas: possuiCoords,
-          latitude: item.endereco_latitude,
-          longitude: item.endereco_longitude,
-          endereco_rua: item.endereco_rua
-        });
+        // Calcular regional baseada no bairro
+        const regionalText = GeocodingService.buscarRegionalPorBairro(item.endereco_bairro || '');
+        const regionalNumber = GeocodingService.extrairNumeroRegional(regionalText);
         
         return {
-          tipo,
           id: item.id,
           assunto: item.assunto || 'Sem assunto',
           protocolo: item.protocolo || 'N/A',
@@ -85,7 +82,7 @@ export function useMapaDataSimple(filters: MapaFilters) {
           endereco_uf: 'CE',
           endereco_latitude: item.endereco_latitude,
           endereco_longitude: item.endereco_longitude,
-          endereco_regional: 0,
+          endereco_regional: regionalNumber,
           endereco_geocoding_status: possuiCoords ? 'sucesso' : 'pendente',
           endereco_validado: possuiCoords,
           possui_coordenadas: possuiCoords,
