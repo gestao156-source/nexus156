@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import { Icon } from 'leaflet';
-import { MapPin, Search, Loader2, X } from 'lucide-react';
+import { MapPin, Search, Loader2 } from 'lucide-react';
 import { GeocodingService, EnderecoCompleto, Coordenadas } from '../../services/geocoding';
 
 // Fix para problema de ícones do Leaflet
@@ -10,10 +10,6 @@ Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
 });
 
 interface EnderecoFormProps {
@@ -47,16 +43,6 @@ const MapaInterativo = ({
   onCoordenadaChange: (lat: number, lng: number) => void; 
   disabled?: boolean;
 }) => {
-  const [map, setMap] = useState<any>(null);
-
-  // Atualizar centro do mapa quando coordenada mudar
-  useEffect(() => {
-    if (map && coordenada) {
-      map.setView([coordenada.lat, coordenada.lng], 15);
-      console.log('🗺️ Mapa atualizado para:', coordenada);
-    }
-  }, [coordenada, map]);
-
   const handleMapClick = (lat: number, lng: number) => {
     if (!disabled) {
       onCoordenadaChange(lat, lng);
@@ -66,10 +52,9 @@ const MapaInterativo = ({
   return (
     <div className="h-64 w-full rounded-lg overflow-hidden border border-gray-300">
       <MapContainer
-        center={coordenada || [-3.7319, -38.5267]} // Default: Fortaleza
+        center={coordenada || [-23.5505, -46.6333]} // Default: São Paulo
         zoom={15}
         style={{ height: '100%', width: '100%' }}
-        ref={setMap}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -118,75 +103,41 @@ export default function EnderecoForm({
 
     setLoading(true);
     setCepError('');
-    console.log('🔍 Iniciando busca de CEP:', value.cep);
 
     try {
       const dadosCEP = await GeocodingService.buscarPorCEP(value.cep);
       
       if (!dadosCEP || dadosCEP.erro) {
-        console.log('❌ CEP não encontrado:', value.cep);
         setCepError('CEP não encontrado');
         return;
       }
 
-      console.log('✅ CEP encontrado:', dadosCEP);
-
       // Atualizar campos do endereço
-      const regional = GeocodingService.buscarRegionalPorBairro(dadosCEP.bairro || '');
-      console.log('🔍 Bairro:', dadosCEP.bairro, '-> Regional:', regional);
-      
       const novoEndereco = {
         ...value,
         rua: dadosCEP.logradouro,
         bairro: dadosCEP.bairro,
         localidade: dadosCEP.localidade,
-        uf: dadosCEP.uf || 'CE', // Default para CE
-        complemento: dadosCEP.complemento || '',
-        regional: regional
+        complemento: dadosCEP.complemento || ''
       };
-      
-      console.log('📝 Endereço atualizado:', novoEndereco);
-      console.log('🔔 Chamando onChange com regional:', novoEndereco.regional);
       onChange(novoEndereco);
 
       // Buscar coordenadas automaticamente
       if (dadosCEP.logradouro && dadosCEP.localidade) {
-        console.log('🗺️ Buscando coordenadas para o endereço...');
-        
-        // Estratégia 1: Tentar com número completo (mais preciso)
-        const enderecoParaBuscaCompleto = GeocodingService.formatarEnderecoParaBusca(novoEndereco);
-        console.log('🔍 Tentando geocoding completo (com número):', enderecoParaBuscaCompleto);
-        
-        let coords = await GeocodingService.buscarCoordenadas(enderecoParaBuscaCompleto);
-        
-        // Se não encontrar, tentar sem número
-        if (!coords) {
-          console.log('🔄 Geocoding com número falhou, tentando sem número...');
-          const enderecoSemNumero = {
-            ...novoEndereco,
-            numero: '' // Remover número para tentativa alternativa
-          };
-          const enderecoParaBuscaSemNumero = GeocodingService.formatarEnderecoParaBusca(enderecoSemNumero);
-          console.log('🔍 Tentando geocoding sem número:', enderecoParaBuscaSemNumero);
-          coords = await GeocodingService.buscarCoordenadas(enderecoParaBuscaSemNumero);
-        }
+        const enderecoParaBusca = GeocodingService.formatarEnderecoParaBusca(novoEndereco);
+        const coords = await GeocodingService.buscarCoordenadas(enderecoParaBusca);
         
         if (coords) {
-          console.log('✅ Coordenadas encontradas, atualizando mapa:', coords);
           setCoordenadaAtual(coords);
           onChange({
             ...novoEndereco,
             latitude: coords.lat,
             longitude: coords.lng
           });
-        } else {
-          console.log('❌ Não foi possível encontrar coordenadas para o endereço');
-          // Não mostrar erro de CEP, pois o CEP foi encontrado
-          // Apenas não atualiza o mapa
         }
       }
     } catch (error) {
-      console.error('❌ Erro ao buscar CEP:', error);
+      console.error('Erro ao buscar CEP:', error);
       setCepError('Erro ao buscar CEP');
     } finally {
       setLoading(false);
@@ -224,21 +175,6 @@ export default function EnderecoForm({
     }
   };
 
-  // Remover localização
-  const handleRemoverLocalizacao = () => {
-    setCoordenadaAtual(null);
-    onChange({ 
-      ...value, 
-      latitude: undefined, 
-      longitude: undefined,
-      rua: '',
-      bairro: '',
-      localidade: '',
-      regional: '',
-      cep: ''
-    });
-  };
-
   // Mudança em campos de texto
   const handleFieldChange = (campo: keyof EnderecoCompleto, valor: string) => {
     onChange({ ...value, [campo]: valor });
@@ -252,11 +188,7 @@ export default function EnderecoForm({
         GeocodingService.buscarCoordenadasDebounced(enderecoCompleto, (coords) => {
           if (coords) {
             setCoordenadaAtual(coords);
-            onChange({ 
-              ...enderecoTemp, // Usar enderecoTemp em vez de value para preservar o campo atualizado
-              latitude: coords.lat, 
-              longitude: coords.lng 
-            });
+            onChange((prev) => ({ ...prev, latitude: coords.lat, longitude: coords.lng }));
           }
         });
       }
@@ -364,23 +296,6 @@ export default function EnderecoForm({
           />
         </div>
 
-        {/* Regional */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Regional
-          </label>
-          <input
-            type="text"
-            value={value.regional || ''}
-            onChange={(e) => handleFieldChange('regional', e.target.value)}
-            placeholder="Regional"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            disabled={disabled}
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Complemento */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -395,43 +310,15 @@ export default function EnderecoForm({
             disabled={disabled}
           />
         </div>
-
-        {/* UF */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            UF
-          </label>
-          <input
-            type="text"
-            value={value.uf || ''}
-            onChange={(e) => handleFieldChange('uf', e.target.value)}
-            placeholder="CE"
-            maxLength={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            disabled={disabled}
-          />
-        </div>
       </div>
 
       {/* Mapa */}
       {showMap && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                Localização no Mapa
-              </div>
-              {coordenadaAtual && !disabled && (
-                <button
-                  type="button"
-                  onClick={handleRemoverLocalizacao}
-                  className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 flex items-center gap-1"
-                >
-                  <X className="w-3 h-3" />
-                  Remover
-                </button>
-              )}
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              Localização no Mapa
             </div>
           </label>
           <MapaInterativo

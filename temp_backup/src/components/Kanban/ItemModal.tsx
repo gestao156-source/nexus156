@@ -3,7 +3,6 @@ import { X, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { ItemStatus } from '../../types/index';
-import { atualizarCoordenadasSolicitacao, atualizarCoordenadasDemanda } from '../../services/geocodingService';
 import EnderecoForm from '../Endereco/EnderecoForm';
 
 interface Item {
@@ -17,9 +16,6 @@ interface Item {
   observacoes: string;
   responsavel: string;
   ponto_contato: string;
-  user_id: string;
-  created_at: string;
-  updated_at: string;
   // Campos de endereço
   endereco_rua?: string;
   endereco_numero?: string;
@@ -29,8 +25,6 @@ interface Item {
   endereco_complemento?: string;
   latitude?: number;
   longitude?: number;
-  endereco_latitude?: number;
-  endereco_longitude?: number;
 }
 
 interface ItemModalProps {
@@ -92,7 +86,6 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
     endereco_localidade: '',
     endereco_cep: '',
     endereco_complemento: '',
-    endereco_regional: '',
     latitude: undefined as number | undefined,
     longitude: undefined as number | undefined,
   });
@@ -106,19 +99,15 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
     // Carregar assuntos e pontos de contato do Supabase
     const loadData = async () => {
       try {
-        console.log('🔍 Carregando assuntos e pontos de contato...');
         const [assuntosResult, pontosResult] = await Promise.all([
           supabase.from('assuntos_padrao').select('*').order('nome'),
           supabase.from('pontos_contato').select('*').order('nome')
         ]);
         
-        console.log('✅ Assuntos carregados:', assuntosResult.data?.length || 0, assuntosResult.error);
-        console.log('✅ Pontos de contato carregados:', pontosResult.data?.length || 0, pontosResult.error);
-        
         setAssuntos(assuntosResult.data || []);
         setPontosContato(pontosResult.data || []);
       } catch (error) {
-        console.error('❌ Erro ao carregar dados:', error);
+        console.error('Erro ao carregar dados:', error);
       }
     };
 
@@ -144,9 +133,8 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
         endereco_localidade: item.endereco_localidade || '',
         endereco_cep: item.endereco_cep || '',
         endereco_complemento: item.endereco_complemento || '',
-        endereco_regional: (item as any).endereco_regional || '',
-        latitude: item.endereco_latitude,
-        longitude: item.endereco_longitude,
+        latitude: item.latitude,
+        longitude: item.longitude,
       });
     } else {
       // Criando novo item - responsável e datas automáticas
@@ -168,7 +156,6 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
         endereco_localidade: '',
         endereco_cep: '',
         endereco_complemento: '',
-        endereco_regional: '',
         latitude: undefined,
         longitude: undefined,
       });
@@ -203,9 +190,8 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
         endereco_localidade: formData.endereco_localidade || null,
         endereco_cep: formData.endereco_cep || null,
         endereco_complemento: formData.endereco_complemento || null,
-        endereco_regional: formData.endereco_regional || null,
-        endereco_latitude: formData.latitude || null,
-        endereco_longitude: formData.longitude || null,
+        latitude: formData.latitude || null,
+        longitude: formData.longitude || null,
       };
 
       // UPDATE (sem user_id)
@@ -216,49 +202,19 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
           .eq('id', item.id);
 
         if (error) throw error;
-        
-        // Geocodificar endereço se fornecido
-        if (formData.endereco_rua && formData.endereco_numero && formData.endereco_bairro) {
-          try {
-            if (type === 'solicitacoes') {
-              await atualizarCoordenadasSolicitacao(item.id, formData.endereco_rua, formData.endereco_numero, formData.endereco_bairro);
-            } else {
-              await atualizarCoordenadasDemanda(item.id, formData.endereco_rua, formData.endereco_numero, formData.endereco_bairro);
-            }
-          } catch (geoError) {
-            console.warn('⚠️ Erro no geocoding:', geoError);
-            // Não falhar o salvamento se geocoding falhar
-          }
-        }
       }
       // ➕ INSERT (com user_id)
       else {
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from(type)
           .insert([
             {
               ...baseData,
               user_id: user.id,
             },
-          ])
-          .select()
-          .single();
+          ]);
 
         if (error) throw error;
-        
-        // Geocodificar endereço se fornecido
-        if (formData.endereco_rua && formData.endereco_numero && formData.endereco_bairro) {
-          try {
-            if (type === 'solicitacoes') {
-              await atualizarCoordenadasSolicitacao(data.id, formData.endereco_rua, formData.endereco_numero, formData.endereco_bairro);
-            } else {
-              await atualizarCoordenadasDemanda(data.id, formData.endereco_rua, formData.endereco_numero, formData.endereco_bairro);
-            }
-          } catch (geoError) {
-            console.warn('⚠️ Erro no geocoding:', geoError);
-            // Não falhar o salvamento se geocoding falhar
-          }
-        }
       }
 
       onSave();
@@ -476,7 +432,6 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
                 bairro: formData.endereco_bairro,
                 localidade: formData.endereco_localidade,
                 complemento: formData.endereco_complemento,
-                regional: formData.endereco_regional,
                 latitude: formData.latitude,
                 longitude: formData.longitude
               }}
@@ -489,7 +444,6 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
                   endereco_localidade: endereco.localidade || '',
                   endereco_cep: endereco.cep || '',
                   endereco_complemento: endereco.complemento || '',
-                  endereco_regional: endereco.regional || '',
                   latitude: endereco.latitude,
                   longitude: endereco.longitude
                 });

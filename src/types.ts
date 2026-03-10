@@ -50,7 +50,7 @@ export interface DashboardStats {
 // Tipos para o Mapa Interativo
 export interface MapaFilters {
   status: string[];
-  tipo: string;
+  tipo: string; // 'todos', 'solicitacao', 'demanda', ''
   periodo: { inicio: Date; fim: Date };
   regional: number;
   apenasComCoordenadas: boolean;

@@ -200,6 +200,24 @@ export default function MapaInterativo({
             </div>
           </div>
         )}
+
+        {/* Mensagem quando não há dados na regional */}
+        {dados.length === 0 && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-6 py-4 rounded-lg shadow-lg z-10 max-w-sm">
+            <div className="text-center">
+              <div className="text-6xl mb-3">🗺️</div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum registro encontrado</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Esta regional não possui solicitações ou demandas com coordenadas geográficas.
+              </p>
+              <div className="bg-blue-50 p-3 rounded border border-blue-200">
+                <p className="text-xs text-blue-800">
+                  <strong>Dica:</strong> Tente selecionar outra regional ou desmarque o filtro "Apenas com coordenadas".
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </MapContainer>
     </div>
   );

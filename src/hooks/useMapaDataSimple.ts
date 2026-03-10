@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { MapaFilters, MapaItem, MapaStats } from '../types';
 
-export function useMapaDataSimple(initialFilters: MapaFilters) {
+export function useMapaDataSimple(filters: MapaFilters) {
   const [dados, setDados] = useState<MapaItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,10 +103,77 @@ export function useMapaDataSimple(initialFilters: MapaFilters) {
       console.log('📍 Com coordenadas:', todosDados.filter(d => d.possui_coordenadas).length);
       console.log('❌ Sem coordenadas:', todosDados.filter(d => !d.possui_coordenadas).length);
       
+      // Aplicar filtros
+      let dadosFiltrados = todosDados;
+      
+      // Filtro de status
+      if (filters.status && filters.status.length > 0) {
+        dadosFiltrados = dadosFiltrados.filter(d => filters.status.includes(d.status));
+      }
+      
+      // Filtro de tipo
+      if (filters.tipo && filters.tipo !== '') {
+        if (filters.tipo === 'solicitacao') {
+          dadosFiltrados = dadosFiltrados.filter(d => d.tipo === 'solicitacao');
+        } else if (filters.tipo === 'demanda') {
+          dadosFiltrados = dadosFiltrados.filter(d => d.tipo === 'demanda');
+        }
+        // 'todos' não filtra nada
+      }
+      
+      // Filtro de período
+      if (filters.periodo) {
+        const dataInicio = filters.periodo.inicio;
+        const dataFim = filters.periodo.fim;
+        
+        if (dataInicio && dataFim) {
+          dadosFiltrados = dadosFiltrados.filter(d => {
+            const dataItem = new Date(d.created_at);
+            return dataItem >= dataInicio && dataItem <= dataFim;
+          });
+        }
+      }
+      
+      // Filtro de regional
+      if (filters.regional && filters.regional > 0) {
+        dadosFiltrados = dadosFiltrados.filter(d => d.endereco_regional === filters.regional);
+      }
+      
+      // Filtro de ordenação
+      if (filters.ordenarPor) {
+        dadosFiltrados.sort((a, b) => {
+          let valorA: any, valorB: any;
+          
+          switch (filters.ordenarPor) {
+            case 'created_at':
+              valorA = new Date(a.created_at);
+              valorB = new Date(b.created_at);
+              break;
+            case 'protocolo':
+              valorA = a.protocolo || '';
+              valorB = b.protocolo || '';
+              break;
+            case 'assunto':
+              valorA = a.assunto || '';
+              valorB = b.assunto || '';
+              break;
+            default:
+              valorA = a.created_at;
+              valorB = b.created_at;
+          }
+          
+          if (filters.ordem === 'DESC') {
+            return valorB > valorA ? 1 : valorB < valorA ? -1 : 0;
+          } else {
+            return valorA > valorB ? 1 : valorA < valorB ? -1 : 0;
+          }
+        });
+      }
+      
       // Aplicar filtro de coordenadas se necessário
-      const dadosFiltrados = initialFilters.apenasComCoordenadas 
-        ? todosDados.filter(d => d.possui_coordenadas)
-        : todosDados;
+      if (filters.apenasComCoordenadas) {
+        dadosFiltrados = dadosFiltrados.filter(d => d.possui_coordenadas);
+      }
       
       console.log('🗺️ Dados para o mapa (filtrados):', dadosFiltrados.length);
       console.log('📍 Itens com coordenadas:', dadosFiltrados.map(d => ({
@@ -142,7 +209,7 @@ export function useMapaDataSimple(initialFilters: MapaFilters) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [filters]);
 
   // Carregar dados iniciais
   useEffect(() => {

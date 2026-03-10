@@ -6,11 +6,12 @@ import { REGIONAIS_FORTALEZA } from '../../data/regionaisFortaleza';
 interface FiltrosMapaProps {
   filtros: MapaFilters;
   onFiltrosChange: (filtros: MapaFilters) => void;
+  onAplicarFiltros?: () => void;
   stats: MapaStats;
   isMobile?: boolean;
 }
 
-export default function FiltrosMapa({ filtros, onFiltrosChange, stats, isMobile = false }: FiltrosMapaProps) {
+export default function FiltrosMapa({ filtros, onFiltrosChange, onAplicarFiltros, stats, isMobile = false }: FiltrosMapaProps) {
   const [expandido, setExpandido] = useState(!isMobile);
   const [tooltipAtivo, setTooltipAtivo] = useState<string | null>(null);
 
@@ -247,15 +248,25 @@ export default function FiltrosMapa({ filtros, onFiltrosChange, stats, isMobile 
             <div className="text-gray-600">Sem Coord.</div>
           </div>
           <div className="bg-white p-2 rounded border border-blue-100 col-span-2">
-            <div className="text-indigo-600 font-bold text-sm">Atualizado: {stats.ultimoUpdate.toLocaleTimeString()}</div>
+            <div className="text-indigo-600 font-bold text-xs">Atualizado: {stats.ultimoUpdate.toLocaleTimeString()}</div>
           </div>
         </div>
       </div>
 
+      {/* Botão de Aplicar */}
+      {!isMobile && (
+        <button
+          onClick={onAplicarFiltros}
+          className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+        >
+          Aplicar Filtros
+        </button>
+      )}
+
       {/* Botão de Aplicar Mobile */}
       {isMobile && (
         <button
-          onClick={() => setExpandido(false)}
+          onClick={onAplicarFiltros}
           className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
         >
           Aplicar Filtros

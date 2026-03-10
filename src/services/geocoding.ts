@@ -33,6 +33,7 @@ export interface EnderecoCompleto {
   localidade: string;
   uf: string;
   complemento: string;
+  regional: string;
   latitude?: number;
   longitude?: number;
 }
@@ -41,6 +42,184 @@ export class GeocodingService {
   // Cache para evitar requisições repetidas
   private static coordenadasCache = new Map<string, Coordenadas>();
   private static enderecoCache = new Map<string, EnderecoViaCEP>();
+
+  // Mapeamento de bairros para regionais
+  private static bairrosParaRegional: { [key: string]: string } = {
+    // Regional 1
+    'Vila Velha': 'Regional 1',
+    'Jardim Guanabara': 'Regional 1',
+    'Barra do Ceará': 'Regional 1',
+    'Cristo Redentor': 'Regional 1',
+    'Pirambu': 'Regional 1',
+    'Carlito Pamplona': 'Regional 1',
+    'Jacarecanga': 'Regional 1',
+    'Jardim Iracema': 'Regional 1',
+    'Floresta': 'Regional 1',
+    'Álvaro Weyne': 'Regional 1',
+    
+    // Regional 2
+    'Meireles': 'Regional 2',
+    'Aldeota': 'Regional 2',
+    'Varjota': 'Regional 2',
+    'Papicu': 'Regional 2',
+    'De Lourdes': 'Regional 2',
+    'Cais do Porto': 'Regional 2',
+    'Mucuripe': 'Regional 2',
+    'Vicente Pinzón': 'Regional 2',
+    'Joaquim Távora': 'Regional 2',
+    'Dionísio Torres': 'Regional 2',
+    'São João do Tauape': 'Regional 2',
+    
+    // Regional 3
+    'Quintino Cunha': 'Regional 3',
+    'Olavo Oliveira': 'Regional 3',
+    'Antônio Bezerra': 'Regional 3',
+    'Padre Andrade': 'Regional 3',
+    'Presidente Kennedy': 'Regional 3',
+    'Vila Ellery': 'Regional 3',
+    'Monte Castelo': 'Regional 3',
+    'São Gerardo': 'Regional 3',
+    'Farias Brito': 'Regional 3',
+    'Parque Araxá': 'Regional 3',
+    'Parquelândia': 'Regional 3',
+    'Amadeu Furtado': 'Regional 3',
+    'Rodolfo Teófilo': 'Regional 3',
+    
+    // Regional 4
+    'José Bonifácio': 'Regional 4',
+    'Benfica': 'Regional 4',
+    'Fátima': 'Regional 4',
+    'Damas': 'Regional 4',
+    'Jardim América': 'Regional 4',
+    'Bom Futuro': 'Regional 4',
+    'Montese': 'Regional 4',
+    'Itaoca': 'Regional 4',
+    'Parangaba': 'Regional 4',
+    'Vila Peri': 'Regional 4',
+    'Parreão': 'Regional 4',
+    'Vila União': 'Regional 4',
+    'Aeroporto': 'Regional 4',
+    
+    // Regional 5
+    'Granja Lisboa': 'Regional 5',
+    'Granja Portugal': 'Regional 5',
+    'Bom Jardim': 'Regional 5',
+    'Siqueira': 'Regional 5',
+    'Bonsucesso': 'Regional 5',
+    
+    // Regional 6
+    'Alto da Balança': 'Regional 6',
+    'Aerolândia': 'Regional 6',
+    'Jardim das Oliveiras': 'Regional 6',
+    'Cidade dos Funcionários': 'Regional 6',
+    'Parque Manibura': 'Regional 6',
+    'Parque Iracema': 'Regional 6',
+    'Cambeba': 'Regional 6',
+    'Messejana': 'Regional 6',
+    'José de Alencar': 'Regional 6',
+    'Curió': 'Regional 6',
+    'Guajeru': 'Regional 6',
+    'Lagoa Redonda': 'Regional 6',
+    'Coaçu': 'Regional 6',
+    'São Bento': 'Regional 6',
+    'Paupina': 'Regional 6',
+    
+    // Regional 7
+    'Praia do Futuro': 'Regional 7',
+    'Cocó': 'Regional 7',
+    'Cidade 2000': 'Regional 7',
+    'Manuel Dias Branco': 'Regional 7',
+    'Salinas': 'Regional 7',
+    'Guararapes': 'Regional 7',
+    'Luciano Cavalcante': 'Regional 7',
+    'Edson Queiroz': 'Regional 7',
+    'Sapiranga': 'Regional 7',
+    'Coité': 'Regional 7',
+    'Sabiaguaba': 'Regional 7',
+    
+    // Regional 8
+    'Serrinha': 'Regional 8',
+    'Itaperi': 'Regional 8',
+    'Dendê': 'Regional 8',
+    'Dias Macêdo': 'Regional 8',
+    'Boa Vista': 'Regional 8',
+    'Parque Dois Irmãos': 'Regional 8',
+    'Passaré': 'Regional 8',
+    'Planalto Ayrton Senna': 'Regional 8',
+    'Prefeito José Walter': 'Regional 8',
+    
+    // Regional 9
+    'Cajazeiras': 'Regional 9',
+    'Barroso': 'Regional 9',
+    'Conjunto Palmeiras': 'Regional 9',
+    'Jangurussu': 'Regional 9',
+    'Parque Santa Maria': 'Regional 9',
+    'Ancuri': 'Regional 9',
+    'Pedras': 'Regional 9',
+    
+    // Regional 10
+    'Parque São José': 'Regional 10',
+    'Novo Mondubim': 'Regional 10',
+    'Canindezinho': 'Regional 10',
+    'Conjunto Esperança': 'Regional 10',
+    'Parque Santa Rosa': 'Regional 10',
+    'Parque Presidente Vargas': 'Regional 10',
+    'Aracapé': 'Regional 10',
+    'Maraponga': 'Regional 10',
+    'Jardim Cearense': 'Regional 10',
+    'Mondubim': 'Regional 10',
+    'Vila Manoel Sátiro': 'Regional 10',
+    
+    // Regional 11
+    'Pici': 'Regional 11',
+    'Bela Vista': 'Regional 11',
+    'Panamericano': 'Regional 11',
+    'Couto Fernandes': 'Regional 11',
+    'Demócrito Rocha': 'Regional 11',
+    'Autran Nunes': 'Regional 11',
+    'Dom Lustosa': 'Regional 11',
+    'Henrique Jorge': 'Regional 11',
+    'Jóquei Clube': 'Regional 11',
+    'João XXIII': 'Regional 11',
+    'Genibaú': 'Regional 11',
+    'Conjunto Ceará': 'Regional 11',
+    
+    // Regional 12
+    'Centro': 'Regional 12',
+    'Moura Brasil': 'Regional 12',
+    'Praia de Iracema': 'Regional 12'
+  };
+
+  /**
+   * Busca regional com base no bairro
+   */
+  static buscarRegionalPorBairro(bairro: string): string {
+    if (!bairro) return '';
+    
+    // Normalizar nome do bairro para busca
+    const bairroNormalizado = bairro.trim().toLowerCase();
+    
+    // Buscar exata primeiro
+    const regionalExata = this.bairrosParaRegional[bairro];
+    if (regionalExata) return regionalExata;
+    
+    // Buscar case-insensitive
+    for (const [bairroChave, regional] of Object.entries(this.bairrosParaRegional)) {
+      if (bairroChave.toLowerCase() === bairroNormalizado) {
+        return regional;
+      }
+    }
+    
+    // Buscar por contém (para bairros com nomes similares)
+    for (const [bairroChave, regional] of Object.entries(this.bairrosParaRegional)) {
+      if (bairroChave.toLowerCase().includes(bairroNormalizado) || 
+          bairroNormalizado.includes(bairroChave.toLowerCase())) {
+        return regional;
+      }
+    }
+    
+    return '';
+  }
 
   /**
    * Busca endereço pelo CEP usando API ViaCEP
@@ -277,10 +456,13 @@ export class GeocodingService {
     if (endereco.rua) partes.push(endereco.rua);
     if (endereco.numero) partes.push(endereco.numero);
     if (endereco.bairro) partes.push(endereco.bairro);
-    if (endereco.localidade) partes.push(endereco.localidade);
-    if (endereco.uf) partes.push(endereco.uf);
-
-    // Adicionar "Brasil" para melhor precisão
+    
+    // Sempre incluir Fortaleza, CE, Brasil para garantir localização correta
+    if (endereco.localidade && endereco.localidade.toLowerCase() !== 'fortaleza') {
+      partes.push(endereco.localidade);
+    }
+    partes.push('Fortaleza');
+    partes.push('CE');
     partes.push('Brasil');
 
     return partes.join(', ');
@@ -356,7 +538,8 @@ export class GeocodingService {
         bairro: dadosCEP.bairro,
         localidade: dadosCEP.localidade,
         uf: dadosCEP.uf || 'CE', // Default para CE se não especificado
-        complemento: ''
+        complemento: '',
+        regional: this.buscarRegionalPorBairro(dadosCEP.bairro || '')
       };
 
       // 3. Buscar coordenadas

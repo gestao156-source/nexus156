@@ -9,8 +9,8 @@ import '../styles/leaflet.css';
 export default function MapaFortaleza() {
   // Filtros iniciais
   const filtrosIniciais: MapaFilters = {
-    status: ['aguardando', 'em_analise', 'finalizado'],
-    tipo: 'todos',
+    status: [], // Desmarcado - usuário deve escolher
+    tipo: '', // Desmarcado - usuário deve escolher
     periodo: {
       inicio: new Date(new Date().setMonth(new Date().getMonth() - 3)),
       fim: new Date()
@@ -26,7 +26,7 @@ export default function MapaFortaleza() {
   const [itemSelecionado, setItemSelecionado] = useState<MapaItem | null>(null);
   const [mostrarFiltros, setMostrarFiltros] = useState(true);
 
-  const { dados, loading, error, stats, refetch } = useMapaDataSimple(filtrosIniciais);
+  const { dados, loading, error, stats, refetch } = useMapaDataSimple(filtros);
 
   // Detectar mobile
   useEffect(() => {
@@ -48,6 +48,13 @@ export default function MapaFortaleza() {
 
   const handleRefresh = () => {
     refetch();
+  };
+
+  const handleAplicarFiltros = () => {
+    refetch();
+    if (isMobile) {
+      setMostrarFiltros(false);
+    }
   };
 
   const toggleFiltros = () => {
@@ -80,7 +87,7 @@ export default function MapaFortaleza() {
           <div className="flex items-center gap-3">
             <MapPin className="w-6 h-6 text-blue-600" />
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Mapa Interativo de Fortaleza</h1>
+              <h1 className="text-xl font-bold text-gray-900">Mapa de Fortaleza</h1>
               <p className="text-sm text-gray-600">
                 {stats.total} registros • {stats.comCoordenadas} no mapa
               </p>
@@ -123,10 +130,11 @@ export default function MapaFortaleza() {
       <div className="flex-1 flex overflow-hidden">
         {/* Painel de Filtros */}
         {mostrarFiltros && (
-          <div className={`${isMobile ? 'absolute inset-0 z-40' : 'w-80'} bg-white shadow-lg`}>
+          <div className={`${isMobile ? 'absolute inset-0 z-40' : 'w-80'} bg-white shadow-lg overflow-y-auto`}>
             <FiltrosMapa
               filtros={filtros}
               onFiltrosChange={setFiltros}
+              onAplicarFiltros={handleAplicarFiltros}
               stats={stats}
               isMobile={isMobile}
             />
