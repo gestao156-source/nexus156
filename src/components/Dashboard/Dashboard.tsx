@@ -106,7 +106,8 @@ export default function Dashboard() {
       // Transformar dados para incluir nome do responsável
       return (data || []).map(item => ({
         ...item,
-        responsavel: item.profiles?.full_name || 'Não definido'
+        responsavel: item.profiles?.full_name || 'Não definido',
+        tipo: type === 'solicitacoes' ? 'solicitacao' : 'demanda'
       }));
     } catch (error) {
       console.error(`Erro ao buscar ${type} com status ${status}:`, error);
@@ -134,7 +135,8 @@ export default function Dashboard() {
         return verificarAtraso(item.status, item.data_contato);
       }).map(item => ({
         ...item,
-        responsavel: item.profiles?.full_name || 'Não definido'
+        responsavel: item.profiles?.full_name || 'Não definido',
+        tipo: type === 'solicitacoes' ? 'solicitacao' : 'demanda'
       }));
     } catch (error) {
       console.error(`Erro ao buscar ${type} atrasados:`, error);

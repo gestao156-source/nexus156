@@ -80,9 +80,6 @@ export default function DashboardItemModal({
                            status === 'em_analise' ? 'Em Análise' : 
                            status === 'finalizado' ? 'Finalizados' : status}
             </h3>
-            <p className="text-sm text-gray-600 mt-1">
-              {type === 'solicitacoes' ? 'Solicitações' : 'Demandas'}
-            </p>
           </div>
           <button
             onClick={onClose}
@@ -132,7 +129,14 @@ export default function DashboardItemModal({
                   >
                     {/* Header do Item */}
                     <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-semibold text-gray-900 flex-1">{item.assunto}</h4>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <h4 className="font-semibold text-gray-900 flex-1">{item.assunto}</h4>
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                            {item.tipo === 'solicitacao' ? 'Solicitação' : 'Demanda'}
+                          </span>
+                        </div>
+                      </div>
                       {estaAtrasado && (
                         <div className="flex items-center space-x-1 bg-red-100 px-2 py-1 rounded-full">
                           <AlertTriangle className="w-3 h-3 text-red-600" />

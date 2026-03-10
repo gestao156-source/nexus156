@@ -26,6 +26,7 @@ interface ItemDetalhes {
   endereco_complemento: string;
   endereco_latitude: number | null;
   endereco_longitude: number | null;
+  tipo: 'solicitacao' | 'demanda';
   profiles?: {
     full_name: string;
     email: string;
@@ -104,10 +105,10 @@ export default function ItemDetalhes() {
         let itemData = null;
         if (solResult.data && !solResult.error) {
           console.log('✅ Item encontrado em solicitacoes');
-          itemData = solResult.data;
+          itemData = { ...solResult.data, tipo: 'solicitacao' };
         } else if (demResult.data && !demResult.error) {
           console.log('✅ Item encontrado em demandas');
-          itemData = demResult.data;
+          itemData = { ...demResult.data, tipo: 'demanda' };
         } else {
           console.log('❌ Item não encontrado:', { solError: solResult.error, demError: demResult.error });
           setError('Item não encontrado');
@@ -142,7 +143,7 @@ export default function ItemDetalhes() {
 
         if (query.error) throw query.error;
         
-        let itemData = query.data;
+        let itemData = { ...query.data, tipo: tipo === 'solicitacoes' ? 'solicitacao' : 'demanda' };
         
         // Buscar responsável separadamente se existir
         if (itemData.responsavel) {
@@ -235,7 +236,7 @@ export default function ItemDetalhes() {
                 <div className="flex items-center space-x-2 mb-2">
                   <h1 className="text-2xl font-bold text-gray-900">{item.assunto}</h1>
                   <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                    {location.pathname.includes('solicitacoes') ? 'Solicitação' : 'Demanda'}
+                    {item.tipo === 'solicitacao' ? 'Solicitação' : 'Demanda'}
                   </span>
                 </div>
                 <div className="flex items-center space-x-4">
