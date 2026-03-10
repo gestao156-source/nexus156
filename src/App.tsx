@@ -9,6 +9,7 @@ import Perfil from './pages/Perfil';
 import AdminPanel from './pages/AdminPanel';
 import Relatorios from './pages/Relatorios';
 import MapaFortaleza from './pages/MapaFortaleza';
+import ItemDetalhes from './pages/ItemDetalhes';
 import Auth from './components/Auth/Auth';
 
 function ProtectedRoutes() {
@@ -36,6 +37,9 @@ function ProtectedRoutes() {
         <Route path="/relatorios" element={<Relatorios />} />
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/perfil" element={<Perfil />} />
+        <Route path="/solicitacoes/:itemId" element={<ItemDetalhes />} />
+        <Route path="/demandas/:itemId" element={<ItemDetalhes />} />
+        <Route path="/todos/:itemId" element={<ItemDetalhes />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </MainLayout>

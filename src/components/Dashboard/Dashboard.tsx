@@ -214,7 +214,7 @@ export default function Dashboard() {
 
   // Função para clique em item no modal
   const handleItemClick = (item: KanbanItem) => {
-    navigate(`/${modalType}?itemId=${item.id}#item-${item.id}`);
+    navigate(`/${modalType}/${item.id}#item-${item.id}`);
   };
 
   // Cards com navegação inteligente
