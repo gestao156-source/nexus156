@@ -2,17 +2,7 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import { Icon, LatLngBounds } from 'leaflet';
 import { MapaItem } from '../../types';
-
-// Criar ícone personalizado explícito (idêntico ao do EnderecoForm)
-const customIcon = new Icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
+import { verificarAtraso } from '../../utils/calculoDiasUteis';
 
 interface MapaInterativoProps {
   dados: MapaItem[];
@@ -72,6 +62,43 @@ export default function MapaInterativo({
     return dadosComCoordenadas.length > 200 && clusteringEnabled;
   }, [dados, clusteringEnabled]);
 
+  // Ícones responsivos com lógica de atraso
+  const getIcon = (item: MapaItem) => {
+    const tamanho = isMobile ? 30 : 40;
+    
+    // Verificar se está atrasado
+    const estaAtrasado = verificarAtraso(item.status, item.data_contato);
+    
+    // Definir cor baseada no status e atraso
+    let cor: string;
+    if (estaAtrasado) {
+      cor = '#EF4444'; // Vermelho para atrasado
+    } else {
+      const cores: Record<string, string> = {
+        aguardando: '#F59E0B', // Amarelo
+        em_analise: '#3B82F6', // Azul
+        finalizado: '#10B981'  // Verde
+      };
+      cor = cores[item.status] || '#6B7280'; // Cinza padrão
+    }
+
+    return new Icon({
+      iconUrl: `data:image/svg+xml;base64,${btoa(`
+        <svg width="${tamanho}" height="${tamanho * 1.6}" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
+          <path fill="${cor}" d="M12.5 0C5.6 0 0 5.6 0 12.5S5.6 25 12.5 25 25 19.4 25 12.5 19.4 12.5 25z"/>
+          <circle fill="white" cx="12.5" cy="12.5" r="${tamanho/8}"/>
+          <text x="12.5" y="12.5" text-anchor="middle" dy="3" fill="white" font-size="${tamanho/10}" font-weight="bold">
+            ${item.tipo === 'solicitacao' ? 'S' : 'D'}
+          </text>
+        </svg>
+      `)}`,
+      iconSize: [tamanho, tamanho * 1.6],
+      iconAnchor: [tamanho/2, tamanho * 1.6],
+      popupAnchor: [1, -tamanho * 1.4],
+      shadowSize: [tamanho * 0.8, tamanho * 1.2]
+    });
+  };
+
   // Renderizar marcadores
   const marcadores = useMemo(() => {
     const dadosFiltrados = dados.filter(item => item.possui_coordenadas);
@@ -82,7 +109,7 @@ export default function MapaInterativo({
         <Marker
           key={item.id}
           position={[item.endereco_latitude!, item.endereco_longitude!]}
-          icon={customIcon}
+          icon={getIcon(item)}
           eventHandlers={{
             click: () => onItemSelect(item)
           }}
@@ -98,7 +125,7 @@ export default function MapaInterativo({
       <Marker
         key={item.id}
         position={[item.endereco_latitude!, item.endereco_longitude!]}
-        icon={customIcon}
+        icon={getIcon(item)}
         eventHandlers={{
           click: () => onItemSelect(item)
         }}
