@@ -36,7 +36,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-8">
               <a href="/dashboard" className="flex items-center">
-                <img src={logo} alt="Nexus 156" className="h-10 w-auto" />
+                <img src={logo} alt="Nexus 156" className="h-12 w-auto object-contain" />
               </a>
 
               <div className="hidden md:flex space-x-1">
