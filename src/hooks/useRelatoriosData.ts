@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { verificarAtraso } from '../utils/calculoDiasUteis';
-import { format, differenceInDays, parseISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { differenceInDays, parseISO } from 'date-fns';
 
 export interface FiltrosType {
   periodo: { inicio: string; fim: string };

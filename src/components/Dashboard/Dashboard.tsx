@@ -1,13 +1,20 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { DashboardStats, KanbanItem } from '../../types/index';
-import { Clock, PlayCircle, CheckCircle, Calendar, MapPin } from 'lucide-react';
+import { PlayCircle, CheckCircle, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../contexts/ToastContext';
 import { verificarAtraso } from '../../utils/calculoDiasUteis';
 import PieChart from './PieChart';
 import BarChart from './BarChart';
 import DashboardItemModal from './DashboardItemModal';
+// Novos gráficos
+import AreaChart from './Charts/AreaChart';
+import ScatterChart from './Charts/ScatterChart';
+import RegionalBairrosChart from './Charts/RegionalBairrosChart';
+import ChartAccordion from './Charts/ChartAccordion';
+import { useDashboardCharts } from '../../hooks/useDashboardCharts';
+import { TrendingUp, Activity, Clock, MapPin } from 'lucide-react';
 
 type ItemComPrazo = {
   status: string;
@@ -18,6 +25,10 @@ type ItemComPrazo = {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { showInfo } = useToast();
+  
+  // Hook dos novos gráficos
+  const { data: chartsData } = useDashboardCharts();
+  
   const [solicitacoesStats, setSolicitacoesStats] = useState<DashboardStats>({
     aguardando: 0,
     em_analise: 0,
@@ -254,14 +265,6 @@ export default function Dashboard() {
       onClick: () => handleCardClick('finalizados'),
     },
     {
-      title: 'Mapa',
-      value: 'Ver no Mapa',
-      icon: MapPin,
-      bgColor: 'bg-purple-50',
-      textColor: 'text-purple-700',
-      onClick: () => navigate('/mapa-fortaleza'),
-    },
-    {
       title: 'Total Geral',
       value: totalGeral,
       icon: Calendar,
@@ -280,29 +283,43 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-8">
-      <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-gray-600 mt-1">Visão geral do sistema de gerenciamento</p>
+            </div>
+            <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <Clock className="w-4 h-4" />
+              <span>Última atualização: {new Date().toLocaleTimeString('pt-BR')}</span>
+            </div>
+          </div>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {cards.map(card => {
           const Icon = card.icon;
           return (
             <div
               key={card.title}
               onClick={card.onClick}
-              className="bg-white rounded-xl border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-all"
+              className="bg-white rounded-xl border border-gray-200 p-4 cursor-pointer hover:shadow-lg hover:border-blue-300 transition-all duration-200 group"
             >
-              <div className={`${card.bgColor} p-3 rounded-lg inline-block mb-4`}>
-                <Icon className={`w-6 h-6 ${card.textColor}`} />
+              <div className={`${card.bgColor} p-2 rounded-lg inline-block mb-3 group-hover:scale-110 transition-transform duration-200`}>
+                <Icon className={`w-5 h-5 ${card.textColor}`} />
               </div>
-              <h3 className="text-sm text-gray-600">{card.title}</h3>
-              <p className="text-3xl font-bold text-gray-900">{card.value}</p>
+              <h3 className="text-xs font-medium text-gray-500 mb-1">{card.title}</h3>
+              <p className="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">{card.value}</p>
             </div>
           );
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Gráficos Principais */}
         <PieChart
           data={[
             { name: 'Aguardando', value: solicitacoesStats.aguardando + demandasStats.aguardando, color: '#EAB308' },
@@ -311,6 +328,7 @@ export default function Dashboard() {
             { name: 'Atrasadas', value: atrasadas, color: '#FF3737' },
           ]}
         />
+        
         <BarChart
           data={[
             { name: 'Solicitações', value: solicitacoesStats.aguardando + solicitacoesStats.em_analise + solicitacoesStats.finalizado, color: '#3B82F6' },
@@ -318,6 +336,33 @@ export default function Dashboard() {
             { name: 'Atrasadas', value: atrasadas, color: '#FF3737' },
           ]}
         />
+      </div>
+
+      {/* Gráficos Detalhados em Accordion */}
+      <div className="space-y-4">
+        <ChartAccordion 
+          title="Regionais com Mais Demandas" 
+          icon={<MapPin className="w-5 h-5 text-orange-600" />}
+          defaultOpen={false}
+        >
+          <RegionalBairrosChart data={chartsData.regionaisMaisDemandas} height={250} />
+        </ChartAccordion>
+
+        <ChartAccordion 
+          title="Análise de Backlog" 
+          icon={<TrendingUp className="w-5 h-5 text-blue-600" />}
+          defaultOpen={false}
+        >
+          <AreaChart data={chartsData.backlogData} height={250} />
+        </ChartAccordion>
+
+        <ChartAccordion 
+          title="Análise de Tempo de Resposta" 
+          icon={<Activity className="w-5 h-5 text-red-600" />}
+          defaultOpen={false}
+        >
+          <ScatterChart data={chartsData.scatterData} height={250} />
+        </ChartAccordion>
       </div>
 
       {/* Modal Inteligente */}
@@ -329,6 +374,7 @@ export default function Dashboard() {
         status={modalStatus}
         onItemClick={handleItemClick}
       />
+      </div>
     </div>
   );
 }

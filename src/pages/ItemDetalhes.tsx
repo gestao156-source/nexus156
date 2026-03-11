@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, FileText, User, MapPin, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, MapPin, AlertTriangle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { verificarAtraso } from '../utils/calculoDiasUteis';
+import PrintButton from '../components/UI/PrintButton';
 
 interface ItemDetalhes {
   id: string;
@@ -38,126 +39,67 @@ interface ItemDetalhes {
 }
 
 export default function ItemDetalhes() {
-  console.log('🚀 ItemDetalhes - Componente carregado!');
-  
   const { itemId } = useParams<{ itemId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-
-  console.log('📍 Parâmetros:', { itemId, pathname: location.pathname, search: location.search });
-
   const [item, setItem] = useState<ItemDetalhes | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Determinar tipo (solicitacao/demanda) baseado na URL
-  const getTipoFromPath = () => {
-    const path = location.pathname;
-    if (path.includes('solicitacoes')) return 'solicitacoes';
-    if (path.includes('demandas')) return 'demandas';
-    return 'todos'; // fallback
-  };
-
-  useEffect(() => {
-    if (!itemId) {
-      setError('ID do item não fornecido');
-      setLoading(false);
-      return;
-    }
-
-    fetchItemDetalhes();
-  }, [itemId]);
-
   const fetchItemDetalhes = async () => {
+    if (!itemId) return;
+    
+    setLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
-      setError(null);
+      // Tentar buscar em solicitacoes primeiro
+      let { data: query, error: queryError } = await supabase
+        .from('solicitacoes')
+        .select(`
+          *,
+          profiles!inner (full_name, email)
+        `)
+        .eq('id', itemId)
+        .single();
 
-      const tipo = getTipoFromPath();
-      console.log('🔍 Buscando item:', { itemId, tipo });
-      
-      let query;
+      let tipo = 'solicitacao';
 
-      if (tipo === 'todos') {
-        // Tentar buscar em ambas as tabelas
-        console.log('📋 Buscando em ambas as tabelas...');
-        const [solResult, demResult] = await Promise.all([
-          supabase
-            .from('solicitacoes')
-            .select(`
-              *,
-              profiles!inner(full_name, email)
-            `)
-            .eq('id', itemId)
-            .single(),
-          supabase
-            .from('demandas')
-            .select(`
-              *,
-              profiles!inner(full_name, email)
-            `)
-            .eq('id', itemId)
-            .single()
-        ]);
-
-        console.log('📊 Resultados:', { solResult, demResult });
-
-        let itemData = null;
-        if (solResult.data && !solResult.error) {
-          console.log('✅ Item encontrado em solicitacoes');
-          itemData = { ...solResult.data, tipo: 'solicitacao' };
-        } else if (demResult.data && !demResult.error) {
-          console.log('✅ Item encontrado em demandas');
-          itemData = { ...demResult.data, tipo: 'demanda' };
-        } else {
-          console.log('❌ Item não encontrado:', { solError: solResult.error, demError: demResult.error });
-          setError('Item não encontrado');
-          return;
-        }
-
-        // Buscar responsável separadamente se existir
-        if (itemData.responsavel) {
-          const { data: respData } = await supabase
-            .from('profiles')
-            .select('full_name, email')
-            .eq('id', itemData.responsavel)
-            .single();
-          
-          itemData.responsavel_profile = respData;
-        }
-
-        setItem(itemData);
-      } else {
-        // Buscar na tabela específica
-        console.log(`📋 Buscando na tabela ${tipo}...`);
-        query = await supabase
-          .from(tipo)
+      // Se não encontrar em solicitacoes, buscar em demandas
+      if (queryError || !query) {
+        const { data: queryDem, error: queryDemError } = await supabase
+          .from('demandas')
           .select(`
             *,
-            profiles!inner(full_name, email)
+            profiles!inner (full_name, email)
           `)
           .eq('id', itemId)
           .single();
 
-        console.log('📊 Resultado query:', query);
-
-        if (query.error) throw query.error;
-        
-        let itemData = { ...query.data, tipo: tipo === 'solicitacoes' ? 'solicitacao' : 'demanda' };
-        
-        // Buscar responsável separadamente se existir
-        if (itemData.responsavel) {
-          const { data: respData } = await supabase
-            .from('profiles')
-            .select('full_name, email')
-            .eq('id', itemData.responsavel)
-            .single();
-          
-          itemData.responsavel_profile = respData;
+        if (queryDemError || !queryDem) {
+          throw new Error('Item não encontrado em nenhuma tabela');
         }
 
-        setItem(itemData);
+        query = queryDem;
+        tipo = 'demanda';
       }
+
+      console.log('📊 Resultado query:', query);
+      
+      let itemData = { ...query, tipo };
+      
+      // Buscar responsável separadamente se existir
+      if (itemData.responsavel) {
+        const { data: respData } = await supabase
+          .from('profiles')
+          .select('full_name, email')
+          .eq('id', itemData.responsavel)
+          .single();
+        
+        itemData.responsavel_profile = respData;
+      }
+
+      setItem(itemData);
     } catch (err) {
       console.error('❌ Erro ao buscar detalhes do item:', err);
       setError('Erro ao carregar detalhes do item');
@@ -167,16 +109,14 @@ export default function ItemDetalhes() {
   };
 
   const formatDate = (date: string | null) => {
-    if (!date) return 'Não definida';
-    const dateStr = date.split('T')[0];
-    const [year, month, day] = dateStr.split('-');
-    return `${day}/${month}/${year}`;
+    if (!date) return 'Não definido';
+    return new Date(date).toLocaleDateString('pt-BR');
   };
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      aguardando: 'bg-yellow-100 text-yellow-800',
-      em_analise: 'bg-blue-100 text-blue-800',
+      aguardando: 'bg-gray-100 text-gray-800',
+      em_analise: 'bg-yellow-100 text-yellow-800',
       finalizado: 'bg-green-100 text-green-800'
     };
     return colors[status] || 'bg-gray-100 text-gray-800';
@@ -190,6 +130,10 @@ export default function ItemDetalhes() {
     };
     return texts[status] || status;
   };
+
+  useEffect(() => {
+    fetchItemDetalhes();
+  }, [itemId, location.hash]);
 
   const estaAtrasado = item ? verificarAtraso(item.status, item.data_contato) : false;
 
@@ -251,108 +195,151 @@ export default function ItemDetalhes() {
                   )}
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Detalhes Principais */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <FileText className="w-5 h-5 mr-2 text-gray-600" />
-              Informações Gerais
-            </h2>
-            <div className="space-y-3">
-              <div>
-                <span className="text-sm text-gray-500">Protocolo:</span>
-                <p className="font-medium text-gray-900">{item.protocolo}</p>
-              </div>
-              <div>
-                <span className="text-sm text-gray-500">Data de Criação:</span>
-                <p className="font-medium text-gray-900">{formatDate(item.created_at)}</p>
-              </div>
-              <div>
-                <span className="text-sm text-gray-500">Data de Contato:</span>
-                <p className="font-medium text-gray-900">{formatDate(item.data_contato)}</p>
-              </div>
-              <div>
-                <span className="text-sm text-gray-500">Data de Finalização:</span>
-                <p className="font-medium text-gray-900">{formatDate(item.data_finalizado)}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <User className="w-5 h-5 mr-2 text-gray-600" />
-              Responsável e Contato
-            </h2>
-            <div className="space-y-3">
-              <div>
-                <span className="text-sm text-gray-500">Criado por:</span>
-                <p className="font-medium text-gray-900">{item.profiles?.full_name || 'Não definido'}</p>
-              </div>
-              <div>
-                <span className="text-sm text-gray-500">Email do Criador:</span>
-                <p className="font-medium text-gray-900">{item.profiles?.email || 'Não definido'}</p>
-              </div>
-              <div>
-                <span className="text-sm text-gray-500">Responsável:</span>
-                <p className="font-medium text-gray-900">{item.responsavel_profile?.full_name || item.responsavel || 'Não definido'}</p>
-              </div>
-              <div>
-                <span className="text-sm text-gray-500">Ponto de Contato:</span>
-                <p className="font-medium text-gray-900">{item.ponto_contato || 'Não definido'}</p>
+              <div className="ml-4">
+                <PrintButton item={item} itemType={item.tipo} />
               </div>
             </div>
           </div>
         </div>
+
+        {/* Informações Gerais - Padrão Impressão */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 border-l-4 border-blue-600 pl-3">
+            Informações Gerais
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <div className="text-sm text-gray-500 mb-1">Protocolo</div>
+              <div className="font-medium text-gray-900">{item.protocolo}</div>
+            </div>
+            <div>
+              <div className="text-sm text-gray-500 mb-1">Status</div>
+              <div className="font-medium">
+                <span className={`px-2 py-1 text-xs rounded ${
+                  item.status === 'finalizado' ? 'bg-green-100 text-green-800' :
+                  item.status === 'em_analise' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {item.status === 'finalizado' ? 'Finalizado' :
+                   item.status === 'em_analise' ? 'Em Análise' :
+                   item.status === 'aguardando' ? 'Aguardando' :
+                   'Pendente'}
+                </span>
+              </div>
+            </div>
+            <div>
+              <div className="text-sm text-gray-500 mb-1">Data de Criação</div>
+              <div className="font-medium text-gray-900">{formatDate(item.created_at)}</div>
+            </div>
+            <div>
+              <div className="text-sm text-gray-500 mb-1">Responsável</div>
+              <div className="font-medium text-gray-900">{item.responsavel_profile?.full_name || item.responsavel || 'Não atribuído'}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Descrição */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 border-l-4 border-blue-600 pl-3">
+            Descrição
+          </h2>
+          <div className="space-y-4">
+            <div>
+              <div className="text-sm text-gray-500 mb-1">Assunto</div>
+              <div className="font-medium text-gray-900">{item.assunto || 'Sem assunto'}</div>
+            </div>
+            <div>
+              <div className="text-sm text-gray-500 mb-1">Observações</div>
+              <div className="text-gray-700 bg-gray-50 p-3 rounded-lg">{item.observacoes || 'Nenhuma observação'}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Datas Importantes */}
+        {(item.data_inicio || item.data_contato || item.data_finalizado) && (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 border-l-4 border-blue-600 pl-3">
+              Datas Importantes
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {item.data_inicio && (
+                <div>
+                  <div className="text-sm text-gray-500 mb-1">Data de Início</div>
+                  <div className="font-medium text-gray-900">{formatDate(item.data_inicio)}</div>
+                </div>
+              )}
+              {item.data_contato && (
+                <div>
+                  <div className="text-sm text-gray-500 mb-1">Data de Contato</div>
+                  <div className="font-medium text-gray-900">{formatDate(item.data_contato)}</div>
+                </div>
+              )}
+              {item.data_finalizado && (
+                <div>
+                  <div className="text-sm text-gray-500 mb-1">Data de Finalização</div>
+                  <div className="font-medium text-gray-900">{formatDate(item.data_finalizado)}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Endereço */}
-        {(item.endereco_rua || item.endereco_bairro) && (
+        {(item.endereco_bairro || item.endereco_cep || item.endereco_rua) && (
           <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 border-l-4 border-blue-600 pl-3 flex items-center">
               <MapPin className="w-5 h-5 mr-2 text-gray-600" />
               Endereço
             </h2>
-            <div className="space-y-3">
-              {item.endereco_rua && (
-                <div>
-                  <span className="text-sm text-gray-500">Rua:</span>
-                  <p className="font-medium text-gray-900">
-                    {item.endereco_rua}{item.endereco_numero && `, ${item.endereco_numero}`}
-                  </p>
-                </div>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {item.endereco_bairro && (
                 <div>
-                  <span className="text-sm text-gray-500">Bairro:</span>
-                  <p className="font-medium text-gray-900">{item.endereco_bairro}</p>
-                </div>
-              )}
-              {item.endereco_localidade && (
-                <div>
-                  <span className="text-sm text-gray-500">Cidade:</span>
-                  <p className="font-medium text-gray-900">{item.endereco_localidade}</p>
+                  <div className="text-sm text-gray-500 mb-1">Bairro</div>
+                  <div className="font-medium text-gray-900">{item.endereco_bairro}</div>
                 </div>
               )}
               {item.endereco_cep && (
                 <div>
-                  <span className="text-sm text-gray-500">CEP:</span>
-                  <p className="font-medium text-gray-900">{item.endereco_cep}</p>
+                  <div className="text-sm text-gray-500 mb-1">CEP</div>
+                  <div className="font-medium text-gray-900">{item.endereco_cep}</div>
+                </div>
+              )}
+              {item.endereco_rua && (
+                <div className="md:col-span-2">
+                  <div className="text-sm text-gray-500 mb-1">Rua</div>
+                  <div className="font-medium text-gray-900">
+                    {item.endereco_rua}{item.endereco_numero ? `, ${item.endereco_numero}` : ''}{item.endereco_complemento ? ` - ${item.endereco_complemento}` : ''}
+                  </div>
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* Observações */}
-        {item.observacoes && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Observações</h2>
-            <p className="text-gray-700 whitespace-pre-wrap">{item.observacoes}</p>
+        {/* Informações Adicionais */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 border-l-4 border-blue-600 pl-3">
+            Informações Adicionais
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <div className="text-sm text-gray-500 mb-1">Criado por</div>
+              <div className="font-medium text-gray-900">{item.profiles?.full_name || 'Não definido'}</div>
+            </div>
+            <div>
+              <div className="text-sm text-gray-500 mb-1">Email do Criador</div>
+              <div className="font-medium text-gray-900">{item.profiles?.email || 'Não definido'}</div>
+            </div>
+            <div>
+              <div className="text-sm text-gray-500 mb-1">Ponto de Contato</div>
+              <div className="font-medium text-gray-900">{item.ponto_contato || 'Não definido'}</div>
+            </div>
+            <div>
+              <div className="text-sm text-gray-500 mb-1">Tipo</div>
+              <div className="font-medium text-gray-900">{item.tipo === 'solicitacao' ? 'Solicitação' : 'Demanda'}</div>
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

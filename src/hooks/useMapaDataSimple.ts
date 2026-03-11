@@ -55,7 +55,7 @@ export function useMapaDataSimple(filters: MapaFilters) {
       }
 
       // Transformar dados para o formato esperado
-      const transformarItem = (item: any, tipo: 'solicitacao' | 'demanda'): MapaItem => {
+      const transformarSolicitacao = (item: any): MapaItem => {
         const possuiCoords = item.endereco_latitude && item.endereco_longitude;
         
         // Calcular regional baseada no bairro
@@ -87,12 +87,50 @@ export function useMapaDataSimple(filters: MapaFilters) {
           endereco_validado: possuiCoords,
           possui_coordenadas: possuiCoords,
           usuario_nome: item.profiles?.full_name || 'Anônimo',
-          usuario_email: item.profiles?.email || ''
+          usuario_email: item.profiles?.email || '',
+          tipo: 'solicitacao'
         };
       };
 
-      const solicitacoesFormatadas = (solicitacoes || []).map(item => transformarItem(item, 'solicitacao'));
-      const demandasFormatadas = (demandas || []).map(item => transformarItem(item, 'demanda'));
+      const transformarDemanda = (item: any): MapaItem => {
+        const possuiCoords = item.endereco_latitude && item.endereco_longitude;
+        
+        // Calcular regional baseada no bairro
+        const regionalText = GeocodingService.buscarRegionalPorBairro(item.endereco_bairro || '');
+        const regionalNumber = GeocodingService.extrairNumeroRegional(regionalText);
+        
+        return {
+          id: item.id,
+          assunto: item.assunto || 'Sem assunto',
+          protocolo: item.protocolo || 'N/A',
+          status: item.status || 'desconhecido',
+          responsavel: 'Não definido', // Campo não existe na tabela original
+          ponto_contato: '', // Campo não existe na tabela original
+          created_at: item.created_at || new Date().toISOString(),
+          data_inicio: item.data_inicio,
+          data_contato: item.data_contato,
+          data_finalizado: item.data_finalizado,
+          endereco_rua: item.endereco_rua || '',
+          endereco_numero: item.endereco_numero || '',
+          endereco_bairro: item.endereco_bairro || '',
+          endereco_complemento: item.endereco_complemento || '',
+          endereco_cep: item.endereco_cep || '',
+          endereco_cidade: item.endereco_localidade || 'Fortaleza',
+          endereco_uf: 'CE',
+          endereco_latitude: item.endereco_latitude,
+          endereco_longitude: item.endereco_longitude,
+          endereco_regional: regionalNumber,
+          endereco_geocoding_status: possuiCoords ? 'sucesso' : 'pendente',
+          endereco_validado: possuiCoords,
+          possui_coordenadas: possuiCoords,
+          usuario_nome: item.profiles?.full_name || 'Anônimo',
+          usuario_email: item.profiles?.email || '',
+          tipo: 'demanda'
+        };
+      };
+
+      const solicitacoesFormatadas = (solicitacoes || []).map(item => transformarSolicitacao(item));
+      const demandasFormatadas = (demandas || []).map(item => transformarDemanda(item));
 
       const todosDados = [...solicitacoesFormatadas, ...demandasFormatadas];
       
@@ -220,7 +258,7 @@ export function useMapaDataSimple(filters: MapaFilters) {
     stats,
     refetch: fetchDadosSimples,
     carregarMais: () => fetchDadosSimples(),
-    geocodificarEndereco: async (item: MapaItem) => {
+    geocodificarEndereco: async () => {
       // Geocoding não implementado na versão simples
     }
   };
