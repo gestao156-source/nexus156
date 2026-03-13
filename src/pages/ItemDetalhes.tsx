@@ -53,6 +53,10 @@ export default function ItemDetalhes() {
     setError(null);
 
     try {
+      console.log('🔍 Buscando item:', itemId);
+      
+      let tipo = 'solicitacao';
+      
       // Tentar buscar em solicitacoes primeiro
       let { data: query, error: queryError } = await supabase
         .from('solicitacoes')
@@ -60,17 +64,50 @@ export default function ItemDetalhes() {
         .eq('id', itemId)
         .single();
 
-      let tipo = 'solicitacao';
+      console.log('📋 Resultado solicitacoes:', { data: query, error: queryError });
 
-      // Se não encontrar em solicitacoes, buscar em demandas
-      if (queryError || !query) {
+      // Se temos dados, ignorar erro 406 (que parece ser um falso positivo)
+      if (query && !queryError) {
+        console.log('✅ Dados encontrados em solicitacoes, ignorando possível erro 406');
+      } else if (queryError) {
+        console.log('⚠️ Erro em solicitacoes:', queryError.message);
+        // Se for erro 406 mas temos dados, continuar
+        if (queryError.message && queryError.message.includes('406') && query) {
+          console.log('🔄 Erro 406 detectado mas dados presentes, continuando...');
+        } else {
+          // Para outros erros, tentar demandas
+          console.log('🔄 Tentando buscar em demandas...');
+          const { data: queryDem, error: queryDemError } = await supabase
+            .from('demandas')
+            .select('*')
+            .eq('id', itemId)
+            .single();
+
+          console.log('📋 Resultado demandas:', { data: queryDem, error: queryDemError });
+
+          if (queryDemError || !queryDem) {
+            console.error('❌ Item não encontrado em nenhuma tabela');
+            throw new Error('Item não encontrado em nenhuma tabela');
+          }
+
+          query = queryDem;
+          tipo = 'demanda';
+        }
+      }
+
+      // Se não encontrou em solicitacoes, tentar demandas
+      if (!query) {
+        console.log('🔄 Tentando buscar em demandas...');
         const { data: queryDem, error: queryDemError } = await supabase
           .from('demandas')
           .select('*')
           .eq('id', itemId)
           .single();
 
+        console.log('📋 Resultado demandas:', { data: queryDem, error: queryDemError });
+
         if (queryDemError || !queryDem) {
+          console.error('❌ Item não encontrado em nenhuma tabela');
           throw new Error('Item não encontrado em nenhuma tabela');
         }
 
@@ -78,7 +115,7 @@ export default function ItemDetalhes() {
         tipo = 'demanda';
       }
 
-      console.log('📊 Resultado query:', query);
+      console.log('✅ Query final bem-sucedida:', query);
       
       let itemData = { ...query, tipo };
       
