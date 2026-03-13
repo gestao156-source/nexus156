@@ -42,6 +42,11 @@ export function useMapaDataSimple(filters: MapaFilters) {
     setLoading(true);
     setError(null);
 
+    // Esperar profiles carregarem
+    if (profiles.length === 0) {
+      return;
+    }
+
     try {
       // Buscar diretamente das tabelas (só colunas que existem)
       const { data: solicitacoes, error: errorSol } = await supabase
@@ -157,10 +162,6 @@ export function useMapaDataSimple(filters: MapaFilters) {
 
       const todosDados = [...solicitacoesFormatadas, ...demandasFormatadas];
       
-      console.log('🔍 Dados totais:', todosDados.length);
-      console.log('📍 Com coordenadas:', todosDados.filter(d => d.possui_coordenadas).length);
-      console.log('❌ Sem coordenadas:', todosDados.filter(d => !d.possui_coordenadas).length);
-      
       // Aplicar filtros
       let dadosFiltrados = todosDados;
       
@@ -267,7 +268,7 @@ export function useMapaDataSimple(filters: MapaFilters) {
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, profiles]);
 
   // Carregar dados iniciais
   useEffect(() => {
