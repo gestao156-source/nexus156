@@ -39,13 +39,11 @@ export default function Relatorios() {
   }, [isAdmin, filtros.usuario]);
 
   const handleFiltroChange = (filtro: string, valor: any) => {
-    console.log('🔄 Mudança de filtro:', filtro, '→', valor);
     setFiltros(prev => {
       const novosFiltros = {
         ...prev,
         [filtro]: valor,
       };
-      console.log('📋 Novos filtros:', JSON.stringify(novosFiltros, null, 2));
       return novosFiltros;
     });
   };
