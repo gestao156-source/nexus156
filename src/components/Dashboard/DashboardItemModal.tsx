@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { X, Search, FileText, User, Phone, Calendar, AlertTriangle, Clock } from 'lucide-react';
+import { X, Search, FileText, User, Phone, Calendar, AlertTriangle } from 'lucide-react';
 import { KanbanItem } from '../../types/index';
 import { verificarAtraso } from '../../utils/calculoDiasUteis';
-import { useHistoricoProcedimentos } from '../../hooks/useHistoricoProcedimentos';
+import UltimoProcedimentoItem from './UltimoProcedimentoItem';
 
 interface DashboardItemModalProps {
   isOpen: boolean;
@@ -221,30 +221,11 @@ export default function DashboardItemModal({
                       )}
                     </div>
 
-                    {/* Último Procedimento */}
-                    {(() => {
-                      const { getUltimoProcedimento, formatarData } = useHistoricoProcedimentos({
-                        itemId: item.id,
-                        itemTipo: item.tipo === 'solicitacao' ? 'solicitacao' : 'demanda'
-                      });
-                      const ultimoProcedimento = getUltimoProcedimento();
-                      
-                      return ultimoProcedimento ? (
-                        <div className="mt-3 pt-3 border-t border-gray-100">
-                          <div className="flex items-start space-x-2">
-                            <Clock className="w-3 h-3 text-gray-500 mt-0.5" />
-                            <div className="flex-1">
-                              <p className="text-xs text-gray-600 line-clamp-2">
-                                {ultimoProcedimento.procedimento}
-                              </p>
-                              <p className="text-xs text-gray-400 mt-1">
-                                {ultimoProcedimento.usuario_nome} • {formatarData(ultimoProcedimento.created_at)}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ) : null;
-                    })()}
+                    {/* Último Procedimento - simplificado sem hook */}
+                    <UltimoProcedimentoItem 
+                      itemId={item.id}
+                      itemTipo={item.tipo === 'solicitacao' ? 'solicitacao' : 'demanda'}
+                    />
 
                     {/* Indicador de clique */}
                     <div className="mt-3 pt-3 border-t border-gray-100">
