@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell } from 'recharts';
 import { ChevronLeft, FileText, Calendar, User } from 'lucide-react';
 import { RegionalData } from './chart-types';
 import { getRegionalPorId, encontrarRegionalPorBairro } from '../../../utils/regionalUtils';
@@ -32,7 +32,7 @@ export default function RegionalBairrosChart({
   // Verificar se data é um array válido
   if (!Array.isArray(data) || data.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
         <div className="flex items-center justify-center h-64 text-gray-400">
           Nenhum dado disponível
@@ -68,8 +68,6 @@ export default function RegionalBairrosChart({
       
       // Buscar dados reais dos bairros
       try {
-        console.log(`🔍 Buscando bairros da regional: ${regional.region}`);
-        
         const { data: solicitacoes } = await supabase
           .from('solicitacoes')
           .select('endereco_bairro, endereco_regional');
@@ -94,8 +92,6 @@ export default function RegionalBairrosChart({
           return regionalDoItemNome === regional.region;
         });
 
-        console.log(`📊 Itens encontrados para ${regional.region}:`, itensRegional.length);
-
         // Agrupar por bairro
         const grouped = itensRegional.reduce((acc, item) => {
           const bairro = item.endereco_bairro || 'Não definido';
@@ -109,7 +105,6 @@ export default function RegionalBairrosChart({
           quantidade: value
         })).sort((a, b) => b.quantidade - a.quantidade); // Ordenar por quantidade
 
-        console.log(`📍 Bairros agrupados:`, result);
         setBairrosData(result);
       } catch (error) {
         console.error('Erro ao buscar bairros:', error);
@@ -173,21 +168,8 @@ export default function RegionalBairrosChart({
     navigate(`/todos/${item.id}#item-${item.id}`);
   };
 
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload[0]) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-semibold text-gray-900">{data.region || data.bairro}</p>
-          <p className="text-sm text-gray-600">Quantidade: {data.value || data.quantidade}</p>
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
+    <div className="bg-white rounded-lg p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
       
       {!selectedRegional ? (
@@ -207,7 +189,6 @@ export default function RegionalBairrosChart({
               type="number" 
               tick={{ fontSize: 12 }}
             />
-            <Tooltip content={<CustomTooltip />} />
             <Bar 
               dataKey="value" 
               radius={[0, 4, 4, 0]}

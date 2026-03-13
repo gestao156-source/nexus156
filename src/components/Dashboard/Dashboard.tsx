@@ -5,12 +5,11 @@ import { PlayCircle, CheckCircle, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../contexts/ToastContext';
 import { verificarAtraso } from '../../utils/calculoDiasUteis';
-import PieChart from './PieChart';
 import DashboardItemModal from './DashboardItemModal';
 // Novos gráficos
-import AreaChart from './Charts/AreaChart';
 import ScatterChart from './Charts/ScatterChart';
 import RegionalBairrosChart from './Charts/RegionalBairrosChart';
+import FunnelChart from './Charts/FunnelChart';
 import ChartAccordion from './Charts/ChartAccordion';
 import { useDashboardCharts } from '../../hooks/useDashboardCharts';
 import { TrendingUp, Activity, Clock, MapPin } from 'lucide-react';
@@ -41,6 +40,9 @@ export default function Dashboard() {
     baixas: 0,
     total: 0
   });
+
+  // Estado para top assuntos
+  const [topAssuntos, setTopAssuntos] = useState<{assunto: string, quantidade: number}[]>([]);
   
   const [solicitacoesStats, setSolicitacoesStats] = useState<DashboardStats>({
     aguardando: 0,
@@ -105,7 +107,12 @@ export default function Dashboard() {
 
   const countAtrasadas = (items: ItemComPrazo[]) => {
     return items.filter(item => {
-      return verificarAtraso(item.status, item.data_contato || null);
+      // Só contar como atrasado se:
+      // 1. Status for aguardando ou em_análise
+      // 2. E estiver realmente atrasado
+      const isRelevantStatus = item.status === 'aguardando' || item.status === 'em_analise';
+      const isOverdue = verificarAtraso(item.status, item.data_contato || null);
+      return isRelevantStatus && isOverdue;
     }).length;
   };
 
@@ -122,46 +129,58 @@ export default function Dashboard() {
     amanha.setDate(amanha.getDate() + 1);
     
     try {
-      // Buscar solicitações do dia
+      // Buscar solicitações do dia (para métricas do dia)
       const { data: solData } = await supabase
         .from('solicitacoes')
         .select('created_at, status, data_contato, data_finalizado')
         .gte('created_at', hoje.toISOString())
         .lt('created_at', amanha.toISOString());
 
-      // Buscar demandas do dia
+      // Buscar demandas do dia (para métricas do dia)
       const { data: demData } = await supabase
         .from('demandas')
         .select('created_at, status, data_contato, data_finalizado')
         .gte('created_at', hoje.toISOString())
         .lt('created_at', amanha.toISOString());
 
-      const todosItens = [...(solData || []), ...(demData || [])];
+      // Buscar TODOS os itens ativos para prioridades (independente da data)
+      const { data: solAtivos } = await supabase
+        .from('solicitacoes')
+        .select('created_at, status, data_contato, data_finalizado')
+        .in('status', ['aguardando', 'em_analise']);
+
+      const { data: demAtivos } = await supabase
+        .from('demandas')
+        .select('created_at, status, data_contato, data_finalizado')
+        .in('status', ['aguardando', 'em_analise']);
+
+      const itensCriadosHoje = [...(solData || []), ...(demData || [])];
+      const todosItensAtivos = [...(solAtivos || []), ...(demAtivos || [])];
       
       // Calcular métricas do dia
-      const criadosHoje = todosItens.length;
-      const emAtendimento = todosItens.filter(i => i.status === 'em_analise').length;
-      const concluidosHoje = todosItens.filter(i => i.status === 'finalizado').length;
+      const criadosHoje = itensCriadosHoje.length;
+      const emAtendimento = itensCriadosHoje.filter(i => i.status === 'em_analise').length;
+      const concluidosHoje = itensCriadosHoje.filter(i => i.status === 'finalizado').length;
       const metaDiaria = 15; // Meta configurável
       const progresso = metaDiaria > 0 ? Math.round((concluidosHoje / metaDiaria) * 100) : 0;
       
-      // Calcular prioridades (baseado em regras simples)
-      const urgentes = todosItens.filter(i => {
+      // Calcular prioridades (baseado em TODOS os itens ativos)
+      const urgentes = todosItensAtivos.filter(i => {
         const diasAtraso = verificarAtraso(i.status, i.data_contato);
         return (i.status === 'aguardando' || i.status === 'em_analise') && diasAtraso > 7;
       }).length;
       
-      const altas = todosItens.filter(i => {
+      const altas = todosItensAtivos.filter(i => {
         const diasAtraso = verificarAtraso(i.status, i.data_contato);
         return (i.status === 'aguardando' || i.status === 'em_analise') && diasAtraso > 3 && diasAtraso <= 7;
       }).length;
       
-      const normais = todosItens.filter(i => {
+      const normais = todosItensAtivos.filter(i => {
         const diasAtraso = verificarAtraso(i.status, i.data_contato);
         return (i.status === 'aguardando' || i.status === 'em_analise') && diasAtraso >= 0 && diasAtraso <= 3;
       }).length;
       
-      const baixas = todosItens.filter(i => i.status === 'finalizado').length;
+      const baixas = todosItensAtivos.filter(i => i.status === 'finalizado').length;
       
       return {
         criadosHoje,
@@ -173,7 +192,7 @@ export default function Dashboard() {
         altas,
         normais,
         baixas,
-        total: criadosHoje
+        total: todosItensAtivos.length
       };
     } catch (error) {
       console.error('Erro ao calcular dados do dia:', error);
@@ -197,6 +216,49 @@ export default function Dashboard() {
   useEffect(() => {
     calcularDadosDia().then(setDadosDia);
   }, [solicitacoesStats, demandasStats]);
+
+  // Buscar top assuntos
+  const buscarTopAssuntos = async () => {
+    try {
+      // Buscar top assuntos de solicitações
+      const { data: solAssuntos } = await supabase
+        .from('solicitacoes')
+        .select('assunto')
+        .not('assunto', 'is', null);
+
+      // Buscar top assuntos de demandas
+      const { data: demAssuntos } = await supabase
+        .from('demandas')
+        .select('assunto')
+        .not('assunto', 'is', null);
+
+      // Combinar e contar
+      const todosAssuntos = [
+        ...(solAssuntos || []).map(s => s.assunto),
+        ...(demAssuntos || []).map(d => d.assunto)
+      ];
+
+      const contagem = todosAssuntos.reduce((acc, assunto) => {
+        acc[assunto] = (acc[assunto] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Ordenar e pegar top 10
+      const top10 = Object.entries(contagem)
+        .map(([assunto, quantidade]) => ({ assunto, quantidade: Number(quantidade) }))
+        .sort((a, b) => b.quantidade - a.quantidade)
+        .slice(0, 10);
+
+      setTopAssuntos(top10);
+    } catch (error) {
+      console.error('Erro ao buscar top assuntos:', error);
+      setTopAssuntos([]);
+    }
+  };
+
+  useEffect(() => {
+    buscarTopAssuntos();
+  }, []);
 
   // Função para buscar itens completos do Supabase
   const fetchItemsByStatus = async (type: 'solicitacoes' | 'demandas', status: string) => {
@@ -254,6 +316,120 @@ export default function Dashboard() {
   };
 
   // Lógica inteligente para clique nos cards - Mostra ambos os tipos
+  // Funções de busca específicas para as seções
+  const fetchItemsByAssunto = async (assunto: string) => {
+    const { data: solicitacoes } = await supabase
+      .from('solicitacoes')
+      .select(`
+        *,
+        profiles!inner(full_name)
+      `)
+      .ilike('assunto', `%${assunto}%`);
+    
+    const { data: demandas } = await supabase
+      .from('demandas')
+      .select(`
+        *,
+        profiles!inner(full_name)
+      `)
+      .ilike('assunto', `%${assunto}%`);
+    
+    // Transformar dados para incluir nome do responsável
+    const solTransformed = (solicitacoes || []).map(item => ({
+      ...item,
+      responsavel: item.profiles?.full_name || 'Não definido',
+      tipo: 'solicitacao'
+    }));
+    
+    const demTransformed = (demandas || []).map(item => ({
+      ...item,
+      responsavel: item.profiles?.full_name || 'Não definido',
+      tipo: 'demanda'
+    }));
+    
+    return [...solTransformed, ...demTransformed];
+  };
+
+  const fetchItemsByDateRange = async (startDate: string, endDate: string) => {
+    const { data: solicitacoes } = await supabase
+      .from('solicitacoes')
+      .select(`
+        *,
+        profiles!inner(full_name)
+      `)
+      .gte('created_at', startDate)
+      .lte('created_at', endDate);
+    
+    const { data: demandas } = await supabase
+      .from('demandas')
+      .select(`
+        *,
+        profiles!inner(full_name)
+      `)
+      .gte('created_at', startDate)
+      .lte('created_at', endDate);
+    
+    // Transformar dados para incluir nome do responsável
+    const solTransformed = (solicitacoes || []).map(item => ({
+      ...item,
+      responsavel: item.profiles?.full_name || 'Não definido',
+      tipo: 'solicitacao'
+    }));
+    
+    const demTransformed = (demandas || []).map(item => ({
+      ...item,
+      responsavel: item.profiles?.full_name || 'Não definido',
+      tipo: 'demanda'
+    }));
+    
+    return [...solTransformed, ...demTransformed];
+  };
+
+  const fetchItemsByPriority = async (priorityLevel: string) => {
+    // Mapear níveis de prioridade para status
+    const priorityMap: Record<string, string[]> = {
+      'Urgentes': ['urgente', 'critico'],
+      'Altas': ['alta', 'prioritario'],
+      'Normais': ['normal', 'regular'],
+      'Baixas': ['baixa', 'baixa_prioridade']
+    };
+    
+    const statuses = priorityMap[priorityLevel] || [];
+    
+    if (statuses.length === 0) return [];
+    
+    const { data: solicitacoes } = await supabase
+      .from('solicitacoes')
+      .select(`
+        *,
+        profiles!inner(full_name)
+      `)
+      .in('prioridade', statuses);
+    
+    const { data: demandas } = await supabase
+      .from('demandas')
+      .select(`
+        *,
+        profiles!inner(full_name)
+      `)
+      .in('prioridade', statuses);
+    
+    // Transformar dados para incluir nome do responsável
+    const solTransformed = (solicitacoes || []).map(item => ({
+      ...item,
+      responsavel: item.profiles?.full_name || 'Não definido',
+      tipo: 'solicitacao'
+    }));
+    
+    const demTransformed = (demandas || []).map(item => ({
+      ...item,
+      responsavel: item.profiles?.full_name || 'Não definido',
+      tipo: 'demanda'
+    }));
+    
+    return [...solTransformed, ...demTransformed];
+  };
+
   const handleCardClick = async (cardType: string) => {
     if (cardType === 'aguardando') {
       const solItems = await fetchItemsByStatus('solicitacoes', 'aguardando');
@@ -285,6 +461,16 @@ export default function Dashboard() {
       } else {
         showInfo('Nenhum item atrasado', 'Todos os itens estão dentro dos prazos!');
       }
+    } else if (cardType === 'finalizado') {
+      const solItems = await fetchItemsByStatus('solicitacoes', 'finalizado');
+      const demItems = await fetchItemsByStatus('demandas', 'finalizado');
+      const allItems = [...solItems, ...demItems];
+      
+      if (allItems.length > 0) {
+        openModal('todos', 'finalizado', allItems);
+      } else {
+        navigate('/solicitacoes');
+      }
     } else if (cardType === 'finalizados') {
       const solItems = await fetchItemsByStatus('solicitacoes', 'finalizado');
       const demItems = await fetchItemsByStatus('demandas', 'finalizado');
@@ -304,6 +490,105 @@ export default function Dashboard() {
       } else {
         navigate('/demandas');
       }
+    }
+  };
+
+  // Estado para loading do modal
+  const [modalLoading, setModalLoading] = useState(false);
+
+  // Handlers para as seções específicas
+  const handleAssuntoClick = async (assunto: string) => {
+    setModalLoading(true);
+    
+    try {
+      const items = await fetchItemsByAssunto(assunto);
+      
+      if (items.length > 0) {
+        openModal('todos', `assunto_${assunto}`, items);
+      } else {
+        // Abrir modal mesmo que não tenha itens, para mostrar mensagem
+        openModal('todos', `assunto_${assunto}`, []);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar itens:', error);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleResumoDiaClick = async (tipo: string) => {
+    setModalLoading(true);
+    openModal('todos', `resumo_${tipo}`, []);
+    
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      let items = [];
+      
+      switch (tipo) {
+        case 'criados_hoje':
+          items = await fetchItemsByDateRange(today, today);
+          break;
+        case 'em_atendimento':
+          const solEmAtendimento = await fetchItemsByStatus('solicitacoes', 'em_analise');
+          const demEmAtendimento = await fetchItemsByStatus('demandas', 'em_analise');
+          items = [...solEmAtendimento, ...demEmAtendimento];
+          break;
+        case 'concluidos_hoje':
+          const { data: solConcluidos } = await supabase
+            .from('solicitacoes')
+            .select('*')
+            .eq('status', 'finalizado')
+            .gte('data_finalizado', today);
+          const { data: demConcluidos } = await supabase
+            .from('demandas')
+            .select('*')
+            .eq('status', 'finalizado')
+            .gte('data_finalizado', today);
+          items = [...(solConcluidos || []), ...(demConcluidos || [])];
+          break;
+      }
+      
+      if (items.length > 0) {
+        openModal('todos', `resumo_${tipo}`, items);
+      }
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handlePrioridadeClick = async (prioridade: string) => {
+    setModalLoading(true);
+    openModal('todos', `prioridade_${prioridade}`, []);
+    
+    try {
+      const items = await fetchItemsByPriority(prioridade);
+      if (items.length > 0) {
+        openModal('todos', `prioridade_${prioridade}`, items);
+      }
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  // Lógica para clique no funil
+  const handleFunnelClick = async (stage: string) => {
+    const statusMap: Record<string, string> = {
+      'Aguardando': 'aguardando',
+      'Em Análise': 'em_analise',
+      'Atrasados': 'atrasadas',
+      'Finalizado': 'finalizado'
+    };
+    
+    const status = statusMap[stage];
+    if (status) {
+      // Abrir modal imediatamente com loading
+      setModalLoading(true);
+      openModal('todos', status, []);
+      
+      // Carregar dados em background SEM bloquear
+      handleCardClick(status).finally(() => {
+        setModalLoading(false);
+      });
     }
   };
 
@@ -418,30 +703,68 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {/* Gráficos Principais */}
-        <PieChart
-          data={[
-            { name: 'Aguardando', value: solicitacoesStats.aguardando + demandasStats.aguardando, color: '#EAB308' },
-            { name: 'Em Análise', value: solicitacoesStats.em_analise + demandasStats.em_analise, color: '#3B82F6' },
-            { name: 'Finalizados', value: solicitacoesStats.finalizado + demandasStats.finalizado, color: '#22C55E' },
-            { name: 'Atrasadas', value: atrasadas, color: '#FF3737' },
-          ]}
-        />
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Top 10 Assuntos</h3>
+          <div className="space-y-2">
+            {topAssuntos.length > 0 ? (
+              topAssuntos.map((item, index) => (
+                <div 
+                  key={index} 
+                  className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors duration-200 group"
+                  onClick={() => handleAssuntoClick(item.assunto)}
+                  title={`Clique para ver todos os itens sobre "${item.assunto}"`}
+                >
+                  <span className="text-xs text-gray-600 truncate flex-1 mr-2 group-hover:text-blue-600 transition-colors duration-200">
+                    {item.assunto}
+                  </span>
+                  <div className="flex items-center">
+                    <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                      <div 
+                        className="bg-blue-500 h-2 rounded-full group-hover:bg-blue-600 transition-colors duration-200" 
+                        style={{width: `${Math.min(100, (item.quantidade / Math.max(...topAssuntos.map(a => a.quantidade))) * 100)}%`}}
+                      ></div>
+                    </div>
+                    <span className="text-xs font-semibold text-gray-700 min-w-[20px] text-right group-hover:text-blue-600 transition-colors duration-200">
+                      {item.quantidade}
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-gray-400 py-4">
+                <span className="text-sm">Carregando...</span>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Gráfico pequeno adicional */}
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Resumo do Dia</h3>
           <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-600">Criados Hoje</span>
-              <span className="text-sm font-bold text-blue-600">{dadosDia.criadosHoje}</span>
+            <div 
+              className="flex justify-between items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors duration-200 group"
+              onClick={() => handleResumoDiaClick('criados_hoje')}
+              title="Clique para ver todos os itens criados hoje"
+            >
+              <span className="text-xs text-gray-600 group-hover:text-blue-600 transition-colors duration-200">Criados Hoje</span>
+              <span className="text-sm font-bold text-blue-600 group-hover:text-blue-700 transition-colors duration-200">{dadosDia.criadosHoje}</span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-600">Em Atendimento</span>
-              <span className="text-sm font-bold text-orange-600">{dadosDia.emAtendimento}</span>
+            <div 
+              className="flex justify-between items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors duration-200 group"
+              onClick={() => handleResumoDiaClick('em_atendimento')}
+              title="Clique para ver todos os itens em atendimento"
+            >
+              <span className="text-xs text-gray-600 group-hover:text-orange-600 transition-colors duration-200">Em Atendimento</span>
+              <span className="text-sm font-bold text-orange-600 group-hover:text-orange-700 transition-colors duration-200">{dadosDia.emAtendimento}</span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-600">Concluídos Hoje</span>
-              <span className="text-sm font-bold text-green-600">{dadosDia.concluidosHoje}</span>
+            <div 
+              className="flex justify-between items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors duration-200 group"
+              onClick={() => handleResumoDiaClick('concluidos_hoje')}
+              title="Clique para ver todos os itens concluídos hoje"
+            >
+              <span className="text-xs text-gray-600 group-hover:text-green-600 transition-colors duration-200">Concluídos Hoje</span>
+              <span className="text-sm font-bold text-green-600 group-hover:text-green-700 transition-colors duration-200">{dadosDia.concluidosHoje}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-xs text-gray-600">Meta Diária</span>
@@ -468,33 +791,49 @@ export default function Dashboard() {
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Prioridades</h3>
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div 
+              className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors duration-200 group"
+              onClick={() => handlePrioridadeClick('Urgentes')}
+              title="Clique para ver todos os itens urgentes"
+            >
               <div className="flex items-center">
-                <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                <span className="text-xs text-gray-600">Urgentes</span>
+                <div className="w-3 h-3 bg-red-500 rounded-full mr-2 group-hover:bg-red-600 transition-colors duration-200"></div>
+                <span className="text-xs text-gray-600 group-hover:text-red-600 transition-colors duration-200">Urgentes</span>
               </div>
-              <span className="text-sm font-bold text-red-600">{dadosDia.urgentes}</span>
+              <span className="text-sm font-bold text-red-600 group-hover:text-red-700 transition-colors duration-200">{dadosDia.urgentes}</span>
             </div>
-            <div className="flex items-center justify-between">
+            <div 
+              className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors duration-200 group"
+              onClick={() => handlePrioridadeClick('Altas')}
+              title="Clique para ver todos os itens de alta prioridade"
+            >
               <div className="flex items-center">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-                <span className="text-xs text-gray-600">Altas</span>
+                <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2 group-hover:bg-yellow-600 transition-colors duration-200"></div>
+                <span className="text-xs text-gray-600 group-hover:text-yellow-600 transition-colors duration-200">Altas</span>
               </div>
-              <span className="text-sm font-bold text-yellow-600">{dadosDia.altas}</span>
+              <span className="text-sm font-bold text-yellow-600 group-hover:text-yellow-700 transition-colors duration-200">{dadosDia.altas}</span>
             </div>
-            <div className="flex items-center justify-between">
+            <div 
+              className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors duration-200 group"
+              onClick={() => handlePrioridadeClick('Normais')}
+              title="Clique para ver todos os itens de prioridade normal"
+            >
               <div className="flex items-center">
-                <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                <span className="text-xs text-gray-600">Normais</span>
+                <div className="w-3 h-3 bg-blue-500 rounded-full mr-2 group-hover:bg-blue-600 transition-colors duration-200"></div>
+                <span className="text-xs text-gray-600 group-hover:text-blue-600 transition-colors duration-200">Normais</span>
               </div>
-              <span className="text-sm font-bold text-blue-600">{dadosDia.normais}</span>
+              <span className="text-sm font-bold text-blue-600 group-hover:text-blue-700 transition-colors duration-200">{dadosDia.normais}</span>
             </div>
-            <div className="flex items-center justify-between">
+            <div 
+              className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors duration-200 group"
+              onClick={() => handlePrioridadeClick('Baixas')}
+              title="Clique para ver todos os itens de baixa prioridade"
+            >
               <div className="flex items-center">
-                <div className="w-3 h-3 bg-gray-500 rounded-full mr-2"></div>
-                <span className="text-xs text-gray-600">Baixas</span>
+                <div className="w-3 h-3 bg-gray-500 rounded-full mr-2 group-hover:bg-gray-600 transition-colors duration-200"></div>
+                <span className="text-xs text-gray-600 group-hover:text-gray-600 transition-colors duration-200">Baixas</span>
               </div>
-              <span className="text-sm font-bold text-gray-600">{dadosDia.baixas}</span>
+              <span className="text-sm font-bold text-gray-600 group-hover:text-gray-700 transition-colors duration-200">{dadosDia.baixas}</span>
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-gray-200">
@@ -588,11 +927,11 @@ export default function Dashboard() {
         </ChartAccordion>
 
         <ChartAccordion 
-          title="Análise de Backlog" 
+          title="Funil de Processo" 
           icon={<TrendingUp className="w-5 h-5 text-blue-600" />}
           defaultOpen={false}
         >
-          <AreaChart data={chartsData.backlogData} height={250} />
+          <FunnelChart data={chartsData.funnelData} height={250} onBarClick={handleFunnelClick} />
         </ChartAccordion>
 
         <ChartAccordion 
@@ -606,13 +945,13 @@ export default function Dashboard() {
 
       {/* Modal Inteligente */}
       <DashboardItemModal
-        isOpen={modalOpen}
-        onClose={closeModal}
-        items={modalItems}
-        type={modalType}
-        status={modalStatus}
-        onItemClick={handleItemClick}
-      />
+          isOpen={modalOpen}
+          onClose={closeModal}
+          items={modalItems}
+          status={modalStatus}
+          isLoading={modalLoading}
+          onItemClick={handleItemClick}
+        />
       </div>
     </div>
   );

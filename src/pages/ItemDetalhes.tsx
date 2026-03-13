@@ -187,12 +187,12 @@ export default function ItemDetalhes() {
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(item.status)}`}>
                     {getStatusText(item.status)}
                   </span>
-                  {estaAtrasado && (
+                  {estaAtrasado ? (
                     <div className="flex items-center space-x-1 bg-red-100 px-3 py-1 rounded-full">
                       <AlertTriangle className="w-4 h-4 text-red-600" />
                       <span className="text-sm font-semibold text-red-700">Atrasado</span>
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
               <div className="ml-4">

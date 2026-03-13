@@ -48,7 +48,7 @@ export default function ScatterChart({ data, title = "Tempo de Resposta", height
   }));
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
+    <div className="bg-white rounded-lg p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
       <ResponsiveContainer width="100%" height={height}>
         <RechartsScatterChart margin={{ top: 5, right: 30, left: 20, bottom: 60 }}>

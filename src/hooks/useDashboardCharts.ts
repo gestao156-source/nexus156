@@ -11,6 +11,7 @@ import {
   AverageTimeData 
 } from '../components/Dashboard/Charts/chart-types';
 import { getRegionalPorId, encontrarRegionalPorBairro } from '../utils/regionalUtils';
+import { verificarAtraso } from '../utils/calculoDiasUteis';
 
 export function useDashboardCharts() {
   const [loading, setLoading] = useState(false);
@@ -101,44 +102,61 @@ export function useDashboardCharts() {
 
   // 2. Dados de backlog
   const fetchBacklogData = async (): Promise<TimeSeriesData[]> => {
-    const thirtyDaysAgo = subDays(new Date(), 30);
-    
-    // Buscar itens pendentes por dia
+    // Buscar TODOS os itens (não só dos últimos 30 dias)
     const { data: solicitacoes } = await supabase
       .from('solicitacoes')
-      .select('created_at, status')
-      .gte('created_at', thirtyDaysAgo.toISOString());
+      .select('created_at, status, data_finalizado');
 
     const { data: demandas } = await supabase
       .from('demandas')
-      .select('created_at, status')
-      .gte('created_at', thirtyDaysAgo.toISOString());
+      .select('created_at, status, data_finalizado');
 
     // Agrupar dados por dia
-    const dailyData: Record<string, number> = {};
+    const dailyData: Record<string, { criados: number; finalizados: number }> = {};
     
     // Inicializar todos os dias do período
     for (let i = 0; i < 30; i++) {
       const date = format(subDays(new Date(), i), 'yyyy-MM-dd');
-      dailyData[date] = 0;
+      dailyData[date] = { criados: 0, finalizados: 0 };
     }
 
-    // Contar itens pendentes
+    // Contar itens criados no período
     [...(solicitacoes || []), ...(demandas || [])].forEach(item => {
-      if (item.status !== 'finalizado') {
-        const date = format(new Date(item.created_at), 'yyyy-MM-dd');
-        if (dailyData[date]) dailyData[date]++;
+      const createdDate = format(new Date(item.created_at), 'yyyy-MM-dd');
+      if (dailyData[createdDate]) {
+        dailyData[createdDate].criados++;
       }
     });
 
-    // Converter para o formato do gráfico
-    return Object.entries(dailyData)
-      .map(([date, value]) => ({
+    // Contar itens finalizados no período
+    [...(solicitacoes || []), ...(demandas || [])].forEach(item => {
+      if (item.data_finalizado) {
+        const finishedDate = format(new Date(item.data_finalizado), 'yyyy-MM-dd');
+        if (dailyData[finishedDate]) {
+          dailyData[finishedDate].finalizados++;
+        }
+      }
+    });
+
+    // Calcular backlog acumulado
+    let backlogAcumulado = 0;
+    const backlogData: TimeSeriesData[] = [];
+    
+    // Processar dias em ordem cronológica (do mais antigo para o mais novo)
+    const sortedDates = Object.keys(dailyData).sort();
+    
+    sortedDates.forEach(date => {
+      const dayData = dailyData[date];
+      backlogAcumulado += dayData.criados - dayData.finalizados;
+      
+      backlogData.push({
         date: format(new Date(date), 'dd/MM', { locale: ptBR }),
-        value,
+        value: Math.max(0, backlogAcumulado), // Não pode ser negativo
         category: 'Backlog'
-      }))
-      .reverse();
+      });
+    });
+
+    return backlogData;
   };
 
   // 3. Dados de tempo médio
@@ -172,11 +190,11 @@ export function useDashboardCharts() {
     // Buscar contagem por status
     const { data: solicitacoes } = await supabase
       .from('solicitacoes')
-      .select('status');
+      .select('status, data_contato');
 
     const { data: demandas } = await supabase
       .from('demandas')
-      .select('status');
+      .select('status, data_contato');
 
     const allItems = [...(solicitacoes || []), ...(demandas || [])];
     
@@ -187,19 +205,28 @@ export function useDashboardCharts() {
       return acc;
     }, {} as Record<string, number>);
 
+    // Contar itens atrasados
+    const atrasadosCount = allItems.filter(item => {
+      return verificarAtraso(item.status, item.data_contato);
+    }).length;
+
     // Mapear para estágios do funil
     const stages = [
       { stage: 'Aguardando', value: statusCount['aguardando'] || 0 },
       { stage: 'Em Análise', value: statusCount['em_analise'] || 0 },
+      { stage: 'Atrasados', value: atrasadosCount },
       { stage: 'Finalizado', value: statusCount['finalizado'] || 0 }
     ];
 
     // Calcular taxas de conversão
-    const total = stages[0].value;
-    return stages.map((stage, index) => ({
+    const total = stages.reduce((sum, stage) => sum + stage.value, 0); // Total de todos os itens
+    
+    const result = stages.map((stage) => ({
       ...stage,
-      conversion: index === 0 ? 100 : Math.round((stage.value / total) * 100)
+      conversion: total > 0 ? Math.round((stage.value / total) * 100) : 0
     }));
+    
+    return result;
   };
 
   // 5. Top performers

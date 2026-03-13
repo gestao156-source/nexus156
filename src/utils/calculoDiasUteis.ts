@@ -21,10 +21,10 @@ export const calcularDiasUteis = (dataInicio: Date, dataFim: Date): number => {
 };
 
 // Verifica se um item está atrasado baseado no status e data de contato
-export const verificarAtraso = (status: string, dataContato: string | null): boolean => {
+export const verificarAtraso = (status: string, dataContato: string | null): number => {
   // Ignorar itens finalizados ou sem data de contato
   if (status === 'finalizado' || !dataContato) {
-    return false;
+    return 0;
   }
   
   // Extrair apenas a parte da data (YYYY-MM-DD) sem timezone
@@ -33,7 +33,7 @@ export const verificarAtraso = (status: string, dataContato: string | null): boo
   
   // Se for hoje, não está atrasado
   if (dataContatoOnly === hojeOnly) {
-    return false;
+    return 0;
   }
   
   // Calcular dias úteis (usando datas sem timezone)
@@ -46,10 +46,10 @@ export const verificarAtraso = (status: string, dataContato: string | null): boo
   
   // Aplicar regras de prazo por status
   if (status === 'aguardando') {
-    return diasUteisPassados >= 1; // Atrasa após 1 dia útil completo
+    return Math.max(0, diasUteisPassados); // Atrasa após 1 dia útil completo
   } else if (status === 'em_analise') {
-    return diasUteisPassados >= 3; // Atrasa após 3 dias úteis completos
+    return Math.max(0, diasUteisPassados - 2); // Atrasa após 3 dias úteis completos
   }
   
-  return false;
+  return 0;
 };

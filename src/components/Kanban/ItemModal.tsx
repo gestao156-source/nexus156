@@ -6,6 +6,7 @@ import { ItemStatus } from '../../types/index';
 import { atualizarCoordenadasSolicitacao, atualizarCoordenadasDemanda } from '../../services/geocodingService';
 import { GeocodingService } from '../../services/geocoding';
 import EnderecoForm from '../Endereco/EnderecoForm';
+import HistoricoProcedimentos from '../Historico/HistoricoProcedimentos';
 
 interface Item {
   id: string;
@@ -96,6 +97,7 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
     endereco_regional: '',
     latitude: undefined as number | undefined,
     longitude: undefined as number | undefined,
+    // Campo observacoes removido - substituído por histórico
   });
 
   const [loading, setLoading] = useState(false);
@@ -194,10 +196,9 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
         data_inicio: formData.data_inicio ? `${formData.data_inicio}T00:00:00` : null,
         data_contato: formData.data_contato ? `${formData.data_contato}T00:00:00` : null,
         data_finalizado: formData.data_finalizado ? `${formData.data_finalizado}T00:00:00` : null,
-        observacoes: formData.observacoes,
         responsavel: formData.responsavel,
         ponto_contato: formData.ponto_contato,
-        // Campos de endereço
+        // Campo observacoes removido - substituído por histórico de procedimentos
         endereco_rua: formData.endereco_rua || null,
         endereco_numero: formData.endereco_numero || null,
         endereco_bairro: formData.endereco_bairro || null,
@@ -451,15 +452,11 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Observações
+                Histórico de Procedimentos
               </label>
-              <textarea
-                value={formData.observacoes}
-                onChange={(e) =>
-                  setFormData({ ...formData, observacoes: e.target.value })
-                }
-                rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg resize-none"
+              <HistoricoProcedimentos
+                itemId={item?.id || ''}
+                itemTipo={type === 'solicitacoes' ? 'solicitacao' : 'demanda'}
                 disabled={isViewMode}
               />
             </div>

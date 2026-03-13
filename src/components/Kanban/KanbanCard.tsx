@@ -55,12 +55,12 @@ export default function KanbanCard({ item, onEdit, onView, responsavelName }: Ka
       }`}
     >
       {/* Indicador de atraso */}
-      {estaAtrasado && (
+      {estaAtrasado ? (
         <div className="absolute top-2 right-2 flex items-center space-x-1 bg-red-100 px-2 py-1 rounded-full">
           <AlertTriangle className="w-3 h-3 text-red-600" />
           <span className="text-xs font-semibold text-red-700">Atrasado</span>
         </div>
-      )}
+      ) : null}
       <div className="flex items-start justify-between mb-2">
         <h4 className="font-semibold text-gray-900 flex-1">{item.assunto}</h4>
         <div className="flex items-center space-x-1">
