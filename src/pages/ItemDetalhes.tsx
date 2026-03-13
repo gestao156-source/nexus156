@@ -56,10 +56,7 @@ export default function ItemDetalhes() {
       // Tentar buscar em solicitacoes primeiro
       let { data: query, error: queryError } = await supabase
         .from('solicitacoes')
-        .select(`
-          *,
-          profiles!inner (full_name, email)
-        `)
+        .select('*')
         .eq('id', itemId)
         .single();
 
@@ -69,10 +66,7 @@ export default function ItemDetalhes() {
       if (queryError || !query) {
         const { data: queryDem, error: queryDemError } = await supabase
           .from('demandas')
-          .select(`
-            *,
-            profiles!inner (full_name, email)
-          `)
+          .select('*')
           .eq('id', itemId)
           .single();
 
@@ -87,6 +81,17 @@ export default function ItemDetalhes() {
       console.log('📊 Resultado query:', query);
       
       let itemData = { ...query, tipo };
+      
+      // Buscar perfil do criador
+      if (itemData.user_id) {
+        const { data: creatorData } = await supabase
+          .from('profiles')
+          .select('full_name, email')
+          .eq('id', itemData.user_id)
+          .single();
+        
+        itemData.profiles = creatorData;
+      }
       
       // Buscar responsável separadamente se existir
       if (itemData.responsavel) {
