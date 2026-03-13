@@ -225,7 +225,7 @@ export default function MapaFortaleza() {
               </div>
               
               <button
-                onClick={() => window.open(`/${itemSelecionado.tipo}s?itemId=${itemSelecionado.id}`, '_blank')}
+                onClick={() => window.open(`/${itemSelecionado.tipo}s/${itemSelecionado.id}`, '_blank')}
                 className="mt-4 w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Ver Detalhes Completos

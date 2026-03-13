@@ -67,7 +67,7 @@ export default function MapaInterativo({
     const tamanho = isMobile ? 30 : 40;
     
     // Verificar se está atrasado
-    const estaAtrasado = verificarAtraso(item.status, item.data_contato);
+    const estaAtrasado = verificarAtraso(item.status, item.data_contato || null);
     
     // Definir cor baseada no status e atraso
     let cor: string;
@@ -280,7 +280,7 @@ function PopupConteudo({ item, isMobile }: { item: MapaItem; isMobile: boolean }
       </div>
       
       <button
-        onClick={() => window.open(`/${item.tipo}s?itemId=${item.id}`, '_blank')}
+        onClick={() => window.open(`/${item.tipo}s/${item.id}`, '_blank')}
         className={`mt-3 w-full bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 transition-colors ${
           isMobile ? 'py-2 text-sm' : 'py-2'
         }`}

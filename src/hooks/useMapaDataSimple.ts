@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { MapaFilters, MapaItem, MapaStats } from '../types';
 import { GeocodingService } from '../services/geocoding';
+import { formatarResponsavel, Profile } from '../utils/responsavelUtils';
 
 export function useMapaDataSimple(filters: MapaFilters) {
   const [dados, setDados] = useState<MapaItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [stats, setStats] = useState<MapaStats>({
     total: 0,
     comCoordenadas: 0,
@@ -15,6 +17,25 @@ export function useMapaDataSimple(filters: MapaFilters) {
     porStatus: {},
     ultimoUpdate: new Date()
   });
+
+  // Carregar profiles para nomes de responsáveis
+  useEffect(() => {
+    const carregarProfiles = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .order('full_name');
+        
+        if (error) throw error;
+        setProfiles(data || []);
+      } catch (error) {
+        console.error('Erro ao carregar profiles:', error);
+      }
+    };
+    
+    carregarProfiles();
+  }, []);
 
   // Função super simples - busca direto das tabelas
   const fetchDadosSimples = useCallback(async () => {
@@ -28,6 +49,7 @@ export function useMapaDataSimple(filters: MapaFilters) {
         .select(`
           id, assunto, protocolo, status, created_at, data_inicio, 
           data_contato, data_finalizado, observacoes, user_id,
+          responsavel, ponto_contato,
           endereco_rua, endereco_numero, endereco_bairro, endereco_localidade,
           endereco_cep, endereco_complemento, endereco_latitude, endereco_longitude,
           profiles!inner (full_name, email)
@@ -44,6 +66,7 @@ export function useMapaDataSimple(filters: MapaFilters) {
         .select(`
           id, assunto, protocolo, status, created_at, data_inicio, 
           data_contato, data_finalizado, observacoes, user_id,
+          responsavel, ponto_contato,
           endereco_rua, endereco_numero, endereco_bairro, endereco_localidade,
           endereco_cep, endereco_complemento, endereco_latitude, endereco_longitude,
           profiles!inner (full_name, email)
@@ -67,8 +90,8 @@ export function useMapaDataSimple(filters: MapaFilters) {
           assunto: item.assunto || 'Sem assunto',
           protocolo: item.protocolo || 'N/A',
           status: item.status || 'desconhecido',
-          responsavel: 'Não definido', // Campo não existe na tabela original
-          ponto_contato: '', // Campo não existe na tabela original
+          responsavel: formatarResponsavel(item.responsavel, profiles),
+          ponto_contato: item.ponto_contato || '',
           created_at: item.created_at || new Date().toISOString(),
           data_inicio: item.data_inicio,
           data_contato: item.data_contato,
@@ -104,8 +127,8 @@ export function useMapaDataSimple(filters: MapaFilters) {
           assunto: item.assunto || 'Sem assunto',
           protocolo: item.protocolo || 'N/A',
           status: item.status || 'desconhecido',
-          responsavel: 'Não definido', // Campo não existe na tabela original
-          ponto_contato: '', // Campo não existe na tabela original
+          responsavel: formatarResponsavel(item.responsavel, profiles),
+          ponto_contato: item.ponto_contato || '',
           created_at: item.created_at || new Date().toISOString(),
           data_inicio: item.data_inicio,
           data_contato: item.data_contato,
