@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Filter, Calendar, Users, FileText, RotateCcw } from 'lucide-react';
-import { FiltrosType } from '../../hooks/useRelatoriosData';
+import { FiltrosType, getResponsaveisDisponiveis } from '../../hooks/useRelatoriosData';
 
 interface FiltroRelatoriosProps {
   filtros: FiltrosType;
@@ -13,6 +13,7 @@ const STATUS_OPTIONS = [
   { value: 'aguardando', label: 'Aguardando Análise' },
   { value: 'em_analise', label: 'Em Análise' },
   { value: 'finalizado', label: 'Finalizado' },
+  { value: 'atrasado', label: 'Atrasado' },
 ];
 
 const TIPO_OPTIONS = [
@@ -35,15 +36,7 @@ export default function FiltroRelatorios({
 
   const carregarResponsaveis = async () => {
     try {
-      // Simulado - na implementação real, buscar do hook
-      const responsaveis = [
-        'João Silva',
-        'Maria Santos',
-        'Carlos Oliveira',
-        'Ana Costa',
-        'Pedro Souza',
-      ].sort();
-      
+      const responsaveis = await getResponsaveisDisponiveis();
       setResponsaveisDisponiveis(responsaveis);
     } catch (error) {
       console.error('Erro ao carregar responsáveis:', error);

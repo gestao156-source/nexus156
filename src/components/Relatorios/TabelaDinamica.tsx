@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { ArrowUpDown, ArrowUp, ArrowDown, Eye } from 'lucide-react';
 import { CAMPOS_DISPONIVEIS, formatarValorCampo } from '../../utils/campoConfig';
 import { RelatorioItem } from '../../hooks/useRelatoriosData';
+import { formatarResponsavel } from '../../utils/responsavelUtils';
 import { supabase } from '../../lib/supabase';
 
 interface TabelaDinamicaProps {
@@ -26,7 +27,7 @@ export default function TabelaDinamica({
     direction: 'desc',
   });
 
-  // Cache de perfis (mesma lógica do ItemModal)
+  // Cache de perfis para o formatarResponsavel
   const [profiles, setProfiles] = useState<any[]>([]);
 
   // Carregar perfis (mesma lógica do ItemModal)
@@ -70,8 +71,6 @@ export default function TabelaDinamica({
         comparacao = valorA.localeCompare(valorB);
       } else if (typeof valorA === 'number' && typeof valorB === 'number') {
         comparacao = valorA - valorB;
-      } else if (valorA instanceof Date && valorB instanceof Date) {
-        comparacao = valorA.getTime() - valorB.getTime();
       } else {
         // Fallback para string
         comparacao = String(valorA).localeCompare(String(valorB));
@@ -80,38 +79,6 @@ export default function TabelaDinamica({
       return sortConfig.direction === 'asc' ? comparacao : -comparacao;
     });
   }, [dados, sortConfig]);
-
-  // Função específica para formatar responsável (mesma lógica do SELECT)
-  const formatarResponsavel = (responsavel: string, user_id: string): string => {
-    // Se responsavel tiver nome válido (não UUID), usar
-    if (responsavel && !responsavel.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-      return responsavel;
-    }
-    
-    // Se responsavel for UUID, buscar nome nos profiles (mesma lógica do SELECT)
-    if (responsavel && responsavel.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-      const profile = profiles.find(p => p.id === responsavel);
-      if (profile?.full_name) {
-        return profile.full_name;
-      }
-    }
-    
-    // Se responsavel for vazio, usar user_id
-    if (user_id && (!responsavel || responsavel === '')) {
-      const profile = profiles.find(p => p.id === user_id);
-      if (profile?.full_name) {
-        return profile.full_name;
-      }
-    }
-    
-    // Fallback: mostrar ID truncado
-    const idToShow = responsavel || user_id;
-    if (idToShow) {
-      return `ID: ${idToShow.substring(0, 8)}...`;
-    }
-    
-    return 'Não informado';
-  };
 
   const getHeaders = () => {
     return camposSelecionados.map(campoId => {
@@ -156,6 +123,8 @@ export default function TabelaDinamica({
           return baseClass + ' text-blue-700 bg-blue-50';
         case 'finalizado':
           return baseClass + ' text-green-700 bg-green-50';
+        case 'atrasado':
+          return baseClass + ' text-red-700 bg-red-50';
         default:
           return baseClass + ' text-gray-700';
       }
@@ -249,7 +218,7 @@ export default function TabelaDinamica({
                   return (
                     <td key={campo.id} className={cellClass}>
                       {campo.id === 'responsavel' 
-                        ? formatarResponsavel(item.responsavel, item.user_id)
+                        ? formatarResponsavel(item.responsavel, profiles)
                         : formatarValorCampo(campo.id, valor)
                       }
                     </td>

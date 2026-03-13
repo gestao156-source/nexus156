@@ -45,6 +45,7 @@ export const CAMPOS_DISPONIVEIS: Record<string, CampoConfig> = {
         aguardando: 'Aguardando Análise',
         em_analise: 'Em Análise',
         finalizado: 'Finalizado',
+        atrasado: 'Atrasado',
       };
       return statusMap[value] || value;
     },

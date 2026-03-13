@@ -50,28 +50,47 @@ export const useRelatoriosData = (filtros: FiltrosType) => {
     setLoading(true);
     setError(null);
 
+    console.log('🔍 Iniciando carregamento de dados com filtros:', JSON.stringify(filtros, null, 2));
+
     try {
-      let query = supabase
-        .from('solicitacoes')
-        .select(`
-          *,
-          profiles!inner (
-            full_name,
-            email,
-            role
-          )
-        `);
+      // Buscar solicitações se necessário
+      let solicitacoesData = [];
+      if (filtros.tipo === 'todos' || filtros.tipo === 'solicitacoes') {
+        console.log('📋 Buscando solicitações - tipo permitido:', filtros.tipo);
+        
+        let query = supabase
+          .from('solicitacoes')
+          .select(`
+            *,
+            profiles!inner (
+              full_name,
+              email,
+              role
+            )
+          `);
 
-      // Aplicar filtros
-      query = aplicarFiltros(query, filtros);
+        // Aplicar filtros
+        query = aplicarFiltros(query, filtros);
+        console.log('📋 Query de solicitacoes com filtros aplicados');
 
-      const { data: solicitacoesData, error: solicitacoesError } = await query;
+        console.log('📋 Executando query de solicitacoes...');
+        const { data: solicitacoesResult, error: solicitacoesError } = await query;
 
-      if (solicitacoesError) throw solicitacoesError;
+        if (solicitacoesError) {
+          console.error('❌ Erro nas solicitacoes:', solicitacoesError);
+          throw solicitacoesError;
+        }
+        solicitacoesData = solicitacoesResult || [];
+        console.log('✅ Solicitações encontradas:', solicitacoesData.length);
+      } else {
+        console.log('📋 Pulando solicitações - filtro tipo:', filtros.tipo);
+      }
 
       // Buscar demandas se necessário
       let demandasData = [];
       if (filtros.tipo === 'todos' || filtros.tipo === 'demandas') {
+        console.log('📋 Buscando demandas - tipo permitido:', filtros.tipo);
+        
         let demandasQuery = supabase
           .from('demandas')
           .select(`
@@ -84,11 +103,19 @@ export const useRelatoriosData = (filtros: FiltrosType) => {
           `);
 
         demandasQuery = aplicarFiltros(demandasQuery, filtros);
+        console.log('📋 Query de demandas com filtros aplicados');
 
+        console.log('📋 Executando query de demandas...');
         const { data: demandasResult, error: demandasError } = await demandasQuery;
 
-        if (demandasError) throw demandasError;
+        if (demandasError) {
+          console.error('❌ Erro nas demandas:', demandasError);
+          throw demandasError;
+        }
         demandasData = demandasResult || [];
+        console.log('✅ Demandas encontradas:', demandasData.length);
+      } else {
+        console.log('📋 Pulando demandas - filtro tipo:', filtros.tipo);
       }
 
       // Combinar e processar dados
@@ -97,14 +124,43 @@ export const useRelatoriosData = (filtros: FiltrosType) => {
         ...(demandasData || []).map(item => ({ ...item, tipo: 'demanda' as const })),
       ];
 
+      console.log('📊 Total de dados brutos:', todosDados.length);
+      console.log('📊 Solicitações:', solicitacoesData.length, 'Demandas:', demandasData.length);
+
       const dadosProcessados = todosDados.map(processarItem);
-      setDados(dadosProcessados);
+      console.log('📊 Total de dados processados:', dadosProcessados.length);
+      
+      // Filtrar itens atrasados se necessário
+      let dadosFiltrados = dadosProcessados;
+      if (filtros.status.includes('atrasado')) {
+        console.log('🔴 Filtrando itens atrasados...');
+        dadosFiltrados = dadosFiltrados.filter(item => item.status_atraso);
+        
+        // Remover 'atrasado' do array de status para não filtrar novamente no banco
+        const outrosStatus = filtros.status.filter(s => s !== 'atrasado');
+        if (outrosStatus.length > 0) {
+          dadosFiltrados = dadosFiltrados.filter(item => outrosStatus.includes(item.status));
+        }
+        console.log('🔴 Itens atrasados encontrados:', dadosFiltrados.length);
+      } else if (filtros.status.length > 0) {
+        // Filtrar por status normais
+        dadosFiltrados = dadosFiltrados.filter(item => filtros.status.includes(item.status));
+        console.log('🏷️ Itens filtrados por status:', dadosFiltrados.length);
+      }
+      
+      // Log de amostra dos dados
+      if (dadosFiltrados.length > 0) {
+        console.log('📋 Amostra de dados:', dadosFiltrados[0]);
+      }
+      
+      setDados(dadosFiltrados);
 
     } catch (err) {
-      console.error('Erro ao carregar dados dos relatórios:', err);
+      console.error('❌ Erro ao carregar dados dos relatórios:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
     } finally {
       setLoading(false);
+      console.log('🏁 Carregamento finalizado');
     }
   };
 
@@ -117,29 +173,50 @@ export const useRelatoriosData = (filtros: FiltrosType) => {
 };
 
 const aplicarFiltros = (query: any, filtros: FiltrosType) => {
-  // Filtro de período
+  console.log('🎯 Aplicando filtros:', JSON.stringify(filtros, null, 2));
+
+  // Filtro de período - formatar datas para ISO 8601
   if (filtros.periodo.inicio) {
-    query = query.gte('created_at', filtros.periodo.inicio);
+    const dataInicio = new Date(filtros.periodo.inicio).toISOString();
+    console.log('📅 Filtro período início:', filtros.periodo.inicio, '→', dataInicio);
+    query = query.gte('created_at', dataInicio);
   }
   if (filtros.periodo.fim) {
-    query = query.lte('created_at', filtros.periodo.fim);
+    const dataFim = new Date(filtros.periodo.fim);
+    dataFim.setHours(23, 59, 59, 999); // Incluir o dia inteiro
+    const dataFimISO = dataFim.toISOString();
+    console.log('📅 Filtro período fim:', filtros.periodo.fim, '→', dataFimISO);
+    query = query.lte('created_at', dataFimISO);
   }
 
-  // Filtro de status
+  // Filtro de status (exceto "atrasado" que é calculado)
   if (filtros.status.length > 0) {
-    query = query.in('status', filtros.status);
+    const statusBanco = filtros.status.filter(s => s !== 'atrasado');
+    if (statusBanco.length > 0) {
+      console.log('🏷️ Filtro status (banco):', statusBanco);
+      query = query.in('status', statusBanco);
+    }
   }
 
-  // Filtro de responsáveis
+  // Filtro de tipo - já aplicado no nível superior
+  if (filtros.tipo && filtros.tipo !== 'todos') {
+    console.log('📋 Filtro tipo será aplicado no nível superior:', filtros.tipo);
+  }
+
+  // Filtro de responsáveis - implementação simplificada por enquanto
   if (filtros.responsaveis.length > 0) {
-    query = query.in('responsavel', filtros.responsaveis);
+    // TODO: Implementar conversão nome->UUID com cache
+    // Por enquanto, não aplica filtro de responsáveis para evitar erros
+    console.log('⚠️ Filtro de responsáveis (temporariamente desativado):', filtros.responsaveis);
   }
 
   // Filtro de usuário (apenas para não-admins)
   if (filtros.usuario === 'proprios') {
+    console.log('👤 Filtro usuário: próprios (RLS já filtra)');
     // O RLS já filtra pelo usuário atual
   }
 
+  console.log('✅ Filtros aplicados com sucesso');
   return query.order('created_at', { ascending: false });
 };
 
@@ -154,7 +231,7 @@ const processarItem = (item: any): RelatorioItem => {
   const diasEmAberto = differenceInDays(agora, dataCriacao);
   const diasUteis = calcularDiasUteis(dataCriacao, agora);
   const tempoAtendimento = dataFinalizado ? differenceInDays(dataFinalizado, dataInicio || dataCriacao) : 0;
-  const statusAtraso = verificarAtraso(item.status, item.data_contato);
+  const statusAtraso = verificarAtraso(item.status, item.data_contato || null);
   const diasAtraso = statusAtraso && dataContato ? differenceInDays(agora, dataContato) : 0;
 
   return {
@@ -202,6 +279,7 @@ const calcularDiasUteis = (dataInicio: Date, dataFim: Date): number => {
 
 export const getResponsaveisDisponiveis = async (): Promise<string[]> => {
   try {
+    // Buscar todos os UUIDs de responsáveis únicos
     const { data: solicitacoes } = await supabase
       .from('solicitacoes')
       .select('responsavel')
@@ -212,13 +290,40 @@ export const getResponsaveisDisponiveis = async (): Promise<string[]> => {
       .select('responsavel')
       .not('responsavel', 'is', null);
 
-    const todosResponsaveis = [
+    // Combinar todos os UUIDs
+    const todosUUIDs = [
       ...(solicitacoes || []).map(s => s.responsavel),
       ...(demandas || []).map(d => d.responsavel),
-    ];
+    ].filter(Boolean);
 
-    // Remover duplicados e ordenar
-    return Array.from(new Set(todosResponsaveis.filter(Boolean))).sort();
+    // Remover duplicados
+    const uuidsUnicos = Array.from(new Set(todosUUIDs));
+
+    if (uuidsUnicos.length === 0) {
+      return [];
+    }
+
+    // Buscar profiles correspondentes
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', uuidsUnicos);
+
+    // Mapear UUIDs para nomes
+    const profilesMap = new Map<string, string>();
+    (profiles || []).forEach((profile: any) => {
+      if (profile.full_name) {
+        profilesMap.set(profile.id, profile.full_name);
+      }
+    });
+
+    // Converter UUIDs para nomes
+    const nomesResponsaveis = uuidsUnicos
+      .map(uuid => profilesMap.get(uuid) || `ID: ${uuid.substring(0, 8)}...`)
+      .filter(nome => nome && !nome.startsWith('ID:')) // Remover IDs não encontrados
+      .sort((a, b) => a.localeCompare(b));
+
+    return nomesResponsaveis;
   } catch (error) {
     console.error('Erro ao buscar responsáveis:', error);
     return [];

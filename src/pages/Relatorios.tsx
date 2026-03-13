@@ -39,10 +39,15 @@ export default function Relatorios() {
   }, [isAdmin, filtros.usuario]);
 
   const handleFiltroChange = (filtro: string, valor: any) => {
-    setFiltros(prev => ({
-      ...prev,
-      [filtro]: valor,
-    }));
+    console.log('🔄 Mudança de filtro:', filtro, '→', valor);
+    setFiltros(prev => {
+      const novosFiltros = {
+        ...prev,
+        [filtro]: valor,
+      };
+      console.log('📋 Novos filtros:', JSON.stringify(novosFiltros, null, 2));
+      return novosFiltros;
+    });
   };
 
   const handleCampoChange = (campo: string, selecionado: boolean) => {
@@ -68,9 +73,9 @@ export default function Relatorios() {
   };
 
   const handleVisualizarItem = (item: any) => {
-    // Navegar para o item específico
+    // Navegar para o item específico usando path parameter
     const tipo = item.tipo === 'solicitacao' ? 'solicitacoes' : 'demandas';
-    window.open(`/${tipo}?itemId=${item.id}#item-${item.id}`, '_blank');
+    window.open(`/${tipo}/${item.id}`, '_blank');
   };
 
   const handleExportar = (formato: 'csv' | 'excel' | 'pdf') => {
@@ -203,7 +208,8 @@ export default function Relatorios() {
                   {[
                     { value: 'aguardando', label: 'Aguardando' },
                     { value: 'em_analise', label: 'Em Análise' },
-                    { value: 'finalizado', label: 'Finalizado' }
+                    { value: 'finalizado', label: 'Finalizado' },
+                    { value: 'atrasado', label: 'Atrasado' }
                   ].map(status => (
                     <button
                       key={status.value}
