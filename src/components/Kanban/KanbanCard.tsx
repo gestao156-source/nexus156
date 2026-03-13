@@ -112,11 +112,10 @@ export default function KanbanCard({ item, onEdit, onView, responsavelName }: Ka
         )}
       </div>
 
-      {item.observacoes && (
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          <p className="text-xs text-gray-600 line-clamp-2">{item.observacoes}</p>
-        </div>
-      )}
+      {/* Indicador de histórico */}
+      <div className="mt-3 pt-3 border-t border-gray-100">
+        <p className="text-xs text-blue-600 font-medium">Clique para ver histórico completo →</p>
+      </div>
 
       {!canEditItem && (
         <div className="mt-3 pt-3 border-t border-gray-100">

@@ -4,6 +4,7 @@ import { ArrowLeft, MapPin, AlertTriangle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { verificarAtraso } from '../utils/calculoDiasUteis';
 import PrintButton from '../components/UI/PrintButton';
+import HistoricoProcedimentos from '../components/Historico/HistoricoProcedimentos';
 
 interface ItemDetalhes {
   id: string;
@@ -13,7 +14,6 @@ interface ItemDetalhes {
   data_inicio: string | null;
   data_contato: string | null;
   data_finalizado: string | null;
-  observacoes: string;
   responsavel: string;
   ponto_contato: string;
   user_id: string;
@@ -280,21 +280,13 @@ export default function ItemDetalhes() {
           </div>
         </div>
 
-        {/* Descrição */}
+        {/* Histórico de Procedimentos */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 border-l-4 border-blue-600 pl-3">
-            Descrição
-          </h2>
-          <div className="space-y-4">
-            <div>
-              <div className="text-sm text-gray-500 mb-1">Assunto</div>
-              <div className="font-medium text-gray-900">{item.assunto || 'Sem assunto'}</div>
-            </div>
-            <div>
-              <div className="text-sm text-gray-500 mb-1">Observações</div>
-              <div className="text-gray-700 bg-gray-50 p-3 rounded-lg">{item.observacoes || 'Nenhuma observação'}</div>
-            </div>
-          </div>
+          <HistoricoProcedimentos
+            itemId={item.id}
+            itemTipo={item.tipo}
+            disabled={true}
+          />
         </div>
 
         {/* Datas Importantes */}

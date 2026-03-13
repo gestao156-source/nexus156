@@ -136,17 +136,6 @@ export default function PrintButton({ item, itemType = 'solicitacao' }: PrintBut
             border: 1px solid #d6d8db;
           }
           
-          .observacoes-box {
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 4px;
-            border: 1px solid #e9ecef;
-            color: #495057;
-            line-height: 1.5;
-            font-style: italic;
-            min-height: 40px;
-          }
-          
           .footer { 
             background: #f8f9fa;
             color: #6b7280;
@@ -276,11 +265,6 @@ export default function PrintButton({ item, itemType = 'solicitacao' }: PrintBut
             </div>
           </div>
         </div>` : ''}
-
-        <div class="section">
-          <div class="section-title">Observações</div>
-          <div class="observacoes-box">${item.observacoes || 'Nenhuma observação'}</div>
-        </div>
 
         <div class="footer">
           NEXUS 156 - Sistema de Gerenciamento de Demandas

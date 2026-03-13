@@ -18,7 +18,6 @@ export interface Solicitacao {
   data_inicio: string | null;
   data_contato: string | null;
   data_finalizado: string | null;
-  observacoes: string;
   responsavel: string;
   ponto_contato: string;
   user_id: string;
@@ -34,7 +33,6 @@ export interface Demanda {
   data_inicio: string | null;
   data_contato: string | null;
   data_finalizado: string | null;
-  observacoes: string;
   responsavel: string;
   ponto_contato: string;
   user_id: string;
@@ -56,7 +54,6 @@ export interface KanbanItem {
   data_inicio: string | null;
   data_contato: string | null;
   data_finalizado: string | null;
-  observacoes: string;
   responsavel: string;
   ponto_contato: string;
   user_id: string;

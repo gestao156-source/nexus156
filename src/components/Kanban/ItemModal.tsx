@@ -16,7 +16,6 @@ interface Item {
   data_inicio: string | null;
   data_contato: string | null;
   data_finalizado: string | null;
-  observacoes: string;
   responsavel: string;
   ponto_contato: string;
   user_id: string;
@@ -84,7 +83,6 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
     data_inicio: '',
     data_contato: '',
     data_finalizado: '',
-    observacoes: '',
     responsavel: '',
     ponto_contato: '',
     // Campos de endereço
@@ -137,7 +135,6 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
         data_inicio: item.data_inicio ? item.data_inicio.split('T')[0] : '',
         data_contato: item.data_contato ? item.data_contato.split('T')[0] : '',
         data_finalizado: item.data_finalizado ? item.data_finalizado.split('T')[0] : '',
-        observacoes: item.observacoes,
         responsavel: item.responsavel || '',
         ponto_contato: item.ponto_contato || '',
         // Campos de endereço
@@ -161,7 +158,6 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
         data_inicio: hoje,
         data_contato: hoje,
         data_finalizado: '',
-        observacoes: '',
         responsavel: user?.user_metadata?.full_name || user?.email || '', // Auto-fill com nome do usuário (em vez de ID)
         ponto_contato: '',
         // Campos de endereço
