@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Printer } from 'lucide-react';
+import { useHistoricoProcedimentos } from '../../hooks/useHistoricoProcedimentos';
 
 interface PrintButtonProps {
   item: any;
@@ -8,6 +9,12 @@ interface PrintButtonProps {
 
 export default function PrintButton({ item, itemType = 'solicitacao' }: PrintButtonProps) {
   const [isPrinting, setIsPrinting] = useState(false);
+  
+  // Buscar histórico de procedimentos
+  const { historico, formatarData } = useHistoricoProcedimentos({
+    itemId: item.id,
+    itemTipo: itemType
+  });
 
   const handlePrint = () => {
     setIsPrinting(true);
@@ -146,6 +153,53 @@ export default function PrintButton({ item, itemType = 'solicitacao' }: PrintBut
             font-weight: 500;
           }
           
+          /* Estilos para Histórico de Procedimentos */
+          .procedimento-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: #ffffff;
+            page-break-inside: avoid;
+          }
+          
+          .procedimento-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 11px;
+          }
+          
+          .procedimento-data {
+            color: #6b7280;
+            font-weight: 500;
+          }
+          
+          .procedimento-usuario {
+            color: #374151;
+            font-weight: 600;
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 3px;
+          }
+          
+          .procedimento-texto {
+            color: #1f2937;
+            line-height: 1.4;
+            font-size: 12px;
+            margin-bottom: 6px;
+          }
+          
+          .procedimento-migrado {
+            font-size: 10px;
+            color: #6b7280;
+            font-style: italic;
+            border-top: 1px solid #f3f4f6;
+            padding-top: 6px;
+            margin-top: 6px;
+          }
+          
           @media print {
             body { 
               margin: 0;
@@ -265,6 +319,24 @@ export default function PrintButton({ item, itemType = 'solicitacao' }: PrintBut
             </div>
           </div>
         </div>` : ''}
+
+        <div class="section">
+          <div class="section-title">Histórico de Procedimentos</div>
+          ${historico.length === 0 ? 
+            '<div class="procedimento-item"><em>Nenhum procedimento registrado</em></div>' :
+            historico.map((proc, index) => `
+              <div class="procedimento-item">
+                <div class="procedimento-header">
+                  <span class="procedimento-data">${formatarData(proc.created_at)}</span>
+                  <span class="procedimento-usuario">${proc.usuario_nome}</span>
+                </div>
+                <div class="procedimento-texto">${proc.procedimento}</div>
+                ${index === historico.length - 1 && proc.procedimento.startsWith('Observação original:') ? 
+                  '<div class="procedimento-migrado">📋 Registro migrado do campo observações original</div>' : ''}
+              </div>
+            `).join('')
+          }
+        </div>
 
         <div class="footer">
           NEXUS 156 - Sistema de Gerenciamento de Demandas
