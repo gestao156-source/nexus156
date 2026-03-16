@@ -289,7 +289,9 @@ export function useDashboardCharts() {
       .from('demandas')
       .select('endereco_regional, endereco_bairro, endereco_cep');
 
-    const allItems = [...(solicitacoes || []), ...(demandas || [])];
+    // Filtrar apenas itens que têm endereço (bairro ou regional ou CEP)
+    const allItems = [...(solicitacoes || []), ...(demandas || [])]
+      .filter(item => item.endereco_bairro || item.endereco_regional || item.endereco_cep);
     
     // Agrupar por regional
     const regionalCount = allItems.reduce((acc, item) => {
@@ -344,7 +346,9 @@ export function useDashboardCharts() {
       .from('demandas')
       .select('endereco_regional, endereco_bairro');
 
-    const allItems = [...(solicitacoes || []), ...(demandas || [])];
+    // Filtrar apenas itens que têm endereço (bairro ou regional)
+    const allItems = [...(solicitacoes || []), ...(demandas || [])]
+      .filter(item => item.endereco_bairro || item.endereco_regional);
     
     // Agrupar por regional
     const grouped = allItems.reduce((acc, item) => {
@@ -384,7 +388,9 @@ export function useDashboardCharts() {
         .from('demandas')
         .select('endereco_bairro, endereco_regional');
 
-      const allItems = [...(solicitacoes || []), ...(demandas || [])];
+      // Filtrar apenas itens que têm endereço (bairro ou regional)
+      const allItems = [...(solicitacoes || []), ...(demandas || [])]
+        .filter(item => item.endereco_bairro || item.endereco_regional);
       
       // Filtrar itens da regional específica
       const itensRegional = allItems.filter(item => {
