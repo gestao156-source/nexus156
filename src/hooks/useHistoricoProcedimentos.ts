@@ -48,25 +48,17 @@ export function useHistoricoProcedimentos({ itemId, itemTipo }: UseHistoricoProc
 
   // Adicionar novo procedimento
   const adicionarProcedimento = async (procedimento: string): Promise<boolean> => {
-    console.log('🔍 DEBUG - adicionarProcedimento:', { itemId, itemTipo, procedimento });
-    
-    if (!itemId || !procedimento.trim()) {
-      console.error('❌ ERRO - itemId ou procedimento inválido:', { itemId, procedimento });
-      return false;
-    }
+    if (!itemId || !procedimento.trim()) return false;
 
     setAdicionando(true);
     setError('');
 
     try {
-      console.log('📤 Chamando RPC adicionar_procedimento...');
-      const { error, data } = await supabase.rpc('adicionar_procedimento', {
+      const { error } = await supabase.rpc('adicionar_procedimento', {
         p_item_id: itemId,
         p_item_tipo: itemTipo,
         p_procedimento: procedimento.trim()
       });
-
-      console.log('📥 Resposta RPC:', { error, data });
 
       if (error) throw error;
 
