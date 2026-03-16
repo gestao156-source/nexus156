@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { verificarAtraso } from '../utils/calculoDiasUteis';
 import { differenceInDays, parseISO } from 'date-fns';
+import Logger from '../utils/logger';
 
 export interface FiltrosType {
   periodo: { inicio: string; fim: string };
@@ -122,7 +123,7 @@ export const useRelatoriosData = (filtros: FiltrosType) => {
       setDados(dadosFiltrados);
 
     } catch (err) {
-      console.error('Erro ao carregar dados dos relatórios:', err);
+      Logger.error('Erro ao carregar dados dos relatórios', { err }, 'useRelatoriosData', false);
       setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
     } finally {
       setLoading(false);
@@ -212,7 +213,7 @@ const processarItem = (item: any): RelatorioItem => {
     dias_em_aberto: diasEmAberto,
     dias_uteis: diasUteis,
     tempo_atendimento: tempoAtendimento,
-    status_atraso: statusAtraso,
+    status_atraso: !!statusAtraso,
     dias_atraso: diasAtraso,
   };
 };
@@ -282,7 +283,7 @@ export const getResponsaveisDisponiveis = async (): Promise<string[]> => {
 
     return nomesResponsaveis;
   } catch (error) {
-    console.error('Erro ao buscar responsáveis:', error);
+    Logger.error('Erro ao buscar responsáveis', { error }, 'useRelatoriosData', false);
     return [];
   }
 };

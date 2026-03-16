@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Demanda } from '../types/index';
+import { KanbanItem } from '../types/index';
+import ErrorService from '../services/errorService';
 import KanbanBoard from '../components/Kanban/KanbanBoard';
 import { FiltroResponsavel } from '../components/Filtros';
 
 export default function Demandas() {
-  const [demandas, setDemandas] = useState<Demanda[]>([]);
+  const [demandas, setDemandas] = useState<KanbanItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [responsaveisFiltro, setResponsaveisFiltro] = useState<string[]>([]);
 
@@ -28,9 +29,14 @@ export default function Demandas() {
       const { data, error } = await query;
 
       if (error) throw error;
-      setDemandas(data || []);
+      // Adicionar tipo 'demanda' aos dados
+      const demandasComTipo = (data || []).map(item => ({
+        ...item,
+        tipo: 'demanda' as const
+      }));
+      setDemandas(demandasComTipo);
     } catch (error) {
-      console.error('Error loading demandas:', error);
+      ErrorService.handleError(error, { component: 'Demandas', action: 'loadDemandas' });
     } finally {
       setLoading(false);
     }

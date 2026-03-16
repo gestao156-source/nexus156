@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaf
 import { Icon, LatLngBounds } from 'leaflet';
 import { MapaItem } from '../../types';
 import { verificarAtraso } from '../../utils/calculoDiasUteis';
+import Logger from '../../utils/logger';
 
 interface MapaInterativoProps {
   dados: MapaItem[];
@@ -43,7 +44,7 @@ export default function MapaInterativo({
 
   // Debug dos dados recebidos
   useEffect(() => {
-    console.log('🗺️ MapaInterativo recebeu:', {
+    Logger.debug('MapaInterativo recebeu', {
       total: dados.length,
       comCoordenadas: dados.filter(d => d.possui_coordenadas).length,
       dados: dados.map(d => ({

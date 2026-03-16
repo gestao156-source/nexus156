@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { X, Eye, EyeOff, Lock, Key } from 'lucide-react';
+import { X, Eye, EyeOff, Key } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../contexts/ToastContext';
+import ErrorService from '../services/errorService';
 import LoadingButton from './UI/LoadingButton';
 
 interface ChangePasswordModalProps {
@@ -58,7 +59,7 @@ export default function ChangePasswordModal({
       });
 
       if (error) {
-        console.error('Error updating password:', error);
+        ErrorService.handleError(error, { component: 'ChangePasswordModal', action: 'updatePassword' });
         showError('Erro ao alterar senha', error.message || 'Não foi possível alterar a senha');
         return;
       }
@@ -70,7 +71,7 @@ export default function ChangePasswordModal({
         showError('Erro ao alterar senha', 'Não foi possível alterar a senha');
       }
     } catch (error: any) {
-      console.error('Error updating password:', error);
+      ErrorService.handleError(error, { component: 'ChangePasswordModal', action: 'updatePassword' });
       showError('Erro de conexão', error.message || 'Falha na comunicação com o servidor');
     } finally {
       setLoading(false);

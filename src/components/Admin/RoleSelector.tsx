@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Edit2, Check, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useToast } from '../../contexts/ToastContext';
+import ErrorService from '../../services/errorService';
 
 interface RoleSelectorProps {
   userId: string;
@@ -30,7 +31,7 @@ export default function RoleSelector({ userId, currentRole, userName, onRoleUpda
       });
 
       if (error) {
-        console.error('Error updating role:', error);
+        ErrorService.handleError(error, { component: 'RoleSelector', action: 'updateRole' });
         showError('Erro ao atualizar', error.message || 'Não foi possível alterar o role');
         return;
       }
@@ -43,7 +44,7 @@ export default function RoleSelector({ userId, currentRole, userName, onRoleUpda
         showError('Erro ao atualizar', 'Não foi possível alterar o role');
       }
     } catch (error: any) {
-      console.error('Error updating role:', error);
+      ErrorService.handleError(error, { component: 'RoleSelector', action: 'updateRole' });
       showError('Erro de conexão', error.message || 'Falha na comunicação com o servidor');
     } finally {
       setLoading(false);

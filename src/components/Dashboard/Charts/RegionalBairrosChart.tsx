@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell } from 'recharts';
 import { ChevronLeft, FileText, Calendar, User } from 'lucide-react';
+import Logger from '../../../utils/logger';
 import { RegionalData } from './chart-types';
 import { getRegionalPorId, encontrarRegionalPorBairro } from '../../../utils/regionalUtils';
 import { supabase } from '../../../lib/supabase';
@@ -126,7 +127,7 @@ export default function RegionalBairrosChart({
       setSelectedBairro(bairro);
       
       try {
-        console.log(`🔍 Buscando itens do bairro: ${bairro}`);
+        Logger.debug(`Buscando itens do bairro: ${bairro}`, {}, 'RegionalBairrosChart');
         
         const { data: solicitacoes } = await supabase
           .from('solicitacoes')
@@ -151,7 +152,7 @@ export default function RegionalBairrosChart({
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
         
-        console.log(`📋 Itens encontrados:`, itens.length);
+        Logger.debug(`Itens encontrados: ${itens.length}`, {}, 'RegionalBairrosChart');
         setItensData(itens);
       } catch (error) {
         console.error('Erro ao buscar itens do bairro:', error);

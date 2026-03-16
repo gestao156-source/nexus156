@@ -3,12 +3,8 @@
  */
 
 import { supabase } from '../lib/supabase';
-
-export interface Profile {
-  id: string;
-  full_name: string;
-  email: string;
-}
+import Logger from './logger';
+import { Profile } from '../types/index';
 
 /**
  * Verifica se uma string é um UUID válido
@@ -83,7 +79,7 @@ export async function buscarNomesResponsaveis(
     
     return nomesMap;
   } catch (error) {
-    console.error('Erro ao buscar nomes de responsáveis:', error);
+    Logger.error('Erro ao buscar nomes de responsáveis', { error }, 'ResponsavelUtils', false);
     return nomesMap;
   }
 }

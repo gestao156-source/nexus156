@@ -1,40 +1,36 @@
 import Papa from 'papaparse';
-import { CAMPOS_DISPONIVEIS, formatarValorCampo } from './campoConfig';
+import { gerarHeaders, gerarLinhasDados, gerarNomeArquivo, validarDadosExportacao } from './exportUtils';
+import { supabase } from '../lib/supabase';
 
-export interface ExportOptions {
+export interface CSVExportOptions {
   camposSelecionados: string[];
   dados: any[];
   filename?: string;
 }
 
-export const exportCSV = ({ camposSelecionados, dados, filename = 'relatorio' }: ExportOptions): void => {
+/**
+ * Exporta dados para formato CSV
+ */
+export const exportCSV = async ({ camposSelecionados, dados, filename = 'relatorio' }: CSVExportOptions): Promise<void> => {
   try {
     // Validar dados
-    if (!dados || dados.length === 0) {
-      throw new Error('Nenhum dado para exportar');
-    }
-
-    if (!camposSelecionados || camposSelecionados.length === 0) {
+    if (!validarDadosExportacao(dados, camposSelecionados)) {
       throw new Error('Nenhum campo selecionado');
     }
 
-    // Gerar headers
-    const headers = camposSelecionados.map(campoId => CAMPOS_DISPONIVEIS[campoId]?.label || campoId);
+    // Carregar profiles (mesmo padrão do mapa e tabela)
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .order('full_name');
 
-    // Gerar linhas de dados
-    const rows = dados.map(item => {
-      return camposSelecionados.map(campoId => {
-        const campo = CAMPOS_DISPONIVEIS[campoId];
-        if (!campo) return '';
-        
-        const valor = item[campo.accessor];
-        return formatarValorCampo(campoId, valor);
-      });
-    });
+    // Gerar headers e linhas usando formatarResponsavel
+    const headers = gerarHeaders(camposSelecionados);
+    const rows = gerarLinhasDados(dados, camposSelecionados, profiles || []);
 
     // Configurar opções do PapaParse
     const csvConfig = {
-      header: false, // Usaremos headers manuais
+      header: true,
       separator: ',',
       encoding: 'UTF-8',
       quotes: true,
@@ -43,7 +39,7 @@ export const exportCSV = ({ camposSelecionados, dados, filename = 'relatorio' }:
     };
 
     // Criar conteúdo CSV com BOM para Excel brasileiro
-    const bom = '\uFEFF'; // BOM para UTF-8
+    const bom = '\uFEFF';
     const csvContent = Papa.unparse([headers, ...rows], csvConfig);
     const csvWithBom = bom + csvContent;
 
@@ -56,16 +52,12 @@ export const exportCSV = ({ camposSelecionados, dados, filename = 'relatorio' }:
       link.setAttribute('href', url);
       
       // Gerar nome de arquivo com timestamp
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
-      const finalFilename = `${filename}_${timestamp}.csv`;
-      
+      const finalFilename = gerarNomeArquivo(filename, 'csv');
       link.setAttribute('download', finalFilename);
-      link.style.visibility = 'hidden';
+      link.style.display = 'none';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
-      // Limpar URL
       URL.revokeObjectURL(url);
     } else {
       // Fallback para browsers antigos
@@ -74,9 +66,40 @@ export const exportCSV = ({ camposSelecionados, dados, filename = 'relatorio' }:
     }
 
   } catch (error) {
-    console.error('Erro ao exportar CSV:', error);
+    console.error('Erro ao exportar CSV', error);
     throw error;
   }
+};
+
+/**
+ * Gera preview dos dados para exportação
+ */
+export const generatePreviewCSV = (camposSelecionados: string[], dados: any[], maxRows: number = 5): string => {
+  if (!validarDadosExportacao(dados, camposSelecionados)) {
+    return '';
+  }
+
+  const previewData = dados.slice(0, maxRows);
+  
+  // Gerar headers
+  const headers = gerarHeaders(camposSelecionados);
+  
+  // Gerar linhas
+  const rows = gerarLinhasDados(previewData, camposSelecionados);
+
+  // Configurar opções do PapaParse
+  const csvConfig = {
+    header: false,
+    separator: ',',
+    encoding: 'UTF-8',
+    quotes: true,
+    quoteChar: '"',
+    escapeChar: '"',
+  };
+
+  const bom = '\uFEFF';
+  const csvContent = Papa.unparse([headers, ...rows], csvConfig);
+  return bom + csvContent;
 };
 
 export const validateExportData = (dados: any[]): boolean => {
@@ -88,36 +111,4 @@ export const validateExportData = (dados: any[]): boolean => {
   if (!firstItem || typeof firstItem !== 'object') return false;
   
   return true;
-};
-
-export const generatePreviewCSV = (camposSelecionados: string[], dados: any[], maxRows: number = 5): string => {
-  if (!dados || dados.length === 0 || !camposSelecionados || camposSelecionados.length === 0) {
-    return '';
-  }
-
-  // Limitar dados para preview
-  const previewData = dados.slice(0, maxRows);
-  
-  // Gerar headers
-  const headers = camposSelecionados.map(campoId => CAMPOS_DISPONIVEIS[campoId]?.label || campoId);
-  
-  // Gerar linhas
-  const rows = previewData.map(item => {
-    return camposSelecionados.map(campoId => {
-      const campo = CAMPOS_DISPONIVEIS[campoId];
-      if (!campo) return '';
-      
-      const valor = item[campo.accessor];
-      return formatarValorCampo(campoId, valor);
-    });
-  });
-
-  // Criar CSV preview
-  const csvConfig = {
-    header: false,
-    separator: ',',
-    quotes: true,
-  };
-
-  return Papa.unparse([headers, ...rows], csvConfig);
 };

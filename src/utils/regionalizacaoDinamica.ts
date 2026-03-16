@@ -1,4 +1,5 @@
 import { REGIONAIS_FORTALEZA } from '../data/regionaisFortaleza';
+import Logger from './logger';
 
 export class RegionalizacaoService {
   private static cache = new Map<string, number>();
@@ -11,7 +12,7 @@ export class RegionalizacaoService {
    */
   static determinarRegional(bairro: string): number {
     if (!bairro || bairro.trim().length === 0) {
-      console.warn(`Bairro vazio -> Regional padrão (0)`);
+      Logger.warn(`Bairro vazio -> Regional padrão (0)`, 'RegionalizacaoDinamica');
       return 0; // Regional padrão
     }
 
@@ -35,7 +36,7 @@ export class RegionalizacaoService {
     }
     
     // Fallback para regional padrão
-    console.warn(`Bairro não mapeado: "${bairro}" -> Regional padrão (0)`);
+    Logger.warn(`Bairro não mapeado: "${bairro}" -> Regional padrão (0)`, 'RegionalizacaoDinamica');
     this.bairrosNaoMapeados.add(bairroNormalizado);
     this.cache.set(bairroNormalizado, 0);
     return 0; // Regional padrão

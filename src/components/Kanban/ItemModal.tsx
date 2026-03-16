@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { X, Trash2 } from 'lucide-react';
+import { X, Calendar, User, MapPin, Trash } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
+import { verificarAtraso } from '../../utils/calculoDiasUteis';
+import Logger from '../../utils/logger';
 import { ItemStatus } from '../../types/index';
 import { atualizarCoordenadasSolicitacao, atualizarCoordenadasDemanda } from '../../services/geocodingService';
 import { GeocodingService } from '../../services/geocoding';
 import EnderecoForm from '../Endereco/EnderecoForm';
 import HistoricoProcedimentos from '../Historico/HistoricoProcedimentos';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Item {
   id: string;
@@ -102,19 +104,16 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
   const [error, setError] = useState('');
   const [assuntos, setAssuntos] = useState<AssuntoPadrao[]>([]);
   const [pontosContato, setPontosContato] = useState<PontoContato[]>([]);
+  const [temEndereco, setTemEndereco] = useState(false);
 
   useEffect(() => {
     // Carregar assuntos e pontos de contato do Supabase
     const loadData = async () => {
       try {
-        console.log('🔍 Carregando assuntos e pontos de contato...');
         const [assuntosResult, pontosResult] = await Promise.all([
           supabase.from('assuntos_padrao').select('*').order('nome'),
           supabase.from('pontos_contato').select('*').order('nome')
         ]);
-        
-        console.log('✅ Assuntos carregados:', assuntosResult.data?.length || 0, assuntosResult.error);
-        console.log('✅ Pontos de contato carregados:', pontosResult.data?.length || 0, pontosResult.error);
         
         setAssuntos(assuntosResult.data || []);
         setPontosContato(pontosResult.data || []);
@@ -128,6 +127,19 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
 
   useEffect(() => {
     if (item) {
+      // Verificar se item tem endereço preenchido (qualquer campo relevante)
+      const temEnderecoPreenchido = !!(
+        item.endereco_rua || 
+        item.endereco_numero || 
+        item.endereco_bairro || 
+        item.endereco_cep || 
+        item.endereco_complemento ||
+        item.endereco_localidade ||
+        item.endereco_latitude ||
+        item.endereco_longitude
+      );
+      setTemEndereco(temEnderecoPreenchido);
+      
       setFormData({
         assunto: item.assunto,
         protocolo: item.protocolo,
@@ -151,6 +163,7 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
     } else {
       // Criando novo item - responsável e datas automáticas
       const hoje = new Date().toISOString().split('T')[0];
+      setTemEndereco(false); // Novo item não tem endereço por padrão
       setFormData({
         assunto: '',
         protocolo: '',
@@ -195,14 +208,26 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
         responsavel: formData.responsavel,
         ponto_contato: formData.ponto_contato,
         // Campo observacoes removido - substituído por histórico de procedimentos
-        endereco_rua: formData.endereco_rua || null,
-        endereco_numero: formData.endereco_numero || null,
-        endereco_bairro: formData.endereco_bairro || null,
-        endereco_localidade: formData.endereco_localidade || null,
-        endereco_cep: formData.endereco_cep || null,
-        endereco_complemento: formData.endereco_complemento || null,
-        endereco_latitude: formData.latitude || null,
-        endereco_longitude: formData.longitude || null,
+        // Campos de endereço - incluídos apenas se temEndereco for true
+        ...(temEndereco ? {
+          endereco_rua: formData.endereco_rua || null,
+          endereco_numero: formData.endereco_numero || null,
+          endereco_bairro: formData.endereco_bairro || null,
+          endereco_localidade: formData.endereco_localidade || null,
+          endereco_cep: formData.endereco_cep || null,
+          endereco_complemento: formData.endereco_complemento || null,
+          endereco_latitude: formData.latitude || null,
+          endereco_longitude: formData.longitude || null,
+        } : {
+          endereco_rua: null,
+          endereco_numero: null,
+          endereco_bairro: null,
+          endereco_localidade: null,
+          endereco_cep: null,
+          endereco_complemento: null,
+          endereco_latitude: null,
+          endereco_longitude: null,
+        })
       };
 
       // UPDATE (sem user_id)
@@ -214,8 +239,8 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
 
         if (error) throw error;
         
-        // Geocodificar endereço se fornecido
-        if (formData.endereco_rua && formData.endereco_numero && formData.endereco_bairro) {
+        // Geocodificar endereço se fornecido E se temEndereco for true
+        if (temEndereco && formData.endereco_rua && formData.endereco_numero && formData.endereco_bairro) {
           try {
             if (type === 'solicitacoes') {
               await atualizarCoordenadasSolicitacao(item.id, formData.endereco_rua, formData.endereco_numero, formData.endereco_bairro);
@@ -243,8 +268,8 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
 
         if (error) throw error;
         
-        // Geocodificar endereço se fornecido
-        if (formData.endereco_rua && formData.endereco_numero && formData.endereco_bairro) {
+        // Geocodificar endereço se fornecido E se temEndereco for true
+        if (temEndereco && formData.endereco_rua && formData.endereco_numero && formData.endereco_bairro) {
           try {
             if (type === 'solicitacoes') {
               await atualizarCoordenadasSolicitacao(data.id, formData.endereco_rua, formData.endereco_numero, formData.endereco_bairro);
@@ -460,36 +485,60 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
 
           {/* Seção de Endereço */}
           <div className="border-t border-gray-200 pt-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">📍 Endereço da Solicitação</h3>
-            <EnderecoForm
-              value={{
-                cep: formData.endereco_cep,
-                rua: formData.endereco_rua,
-                numero: formData.endereco_numero,
-                bairro: formData.endereco_bairro,
-                localidade: formData.endereco_localidade,
-                complemento: formData.endereco_complemento,
-                regional: formData.endereco_regional,
-                latitude: formData.latitude,
-                longitude: formData.longitude
-              }}
-              onChange={(endereco) => {
-                setFormData({
-                  ...formData,
-                  endereco_rua: endereco.rua || '',
-                  endereco_numero: endereco.numero || '',
-                  endereco_bairro: endereco.bairro || '',
-                  endereco_localidade: endereco.localidade || '',
-                  endereco_cep: endereco.cep || '',
-                  endereco_complemento: endereco.complemento || '',
-                  endereco_regional: endereco.regional || '',
-                  latitude: endereco.latitude,
-                  longitude: endereco.longitude
-                });
-              }}
-              disabled={isViewMode}
-              showMap={true}
-            />
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">📍 Endereço da Solicitação</h3>
+              {!isViewMode && (
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={temEndereco}
+                    onChange={(e) => setTemEndereco(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Adicionar endereço</span>
+                </label>
+              )}
+            </div>
+            
+            {temEndereco && (
+              <EnderecoForm
+                value={{
+                  cep: formData.endereco_cep,
+                  rua: formData.endereco_rua,
+                  numero: formData.endereco_numero,
+                  bairro: formData.endereco_bairro,
+                  localidade: formData.endereco_localidade,
+                  complemento: formData.endereco_complemento,
+                  regional: formData.endereco_regional,
+                  latitude: formData.latitude,
+                  longitude: formData.longitude
+                }}
+                onChange={(endereco) => {
+                  setFormData({
+                    ...formData,
+                    endereco_rua: endereco.rua || '',
+                    endereco_numero: endereco.numero || '',
+                    endereco_bairro: endereco.bairro || '',
+                    endereco_localidade: endereco.localidade || '',
+                    endereco_cep: endereco.cep || '',
+                    endereco_complemento: endereco.complemento || '',
+                    endereco_regional: endereco.regional || '',
+                    latitude: endereco.latitude,
+                    longitude: endereco.longitude
+                  });
+                }}
+                disabled={isViewMode}
+                showMap={true}
+              />
+            )}
+            
+            {!temEndereco && (
+              <div className="text-center py-8 bg-gray-50 rounded-lg">
+                <p className="text-gray-500 text-sm">
+                  {isViewMode ? 'Esta solicitação não possui endereço cadastrado.' : 'Marque "Adicionar endereço" para incluir localização nesta solicitação.'}
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t border-gray-200">
@@ -500,7 +549,7 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
                   onClick={handleDelete}
                   className="flex items-center space-x-2 text-red-600 hover:text-red-700 font-medium"
                 >
-                  <Trash2 className="w-5 h-5" />
+                  <Trash className="w-5 h-5" />
                   <span>Excluir</span>
                 </button>
               )}

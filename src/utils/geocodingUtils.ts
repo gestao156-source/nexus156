@@ -32,6 +32,8 @@ export interface ValidacaoEndereco {
   erros: string[];
 }
 
+import Logger from './logger';
+
 /**
  * Gera hash SHA256 normalizado do endereço para cache
  * @param endereco Objeto com campos do endereço
@@ -63,7 +65,7 @@ export async function gerarHash(endereco: EnderecoParaHash): Promise<string> {
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   } catch (error) {
-    console.error('Erro ao gerar hash do endereço:', error);
+    Logger.error('Erro ao gerar hash do endereço', { error }, 'GeocodingUtils', false);
     throw new Error('Falha ao gerar hash do endereço');
   }
 }
@@ -182,7 +184,7 @@ export function cacheExpirado(expiresAt: string): boolean {
     const expiryDate = new Date(expiresAt);
     return expiryDate < new Date();
   } catch (error) {
-    console.error('Erro ao verificar expiração do cache:', error);
+    Logger.error('Erro ao verificar expiração do cache', { error }, 'GeocodingUtils', false);
     return true; // Se não conseguir verificar, considera expirado
   }
 }

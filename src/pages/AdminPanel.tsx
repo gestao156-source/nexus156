@@ -5,6 +5,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { Users, Settings, Plus, Trash2, Key, Mail } from 'lucide-react';
 import RoleSelector from '../components/Admin/RoleSelector';
+import Logger from '../utils/logger';
+import ErrorService from '../services/errorService';
 
 interface AssuntoPadrao {
   id: string;
@@ -59,7 +61,7 @@ export default function AdminPanel() {
       setAssuntos(assuntosData || []);
       setPontosContato(pontosData || []);
     } catch (error) {
-      console.error('Erro ao carregar dados:', error);
+      ErrorService.handleError(error, { component: 'AdminPanel', action: 'loadData' });
     } finally {
       setLoading(false);
     }
@@ -117,7 +119,7 @@ export default function AdminPanel() {
         loadData();
       }
     } catch (error) {
-      console.error('Erro ao criar usuário:', error);
+      ErrorService.handleError(error, { component: 'AdminPanel', action: 'createUser' });
       alert('Erro ao criar usuário');
     }
   };
@@ -148,7 +150,7 @@ export default function AdminPanel() {
       // Recarregar dados para garantir consistência
       loadData();
     } catch (error) {
-      console.error('Erro ao excluir usuário:', error);
+      ErrorService.handleError(error, { component: 'AdminPanel', action: 'deleteUser' });
       showError('Erro ao excluir usuário');
     }
   };
@@ -164,20 +166,20 @@ export default function AdminPanel() {
       });
 
       if (error) {
-        console.error('Error resetting password:', error);
+        ErrorService.handleError(error, { component: 'AdminPanel', action: 'resetPassword' });
         showError('Erro ao resetar senha', error.message || 'Não foi possível resetar a senha');
         return;
       }
 
       if (data) {
         showSuccess('Senha resetada!', `Senha de ${userEmail} foi registrada para reset. Nota: O reset real precisa ser feito via Admin API.`);
-        console.log('Password reset registered:', data);
+        Logger.debug('Password reset registered', { data }, 'AdminPanel');
       } else {
         showError('Erro ao resetar senha', 'Não foi possível resetar a senha');
       }
       
     } catch (error: any) {
-      console.error('Erro ao resetar senha:', error);
+      ErrorService.handleError(error, { component: 'AdminPanel', action: 'resetPassword' });
       showError('Erro de conexão', error.message || 'Falha na comunicação com o servidor');
     }
   };
@@ -196,7 +198,7 @@ export default function AdminPanel() {
         loadData();
       }
     } catch (error) {
-      console.error('Erro ao criar assunto:', error);
+      ErrorService.handleError(error, { component: 'AdminPanel', action: 'createAssunto' });
       alert('Erro ao criar assunto');
     }
   };
@@ -213,7 +215,7 @@ export default function AdminPanel() {
       alert('Assunto excluído com sucesso!');
       loadData();
     } catch (error) {
-      console.error('Erro ao excluir assunto:', error);
+      ErrorService.handleError(error, { component: 'AdminPanel', action: 'deleteAssunto' });
       alert('Erro ao excluir assunto');
     }
   };
@@ -232,7 +234,7 @@ export default function AdminPanel() {
         loadData();
       }
     } catch (error) {
-      console.error('Erro ao criar ponto de contato:', error);
+      ErrorService.handleError(error, { component: 'AdminPanel', action: 'createPontoContato' });
       alert('Erro ao criar ponto de contato');
     }
   };
@@ -249,7 +251,7 @@ export default function AdminPanel() {
       alert('Ponto de contato excluído com sucesso!');
       loadData();
     } catch (error) {
-      console.error('Erro ao excluir ponto de contato:', error);
+      ErrorService.handleError(error, { component: 'AdminPanel', action: 'deletePontoContato' });
       alert('Erro ao excluir ponto de contato');
     }
   };

@@ -16,6 +16,6 @@ export function isFeatureEnabled(feature: keyof typeof FEATURE_FLAGS): boolean {
 export function setFeatureEnabled(feature: keyof typeof FEATURE_FLAGS, enabled: boolean): void {
   if (process.env.NODE_ENV === 'development') {
     (FEATURE_FLAGS as any)[feature] = enabled;
-    console.log(`Feature ${feature} ${enabled ? 'enabled' : 'disabled'}`);
+    // Apenas em desenvolvimento, sem logs
   }
 }

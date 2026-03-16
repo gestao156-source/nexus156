@@ -11,6 +11,7 @@ import Relatorios from './pages/Relatorios';
 import MapaFortaleza from './pages/MapaFortaleza';
 import ItemDetalhes from './pages/ItemDetalhes';
 import Auth from './components/Auth/Auth';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function ProtectedRoutes() {
   const { loading, user } = useAuth();
@@ -48,16 +49,18 @@ function ProtectedRoutes() {
 
 function App() {
   return (
-    <ToastProvider>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/*" element={<ProtectedRoutes />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </ToastProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/*" element={<ProtectedRoutes />} />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }
 

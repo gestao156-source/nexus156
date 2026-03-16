@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import { Icon } from 'leaflet';
 import { MapPin, Search, Loader2, X } from 'lucide-react';
 import { GeocodingService, EnderecoCompleto, Coordenadas } from '../../services/geocoding';
+import Logger from '../../utils/logger';
 
 // Criar ícone personalizado explícito
 const customIcon = new Icon({
@@ -52,7 +53,7 @@ const MapaInterativo = ({
   useEffect(() => {
     if (map && coordenada) {
       map.setView([coordenada.lat, coordenada.lng], 15);
-      console.log('🗺️ Mapa atualizado para:', coordenada);
+      Logger.debug('Mapa atualizado para:', { coordenada }, 'EnderecoForm');
     }
   }, [coordenada, map]);
 
@@ -118,18 +119,18 @@ export default function EnderecoForm({
 
     setLoading(true);
     setCepError('');
-    console.log('🔍 Iniciando busca de CEP:', value.cep);
+    Logger.debug('Iniciando busca de CEP:', { cep: value.cep }, 'EnderecoForm');
 
     try {
       const dadosCEP = await GeocodingService.buscarPorCEP(value.cep);
       
       if (!dadosCEP || dadosCEP.erro) {
-        console.log('❌ CEP não encontrado:', value.cep);
+        Logger.warn('CEP não encontrado', 'EnderecoForm');
         setCepError('CEP não encontrado');
         return;
       }
 
-      console.log('✅ CEP encontrado:', dadosCEP);
+      Logger.debug('CEP encontrado:', { dadosCEP }, 'EnderecoForm');
 
       // Atualizar campos do endereço
       const regional = GeocodingService.buscarRegionalPorBairro(dadosCEP.bairro || '');
@@ -148,28 +149,28 @@ export default function EnderecoForm({
 
       // Buscar coordenadas automaticamente
       if (dadosCEP.logradouro && dadosCEP.localidade) {
-        console.log('🗺️ Buscando coordenadas para o endereço...');
+        Logger.debug('Buscando coordenadas para o endereço...', {}, 'EnderecoForm');
         
         // Estratégia 1: Tentar com número completo (mais preciso)
         const enderecoParaBuscaCompleto = GeocodingService.formatarEnderecoParaBusca(novoEndereco);
-        console.log('🔍 Tentando geocoding completo (com número):', enderecoParaBuscaCompleto);
+        Logger.debug('Tentando geocoding completo (com número)', { endereco: enderecoParaBuscaCompleto }, 'EnderecoForm');
         
         let coords = await GeocodingService.buscarCoordenadas(enderecoParaBuscaCompleto);
         
         // Se não encontrar, tentar sem número
         if (!coords) {
-          console.log('🔄 Geocoding com número falhou, tentando sem número...');
+          Logger.debug('Geocoding com número falhou, tentando sem número', {}, 'EnderecoForm');
           const enderecoSemNumero = {
             ...novoEndereco,
             numero: '' // Remover número para tentativa alternativa
           };
           const enderecoParaBuscaSemNumero = GeocodingService.formatarEnderecoParaBusca(enderecoSemNumero);
-          console.log('🔍 Tentando geocoding sem número:', enderecoParaBuscaSemNumero);
+          Logger.debug('Tentando geocoding sem número', { endereco: enderecoParaBuscaSemNumero }, 'EnderecoForm');
           coords = await GeocodingService.buscarCoordenadas(enderecoParaBuscaSemNumero);
         }
         
         if (coords) {
-          console.log('✅ Coordenadas encontradas, atualizando mapa:', coords);
+          Logger.debug('Coordenadas encontradas, atualizando mapa', { coords }, 'EnderecoForm');
           setCoordenadaAtual(coords);
           onChange({
             ...novoEndereco,
@@ -177,7 +178,7 @@ export default function EnderecoForm({
             longitude: coords.lng
           });
         } else {
-          console.log('❌ Não foi possível encontrar coordenadas para o endereço');
+          Logger.warn('Não foi possível encontrar coordenadas para o endereço', 'EnderecoForm');
           // Não mostrar erro de CEP, pois o CEP foi encontrado
           // Apenas não atualiza o mapa
         }
@@ -306,7 +307,7 @@ export default function EnderecoForm({
             type="text"
             value={value.numero || ''}
             onChange={(e) => handleFieldChange('numero', e.target.value)}
-            placeholder="123"
+            placeholder="2391"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={disabled}
           />
@@ -323,7 +324,7 @@ export default function EnderecoForm({
             type="text"
             value={value.rua || ''}
             onChange={(e) => handleFieldChange('rua', e.target.value)}
-            placeholder="Rua das Flores"
+            placeholder="Avenida Pontes Vieira"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={disabled}
           />
@@ -338,7 +339,7 @@ export default function EnderecoForm({
             type="text"
             value={value.bairro || ''}
             onChange={(e) => handleFieldChange('bairro', e.target.value)}
-            placeholder="Centro"
+            placeholder="Dionísio Torres"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={disabled}
           />
@@ -355,7 +356,7 @@ export default function EnderecoForm({
             type="text"
             value={value.localidade || ''}
             onChange={(e) => handleFieldChange('localidade', e.target.value)}
-            placeholder="São Paulo"
+            placeholder="Fortaleza"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={disabled}
           />

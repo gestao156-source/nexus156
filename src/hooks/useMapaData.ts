@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { GeocodingService } from '../services/geocoding';
 import { RegionalizacaoService } from '../utils/regionalizacaoDinamica';
 import { MapaFilters, MapaItem, MapaStats } from '../types';
+import Logger from '../utils/logger';
 
 export function useMapaData(initialFilters: MapaFilters) {
   const [dados, setDados] = useState<MapaItem[]>([]);
@@ -76,7 +77,7 @@ export function useMapaData(initialFilters: MapaFilters) {
           .eq('id', item.id);
       }
     } catch (error) {
-      console.error(`Erro geocodificando ${item.id}:`, error);
+      Logger.error(`Erro geocodificando ${item.id}`, { error }, 'useMapaData', false);
     } finally {
       geocodingQueueRef.current.delete(item.id);
     }
@@ -280,9 +281,9 @@ export function useMapaData(initialFilters: MapaFilters) {
     // Configurar handler de reconexão
     channel.subscribe((status) => {
       if (status === 'SUBSCRIBED') {
-        console.log('Mapa realtime conectado');
+        Logger.debug('Mapa realtime conectado', {}, 'useMapaData');
       } else if (status === 'CLOSED') {
-        console.log('Mapa realtime desconectado, tentando reconectar...');
+        Logger.debug('Mapa realtime desconectado, tentando reconectar', {}, 'useMapaData');
         handleReconnect();
       }
     });

@@ -1,5 +1,10 @@
 import { useState } from 'react';
+import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
+import { Mail, Lock, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import Logger from '../../utils/logger';
+import ErrorService from '../../services/errorService';
 import { useNavigate } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
 
@@ -22,14 +27,14 @@ export default function Login({ onToggleMode }: LoginProps) {
 
     try {
       await signIn(email, password);
-      console.log('Login bem-sucedido, redirecionando para dashboard...');
+      Logger.debug('Login bem-sucedido, redirecionando para dashboard', {}, 'Login');
       // Redirecionamento manual após login bem-sucedido
       setTimeout(() => {
-        console.log('Executando redirecionamento para /dashboard');
+        Logger.debug('Executando redirecionamento para /dashboard', {}, 'Login');
         navigate('/dashboard');
       }, 500);
     } catch (err: any) {
-      console.error('Erro de login:', err);
+      ErrorService.handleError(err, { component: 'Login', action: 'signIn' });
       
       // Tratamento específico de erros do Supabase
       if (err?.message?.includes('Invalid login credentials')) {

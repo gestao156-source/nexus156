@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { ChevronLeft } from 'lucide-react';
+import Logger from '../../../utils/logger';
 import { RegionalData } from './chart-types';
 import { getRegionalPorId, encontrarRegionalPorBairro } from '../../../utils/regionalUtils';
 import { supabase } from '../../../lib/supabase';
@@ -58,7 +59,7 @@ export default function RegionalDrillDownChart({
       
       // Buscar dados reais dos bairros
       try {
-        console.log(`🔍 Buscando bairros da regional: ${regional.region}`);
+        Logger.debug(`Buscando bairros da regional: ${regional.region}`, {}, 'RegionalDrillDownChart');
         
         const { data: solicitacoes } = await supabase
           .from('solicitacoes')
@@ -83,7 +84,7 @@ export default function RegionalDrillDownChart({
           return regionalDoItem === regional.region;
         });
 
-        console.log(`📊 Itens encontrados para ${regional.region}:`, itensRegional.length);
+        Logger.debug(`Itens encontrados para ${regional.region}`, { count: itensRegional.length }, 'RegionalDrillDownChart');
 
         // Agrupar por bairro
         const grouped = itensRegional.reduce((acc, item) => {
@@ -98,7 +99,7 @@ export default function RegionalDrillDownChart({
           value
         })).sort((a, b) => b.value - a.value); // Ordenar por quantidade
 
-        console.log(`📍 Bairros agrupados:`, result);
+        Logger.debug(`Bairros agrupados`, { bairros: result }, 'RegionalDrillDownChart');
         setBairrosData(result);
       } catch (error) {
         console.error('Erro ao buscar bairros:', error);

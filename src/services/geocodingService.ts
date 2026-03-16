@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { encontrarRegionalPorBairro } from '../utils/regionalUtils';
+import Logger from '../utils/logger';
 
 export interface GeocodingResult {
   latitude: number;
@@ -62,7 +63,7 @@ export async function geocodificarEndereco(
     };
     
   } catch (error) {
-    console.error('Erro no geocoding:', error);
+    Logger.error('Erro ao processar endereço completo', { error }, 'GeocodingService', false);
     
     // Mesmo com erro, tentar encontrar regional pelo bairro
     return {

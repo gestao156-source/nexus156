@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../lib/supabase';
+import ErrorService from '../services/errorService';
 import PasswordChangeSection from '../components/PasswordChangeSection';
 
 export default function Perfil() {
@@ -35,7 +36,7 @@ export default function Perfil() {
       updateProfile({ full_name: fullName });
       showSuccess('Perfil atualizado!', 'Seu nome foi atualizado com sucesso');
     } catch (err: any) {
-      console.error(err);
+      ErrorService.handleError(err, { component: 'Perfil', action: 'updateProfile' });
       showError('Erro ao atualizar', 'Não foi possível salvar as alterações');
     } finally {
       setSaving(false);

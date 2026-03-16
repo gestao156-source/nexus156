@@ -46,6 +46,25 @@ export interface DashboardStats {
   finalizado: number;
 }
 
+export interface ItemDetalhes extends KanbanItem {
+  endereco_rua?: string;
+  endereco_numero?: string;
+  endereco_bairro?: string;
+  endereco_localidade?: string;
+  endereco_cep?: string;
+  endereco_complemento?: string;
+  endereco_latitude?: number | null;
+  endereco_longitude?: number | null;
+  profiles?: {
+    full_name: string;
+    email: string;
+  };
+  responsavel_profile?: {
+    full_name: string;
+    email: string;
+  };
+}
+
 export interface KanbanItem {
   id: string;
   assunto: string;

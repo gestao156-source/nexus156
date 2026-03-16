@@ -1,4 +1,6 @@
 // Função debounce manual para evitar dependência externa
+import Logger from '../utils/logger';
+
 function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
@@ -262,7 +264,7 @@ export class GeocodingService {
 
       return data;
     } catch (error) {
-      console.error('Erro ao buscar CEP:', error);
+      Logger.error('Erro ao buscar CEP', { error }, 'GeocodingService');
       return null;
     }
   }
@@ -276,12 +278,12 @@ export class GeocodingService {
         return null;
       }
 
-      console.log('🔍 Buscando coordenadas para:', endereco);
+      Logger.debug('Buscando coordenadas para', { endereco }, 'GeocodingService');
 
       // Verificar cache
       const cacheKey = endereco.toLowerCase().trim();
       if (this.coordenadasCache.has(cacheKey)) {
-        console.log('✅ Coordenadas encontradas no cache');
+        Logger.debug('Coordenadas encontradas no cache', {}, 'GeocodingService');
         return this.coordenadasCache.get(cacheKey)!;
       }
 
@@ -289,21 +291,21 @@ export class GeocodingService {
       const buscas = this.gerarVariacoesBusca(endereco);
       
       for (const query of buscas) {
-        console.log('🔍 Tentando busca com:', query);
+        Logger.debug('Tentando busca com', { query }, 'GeocodingService');
         
         const coords = await this.buscarCoordenadasSingle(query);
         if (coords) {
           // Salvar no cache com a chave original
           this.coordenadasCache.set(cacheKey, coords);
-          console.log('✅ Coordenadas encontradas:', coords);
+          Logger.debug('Coordenadas encontradas', { coords }, 'GeocodingService');
           return coords;
         }
       }
 
-      console.log('❌ Nenhuma variação encontrou coordenadas para:', endereco);
+      Logger.warn('Nenhuma variação encontrou coordenadas', 'GeocodingService');
       return null;
     } catch (error) {
-      console.error('❌ Erro ao buscar coordenadas:', error);
+      Logger.error('Erro ao buscar coordenadas', { error }, 'GeocodingService');
       return null;
     }
   }
@@ -453,7 +455,7 @@ export class GeocodingService {
 
       return endereco;
     } catch (error) {
-      console.error('Erro ao buscar endereço por coordenadas:', error);
+      Logger.error('Erro ao buscar endereço por coordenadas', { error }, 'GeocodingService');
       return null;
     }
   }
@@ -563,7 +565,7 @@ export class GeocodingService {
 
       return enderecoCompleto;
     } catch (error) {
-      console.error('Erro ao processar endereço completo:', error);
+      Logger.error('Erro ao processar endereço completo', { error }, 'GeocodingService');
       return null;
     }
   }
@@ -574,7 +576,7 @@ export class GeocodingService {
   static limparCache(): void {
     this.coordenadasCache.clear();
     this.enderecoCache.clear();
-    console.log('🗑️ Cache de geocoding limpo');
+    Logger.debug('Cache de geocoding limpo', {}, 'GeocodingService');
   }
 
   /**
@@ -583,7 +585,7 @@ export class GeocodingService {
   static limparCacheCoordenadas(endereco: string): void {
     const cacheKey = endereco.toLowerCase().trim();
     this.coordenadasCache.delete(cacheKey);
-    console.log('🗑️ Cache removido para:', endereco);
+    Logger.debug('Cache removido para', { endereco }, 'GeocodingService');
   }
 
   /**

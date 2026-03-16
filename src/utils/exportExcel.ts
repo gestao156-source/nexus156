@@ -1,42 +1,33 @@
 import * as XLSX from 'xlsx';
+import { gerarHeaders, gerarLinhasDados, gerarNomeArquivo, validarDadosExportacao } from './exportUtils';
 import { CAMPOS_DISPONIVEIS, formatarValorCampo } from './campoConfig';
+import { supabase } from '../lib/supabase';
 
-export interface ExportExcelOptions {
+export interface ExcelExportOptions {
   camposSelecionados: string[];
   dados: any[];
   filename?: string;
-  sheetName?: string;
 }
 
-export const exportExcel = ({ 
-  camposSelecionados, 
-  dados, 
-  filename = 'relatorio', 
-  sheetName = 'Relatório' 
-}: ExportExcelOptions): void => {
+/**
+ * Exporta dados para formato Excel
+ */
+export const exportExcel = async ({ camposSelecionados, dados, filename = 'relatorio' }: ExcelExportOptions): Promise<void> => {
   try {
     // Validar dados
-    if (!dados || dados.length === 0) {
-      throw new Error('Nenhum dado para exportar');
-    }
-
-    if (!camposSelecionados || camposSelecionados.length === 0) {
+    if (!validarDadosExportacao(dados, camposSelecionados)) {
       throw new Error('Nenhum campo selecionado');
     }
 
-    // Gerar headers
-    const headers = camposSelecionados.map(campoId => CAMPOS_DISPONIVEIS[campoId]?.label || campoId);
+    // Carregar profiles (mesmo padrão do mapa e tabela)
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .order('full_name');
 
-    // Gerar linhas de dados
-    const rows = dados.map(item => {
-      return camposSelecionados.map(campoId => {
-        const campo = CAMPOS_DISPONIVEIS[campoId];
-        if (!campo) return '';
-        
-        const valor = item[campo.accessor];
-        return formatarValorCampo(campoId, valor);
-      });
-    });
+    // Gerar headers e linhas usando formatarResponsavel
+    const headers = gerarHeaders(camposSelecionados);
+    const rows = gerarLinhasDados(dados, camposSelecionados, profiles || []);
 
     // Criar worksheet
     const wsData = [headers, ...rows];
@@ -47,44 +38,36 @@ export const exportExcel = ({
 
     // Criar workbook
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    XLSX.utils.book_append_sheet(wb, ws, 'Relatório');
 
-    // Gerar nome de arquivo com timestamp
-    const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
-    const finalFilename = `${filename}_${timestamp}.xlsx`;
-
-    // Exportar arquivo
+    // Gerar nome de arquivo e exportar
+    const finalFilename = gerarNomeArquivo(filename, 'xlsx');
     XLSX.writeFile(wb, finalFilename);
 
   } catch (error) {
-    console.error('Erro ao exportar Excel:', error);
+    console.error('Erro ao exportar Excel', error);
     throw error;
   }
 };
 
+/**
+ * Formata worksheet do Excel
+ */
 const formatWorksheet = (ws: XLSX.WorkSheet, headerCount: number, rowCount: number): void => {
   // Definir largura das colunas
-  const colWidths = Array(headerCount).fill({ wch: 15 }); // largura padrão
+  const colWidths = Array(headerCount).fill({ wch: 15 });
   ws['!cols'] = colWidths;
 
   // Formatar headers (primeira linha)
-  for (let col = 0; col < headerCount; col++) {
-    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
-    const cell = ws[cellAddress];
+  for (let i = 0; i < headerCount; i++) {
+    const cellAddress = XLSX.utils.encode_cell({ c: i, r: 0 });
+    if (!ws[cellAddress]) continue;
     
-    if (cell) {
-      cell.s = {
-        font: { bold: true, sz: 12 },
-        fill: { fgColor: { rgb: 'E3F2FD' } }, // Azul claro
-        alignment: { horizontal: 'center', vertical: 'center' },
-        border: {
-          top: { style: 'thin', color: { auto: 1 } },
-          bottom: { style: 'thin', color: { auto: 1 } },
-          left: { style: 'thin', color: { auto: 1 } },
-          right: { style: 'thin', color: { auto: 1 } },
-        },
-      };
-    }
+    ws[cellAddress].s = {
+      font: { bold: true },
+      fill: { fgColor: { rgb: "FFFFFFFF" } },
+      alignment: { horizontal: "center" }
+    };
   }
 
   // Adicionar bordas nas células de dados

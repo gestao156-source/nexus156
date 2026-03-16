@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { MapaFilters, MapaItem, MapaStats } from '../types';
 import { GeocodingService } from '../services/geocoding';
 import { formatarResponsavel, Profile } from '../utils/responsavelUtils';
+import Logger from '../utils/logger';
 
 export function useMapaDataSimple(filters: MapaFilters) {
   const [dados, setDados] = useState<MapaItem[]>([]);
@@ -30,7 +31,7 @@ export function useMapaDataSimple(filters: MapaFilters) {
         if (error) throw error;
         setProfiles(data || []);
       } catch (error) {
-        console.error('Erro ao carregar profiles:', error);
+        Logger.error('Erro ao carregar profiles', { error }, 'useMapaDataSimple');
       }
     };
     
@@ -234,14 +235,8 @@ export function useMapaDataSimple(filters: MapaFilters) {
         dadosFiltrados = dadosFiltrados.filter(d => d.possui_coordenadas);
       }
       
-      console.log('🗺️ Dados para o mapa (filtrados):', dadosFiltrados.length);
-      console.log('📍 Itens com coordenadas:', dadosFiltrados.map(d => ({
-        id: d.id,
-        tipo: d.tipo,
-        possui_coordenadas: d.possui_coordenadas,
-        lat: d.endereco_latitude,
-        lng: d.endereco_longitude
-      })));
+      Logger.debug('Dados para o mapa (filtrados)', { count: dadosFiltrados.length }, 'useMapaDataSimple');
+      Logger.debug('Itens com coordenadas', { items: dadosFiltrados.map(d => ({ id: d.id, assunto: d.assunto })) }, 'useMapaDataSimple');
       
       setDados(dadosFiltrados);
 

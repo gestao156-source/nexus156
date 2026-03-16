@@ -230,7 +230,8 @@ export const CAMPOS_DISPONIVEIS: Record<string, CampoConfig> = {
     grupo: 'Endereço',
     accessor: 'endereco_completo',
     format: (value: any) => {
-      if (!value || typeof value !== 'object') return '';
+      if (!value || typeof value !== 'object') return 'Não aplicável';
+      
       const partes = [];
       if (value.endereco_rua) {
         partes.push(value.endereco_rua);
@@ -239,7 +240,8 @@ export const CAMPOS_DISPONIVEIS: Record<string, CampoConfig> = {
       if (value.endereco_bairro) partes.push(`- ${value.endereco_bairro}`);
       if (value.endereco_localidade) partes.push(`, ${value.endereco_localidade}`);
       if (value.endereco_cep) partes.push(`- CEP: ${value.endereco_cep}`);
-      return partes.join(' ');
+      
+      return partes.length > 0 ? partes.join(' ') : 'Não aplicável';
     },
   },
   coordenadas: {
@@ -249,11 +251,11 @@ export const CAMPOS_DISPONIVEIS: Record<string, CampoConfig> = {
     grupo: 'Endereço',
     accessor: 'coordenadas',
     format: (value: any) => {
-      if (!value || typeof value !== 'object') return '';
+      if (!value || typeof value !== 'object') return 'Não aplicável';
       if (value.latitude && value.longitude) {
         return `${value.latitude.toFixed(6)}, ${value.longitude.toFixed(6)}`;
       }
-      return '';
+      return 'Não aplicável';
     },
   },
 };
@@ -276,6 +278,13 @@ export const formatarValorCampo = (campoId: string, valor: any): string => {
   
   if (campo.format) {
     return campo.format(valor);
+  }
+  
+  // Tratar campos de endereço vazios como "Não aplicável"
+  if (campoId.startsWith('endereco_') || campoId === 'coordenadas') {
+    if (!valor || valor === '' || valor === null || valor === undefined) {
+      return 'Não aplicável';
+    }
   }
   
   if (valor === null || valor === undefined) return '';

@@ -3,6 +3,7 @@ import { BarChart3, Filter, RefreshCw, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRelatoriosData, FiltrosType } from '../hooks/useRelatoriosData';
 import { CAMPOS_DISPONIVEIS } from '../utils/campoConfig';
+import Logger from '../utils/logger';
 import CampoSelector from '../components/Relatorios/CampoSelector';
 import FiltroRelatorios from '../components/Relatorios/FiltroRelatorios';
 import TabelaDinamica from '../components/Relatorios/TabelaDinamica';
@@ -97,7 +98,7 @@ export default function Relatorios() {
       });
     } else if (formato === 'pdf') {
       // TODO: Implementar exportação PDF
-      console.log('Exportação PDF em desenvolvimento');
+      Logger.info('Exportação PDF em desenvolvimento', 'Relatorios');
     }
   };
 

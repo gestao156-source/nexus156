@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
+import Logger from '../utils/logger';
 
 export interface Procedimento {
   id: string;
@@ -38,7 +41,7 @@ export function useHistoricoProcedimentos({ itemId, itemTipo }: UseHistoricoProc
 
       setHistorico(data || []);
     } catch (err) {
-      console.error('Erro ao carregar histórico:', err);
+      Logger.error('Erro ao carregar histórico', { err }, 'useHistoricoProcedimentos', false);
       setError('Não foi possível carregar o histórico de procedimentos.');
     } finally {
       setLoading(false);
@@ -66,7 +69,7 @@ export function useHistoricoProcedimentos({ itemId, itemTipo }: UseHistoricoProc
       
       return true;
     } catch (err) {
-      console.error('Erro ao adicionar procedimento:', err);
+      Logger.error('Erro ao adicionar procedimento', { err }, 'useHistoricoProcedimentos', false);
       setError('Não foi possível adicionar o procedimento.');
       return false;
     } finally {
@@ -104,7 +107,7 @@ export function useHistoricoProcedimentos({ itemId, itemTipo }: UseHistoricoProc
       // Pode adicionar se é criador ou responsável
       return item.user_id === user.id || item.responsavel === user.id;
     } catch (err) {
-      console.error('Erro ao verificar permissões:', err);
+      Logger.error('Erro ao verificar permissões', { err }, 'useHistoricoProcedimentos', false);
       return false;
     }
   };

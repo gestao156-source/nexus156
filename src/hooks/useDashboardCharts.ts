@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { subDays, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { supabase } from '../lib/supabase';
+import Logger from '../utils/logger';
 import { 
   TimeSeriesData, 
   ScatterData, 
@@ -414,7 +415,7 @@ export function useDashboardCharts() {
 
       return result;
     } catch (error) {
-      console.error('Erro ao buscar bairros:', error);
+      Logger.error('Erro ao buscar bairros', { error }, 'useDashboardCharts', false);
       return [];
     }
   };
@@ -439,7 +440,7 @@ export function useDashboardCharts() {
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
     } catch (error) {
-      console.error('Erro ao buscar itens do bairro:', error);
+      Logger.error('Erro ao buscar itens do bairro', { error }, 'useDashboardCharts', false);
       return [];
     }
   };
@@ -481,7 +482,7 @@ export function useDashboardCharts() {
       setRegionaisMaisDemandas(regionaisMaisDemandasResult.status === 'fulfilled' ? regionaisMaisDemandasResult.value : []);
 
     } catch (err) {
-      console.error('Erro ao buscar dados dos gráficos:', err);
+      Logger.error('Erro ao buscar dados dos gráficos', { err }, 'useDashboardCharts', false);
       setError('Erro ao carregar dados dos gráficos');
     } finally {
       setLoading(false);
