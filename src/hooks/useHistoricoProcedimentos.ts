@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../contexts/ToastContext';
 import Logger from '../utils/logger';
 
 export interface Procedimento {
@@ -50,17 +48,25 @@ export function useHistoricoProcedimentos({ itemId, itemTipo }: UseHistoricoProc
 
   // Adicionar novo procedimento
   const adicionarProcedimento = async (procedimento: string): Promise<boolean> => {
-    if (!itemId || !procedimento.trim()) return false;
+    console.log('🔍 DEBUG - adicionarProcedimento:', { itemId, itemTipo, procedimento });
+    
+    if (!itemId || !procedimento.trim()) {
+      console.error('❌ ERRO - itemId ou procedimento inválido:', { itemId, procedimento });
+      return false;
+    }
 
     setAdicionando(true);
     setError('');
 
     try {
-      const { error } = await supabase.rpc('adicionar_procedimento', {
+      console.log('📤 Chamando RPC adicionar_procedimento...');
+      const { error, data } = await supabase.rpc('adicionar_procedimento', {
         p_item_id: itemId,
         p_item_tipo: itemTipo,
         p_procedimento: procedimento.trim()
       });
+
+      console.log('📥 Resposta RPC:', { error, data });
 
       if (error) throw error;
 

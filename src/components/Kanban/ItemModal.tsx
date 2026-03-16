@@ -471,16 +471,19 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
               </select>
             </div>
 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Histórico de Procedimentos
-              </label>
-              <HistoricoProcedimentos
-                itemId={item?.id || ''}
-                itemTipo={type === 'solicitacoes' ? 'solicitacao' : 'demanda'}
-                disabled={isViewMode}
-              />
-            </div>
+            {/* Histórico de Procedimentos - apenas para itens existentes */}
+            {item && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Histórico de Procedimentos
+                </label>
+                <HistoricoProcedimentos
+                  itemId={item.id}
+                  itemTipo={type === 'solicitacoes' ? 'solicitacao' : 'demanda'}
+                  disabled={isViewMode}
+                />
+              </div>
+            )}
           </div>
 
           {/* Seção de Endereço */}

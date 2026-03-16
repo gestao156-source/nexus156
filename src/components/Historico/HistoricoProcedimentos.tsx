@@ -38,9 +38,7 @@ export default function HistoricoProcedimentos({
     verificarPermissao();
   }, [itemId, itemTipo]);
 
-  const handleAdicionarProcedimento = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleAdicionarProcedimento = async () => {
     if (!novoProcedimento.trim()) return;
 
     const sucesso = await adicionarProcedimento(novoProcedimento);
@@ -105,7 +103,7 @@ export default function HistoricoProcedimentos({
       {/* Formulário para adicionar procedimento */}
       {mostrarAdicionar && podeAdicionar && !disabled && (
         <div className="border-b border-gray-200 p-4 bg-blue-50">
-          <form onSubmit={handleAdicionarProcedimento} className="space-y-3">
+          <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Descreva o procedimento realizado:
@@ -131,14 +129,15 @@ export default function HistoricoProcedimentos({
                 Cancelar
               </button>
               <button
-                type="submit"
+                type="button"
+                onClick={handleAdicionarProcedimento}
                 disabled={adicionando || !novoProcedimento.trim()}
                 className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {adicionando ? 'Adicionando...' : 'Adicionar Procedimento'}
               </button>
             </div>
-          </form>
+          </div>
         </div>
       )}
 
