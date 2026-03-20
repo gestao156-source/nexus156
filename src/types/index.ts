@@ -88,12 +88,13 @@ export interface Acesso {
   solicitante_wpp: string;
   servidor_beneficiado: string;
   data_solicitacao: string;
-  data_criacao_acesso: string | null;
-  regional: string | null;
-  setor: string | null;
+  data_criacao_acesso?: string;
+  regional?: string;
+  setor?: string;
   status: AcessoStatus;
-  responsavel_nexus: string | null;
-  observacoes: string;
+  responsavel_nexus?: string;
+  observacoes?: string;
+  procedimentos_iniciais?: string[];
   user_id: string;
   created_at: string;
   updated_at: string;

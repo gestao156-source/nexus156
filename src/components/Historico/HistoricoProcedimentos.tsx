@@ -7,16 +7,18 @@ interface HistoricoProcedimentosProps {
   itemTipo: 'solicitacao' | 'demanda' | 'acesso';
   disabled?: boolean;
   className?: string;
+  mostrarAdicionarPorPadrao?: boolean; // Nova prop para mostrar campo de adicionar por padrão
 }
 
 export default function HistoricoProcedimentos({ 
   itemId, 
   itemTipo, 
   disabled = false,
-  className = ''
+  className = '',
+  mostrarAdicionarPorPadrao = false
 }: HistoricoProcedimentosProps) {
   const [novoProcedimento, setNovoProcedimento] = useState('');
-  const [mostrarAdicionar, setMostrarAdicionar] = useState(false);
+  const [mostrarAdicionar, setMostrarAdicionar] = useState(mostrarAdicionarPorPadrao);
   const [podeAdicionar, setPodeAdicionar] = useState(false);
 
   const {

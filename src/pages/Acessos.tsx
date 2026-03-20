@@ -54,9 +54,13 @@ export default function Acessos() {
     }
   };
 
-  const handleSave = async (acesso: Partial<Acesso>) => {
+  const handleSave = async (acesso: Partial<Acesso> & { procedimentos_iniciais?: string[] }) => {
     try {
       if (acesso.id) {
+        // Verificar se o status foi alterado
+        const acessoOriginal = acessos.find(a => a.id === acesso.id);
+        const statusAlterado = acessoOriginal && acessoOriginal.status !== acesso.status;
+
         // Editar
         const { error } = await supabase
           .from('acessos')
@@ -67,18 +71,36 @@ export default function Acessos() {
           .eq('id', acesso.id);
 
         if (error) throw error;
+
+        // Adicionar procedimento de atualização
+        await adicionarProcedimentoAtualizacao(acesso.id, acesso);
+
+        // Se o status foi alterado, adicionar ao histórico automaticamente
+        if (statusAlterado && acessoOriginal && acesso.status) {
+          await adicionarMudancaStatusAutomatica(acesso.id, acessoOriginal.status, acesso.status);
+        }
       } else {
         // Criar
-        const { error } = await supabase
+        const { data: novoAcesso, error } = await supabase
           .from('acessos')
           .insert({
             ...acesso,
             user_id: (await supabase.auth.getUser()).data.user?.id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
-          });
+          })
+          .select()
+          .single();
 
         if (error) throw error;
+
+        // Adicionar procedimento de criação
+        await adicionarProcedimentoCriacao(novoAcesso.id, acesso);
+
+        // Se há procedimentos iniciais, adicioná-los ao histórico
+        if (acesso.procedimentos_iniciais && acesso.procedimentos_iniciais.length > 0 && novoAcesso) {
+          await adicionarProcedimentosIniciais(novoAcesso.id, acesso.procedimentos_iniciais);
+        }
       }
 
       await loadAcessos();
@@ -86,6 +108,144 @@ export default function Acessos() {
       setAcessoEditando(null);
     } catch (error) {
       ErrorService.handleError(error, { component: 'Acessos', action: 'handleSave' });
+    }
+  };
+
+  const adicionarProcedimentoCriacao = async (acessoId: string, acesso: Partial<Acesso>) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Obter profile do usuário
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile) return;
+
+      // Criar mensagem de criação detalhada
+      const mensagemCriacao = `📋 **Iniciando tramitação do acesso SISGEP**
+      
+**Solicitante:** ${acesso.solicitante_wpp || 'Não informado'}
+**Servidor Beneficiado:** ${acesso.servidor_beneficiado || 'Não informado'}
+**Regional:** ${acesso.regional || 'Não informada'}
+**Setor:** ${acesso.setor || 'Não informado'}
+**Status Inicial:** ${formatarStatusTexto(acesso.status || 'solicitado')}
+**Responsável NEXUS:** ${acesso.responsavel_nexus || 'Não informado'}
+
+Acesso criado com sucesso. Iniciando processo de tramitação para liberação do acesso ao SISGEP.`;
+
+      // Adicionar ao histórico
+      await supabase.rpc('adicionar_historico_acesso', {
+        p_acesso_id: acessoId,
+        p_procedimento: mensagemCriacao,
+        p_usuario_id: user.id,
+        p_usuario_nome: profile.full_name,
+        p_usuario_email: profile.email
+      });
+    } catch (error) {
+      console.error('Erro ao adicionar procedimento de criação:', error);
+    }
+  };
+
+  const adicionarProcedimentoAtualizacao = async (acessoId: string, acesso: Partial<Acesso>) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Obter profile do usuário
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile) return;
+
+      // Criar mensagem de atualização
+      const mensagemAtualizacao = `🔄 **Atualizando tramitação do acesso SISGEP**
+      
+**Servidor Beneficiado:** ${acesso.servidor_beneficiado || 'Não informado'}
+**Status Atual:** ${formatarStatusTexto(acesso.status || 'solicitado')}
+**Responsável NEXUS:** ${acesso.responsavel_nexus || 'Não informado'}
+
+Dados do acesso foram atualizados. Continuando tramitação para liberação do acesso ao SISGEP.`;
+
+      // Adicionar ao histórico
+      await supabase.rpc('adicionar_historico_acesso', {
+        p_acesso_id: acessoId,
+        p_procedimento: mensagemAtualizacao,
+        p_usuario_id: user.id,
+        p_usuario_nome: profile.full_name,
+        p_usuario_email: profile.email
+      });
+    } catch (error) {
+      console.error('Erro ao adicionar procedimento de atualização:', error);
+    }
+  };
+
+  const adicionarMudancaStatusAutomatica = async (acessoId: string, statusAnterior: string, statusNovo: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Obter profile do usuário
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile) return;
+
+      // Format mensagem de mudança de status
+      const mensagemStatus = `Status alterado de "${formatarStatusTexto(statusAnterior)}" para "${formatarStatusTexto(statusNovo)}"`;
+
+      // Adicionar ao histórico
+      await supabase.rpc('adicionar_historico_acesso', {
+        p_acesso_id: acessoId,
+        p_procedimento: mensagemStatus,
+        p_usuario_id: user.id,
+        p_usuario_nome: profile.full_name,
+        p_usuario_email: profile.email
+      });
+    } catch (error) {
+      console.error('Erro ao adicionar mudança de status ao histórico:', error);
+    }
+  };
+
+  const formatarStatusTexto = (status: string): string => {
+    return status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
+  };
+
+  const adicionarProcedimentosIniciais = async (acessoId: string, procedimentos: string[]) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Obter profile do usuário
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile) return;
+
+      // Adicionar cada procedimento ao histórico
+      for (const procedimento of procedimentos) {
+        await supabase.rpc('adicionar_historico_acesso', {
+          p_acesso_id: acessoId,
+          p_procedimento: procedimento.trim(),
+          p_usuario_id: user.id,
+          p_usuario_nome: profile.full_name,
+          p_usuario_email: profile.email
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao adicionar procedimentos iniciais:', error);
     }
   };
 

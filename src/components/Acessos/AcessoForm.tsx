@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Acesso, AcessoStatus } from '../../types/index';
 import HistoricoProcedimentos from '../Historico/HistoricoProcedimentos';
+import HistoricoProcedimentosTemporario from '../Historico/HistoricoProcedimentosTemporario';
 
 interface AcessoFormProps {
   acesso?: Acesso | null;
@@ -22,6 +23,8 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [procedimentosIniciais, setProcedimentosIniciais] = useState<string[]>([]);
+  const [statusOriginal, setStatusOriginal] = useState<AcessoStatus | null>(null);
 
   useEffect(() => {
     if (acesso) {
@@ -36,6 +39,7 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
         responsavel_nexus: acesso.responsavel_nexus || '',
         observacoes: acesso.observacoes || ''
       });
+      setStatusOriginal(acesso.status || 'solicitado');
     }
   }, [acesso]);
 
@@ -72,7 +76,8 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
     const dataToSave = {
       ...formData,
       id: acesso?.id,
-      data_criacao_acesso: formData.data_criacao_acesso || null
+      data_criacao_acesso: formData.data_criacao_acesso || null,
+      procedimentos_iniciais: procedimentosIniciais // Incluir procedimentos iniciais
     };
 
     onSave(dataToSave);
@@ -202,6 +207,12 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
                 </option>
               ))}
             </select>
+            {acesso && statusOriginal && formData.status !== statusOriginal && (
+              <p className="text-xs text-orange-600 mt-1 flex items-center">
+                <span className="w-2 h-2 bg-orange-500 rounded-full mr-1"></span>
+                Status alterado - será registrado no histórico
+              </p>
+            )}
           </div>
 
           <div>
@@ -247,9 +258,9 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
               disabled={false}
             />
           ) : (
-            <div className="text-center py-8 text-gray-500">
-              <p className="text-sm">O histórico de procedimentos estará disponível após salvar o acesso.</p>
-            </div>
+            <HistoricoProcedimentosTemporario
+              onProcedimentosChange={setProcedimentosIniciais}
+            />
           )}
         </div>
       </form>
