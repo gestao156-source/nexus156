@@ -13,7 +13,7 @@ export interface Procedimento {
 
 export interface UseHistoricoProcedimentosProps {
   itemId: string;
-  itemTipo: 'solicitacao' | 'demanda';
+  itemTipo: 'solicitacao' | 'demanda' | 'acesso';
 }
 
 export function useHistoricoProcedimentos({ itemId, itemTipo }: UseHistoricoProcedimentosProps) {
@@ -30,10 +30,24 @@ export function useHistoricoProcedimentos({ itemId, itemTipo }: UseHistoricoProc
     setError('');
 
     try {
-      const { data, error } = await supabase.rpc('obter_historico_procedimentos', {
-        p_item_id: itemId,
-        p_item_tipo: itemTipo
-      });
+      let data, error;
+      
+      if (itemTipo === 'acesso') {
+        // Usar a função específica para acessos
+        const result = await supabase.rpc('obter_historico_acessos', {
+          p_acesso_id: itemId
+        });
+        data = result.data;
+        error = result.error;
+      } else {
+        // Usar a função existente para solicitacoes/demandas
+        const result = await supabase.rpc('obter_historico_procedimentos', {
+          p_item_id: itemId,
+          p_item_tipo: itemTipo
+        });
+        data = result.data;
+        error = result.error;
+      }
 
       if (error) throw error;
 
@@ -54,11 +68,43 @@ export function useHistoricoProcedimentos({ itemId, itemTipo }: UseHistoricoProc
     setError('');
 
     try {
-      const { error } = await supabase.rpc('adicionar_procedimento', {
-        p_item_id: itemId,
-        p_item_tipo: itemTipo,
-        p_procedimento: procedimento.trim()
-      });
+      // Obter dados do usuário atual
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      // Obter profile do usuário
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile) throw new Error('Profile não encontrado');
+
+      let error;
+      
+      if (itemTipo === 'acesso') {
+        // Usar a função específica para acessos
+        const result = await supabase.rpc('adicionar_historico_acesso', {
+          p_acesso_id: itemId,
+          p_procedimento: procedimento.trim(),
+          p_usuario_id: user.id,
+          p_usuario_nome: profile.full_name,
+          p_usuario_email: profile.email
+        });
+        error = result.error;
+      } else {
+        // Usar a função existente para solicitacoes/demandas
+        const result = await supabase.rpc('adicionar_historico_procedimento', {
+          p_item_id: itemId,
+          p_item_tipo: itemTipo,
+          p_procedimento: procedimento.trim(),
+          p_usuario_id: user.id,
+          p_usuario_nome: profile.full_name,
+          p_usuario_email: profile.email
+        });
+        error = result.error;
+      }
 
       if (error) throw error;
 

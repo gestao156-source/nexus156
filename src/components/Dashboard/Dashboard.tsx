@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { DashboardStats, KanbanItem } from '../../types/index';
-import { PlayCircle, CheckCircle, Calendar } from 'lucide-react';
+import { PlayCircle, CheckCircle, Calendar, Key } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../contexts/ToastContext';
 import { verificarAtraso } from '../../utils/calculoDiasUteis';
@@ -49,10 +49,20 @@ export default function Dashboard() {
     em_analise: 0,
     finalizado: 0,
   });
+
   const [demandasStats, setDemandasStats] = useState<DashboardStats>({
     aguardando: 0,
     em_analise: 0,
     finalizado: 0,
+  });
+
+  const [acessosStats, setAcessosStats] = useState({
+    solicitado: 0,
+    em_andamento: 0,
+    criado: 0,
+    ativo: 0,
+    desativado: 0,
+    total: 0
   });
 
   const [atrasadas, setAtrasadas] = useState(0);
@@ -78,6 +88,10 @@ export default function Dashboard() {
         .from('demandas')
         .select('status, data_contato');
 
+      const { data: acessos, error: acessosError } = await supabase
+        .from('acessos')
+        .select('status');
+
       if (solicitacoesError) {
         console.error('Erro ao carregar solicitações:', solicitacoesError);
       }
@@ -86,8 +100,13 @@ export default function Dashboard() {
         console.error('Erro ao carregar demandas:', demandasError);
       }
 
+      if (acessosError) {
+        console.error('Erro ao carregar acessos:', acessosError);
+      }
+
       setSolicitacoesStats(calculateStats(solicitacoes || []));
       setDemandasStats(calculateStats(demandas || []));
+      setAcessosStats(calculateAcessosStats(acessos || []));
       setAtrasadas(
         countAtrasadas(solicitacoes || []) +
         countAtrasadas(demandas || [])
@@ -103,6 +122,15 @@ export default function Dashboard() {
     aguardando: items.filter(i => i.status === 'aguardando').length,
     em_analise: items.filter(i => i.status === 'em_analise').length,
     finalizado: items.filter(i => i.status === 'finalizado').length,
+  });
+
+  const calculateAcessosStats = (items: { status: string }[]) => ({
+    solicitado: items.filter(i => i.status === 'solicitado').length,
+    em_andamento: items.filter(i => i.status === 'em_andamento').length,
+    criado: items.filter(i => i.status === 'criado').length,
+    ativo: items.filter(i => i.status === 'ativo').length,
+    desativado: items.filter(i => i.status === 'desativado').length,
+    total: items.length
   });
 
   const countAtrasadas = (items: ItemComPrazo[]) => {
@@ -632,6 +660,14 @@ export default function Dashboard() {
       onClick: () => handleCardClick('em_analise'),
     },
     {
+      title: 'Acessos SISGEP',
+      value: acessosStats.total,
+      icon: Key,
+      bgColor: 'bg-purple-50',
+      textColor: 'text-purple-700',
+      onClick: () => navigate('/acessos'),
+    },
+    {
       title: 'Atrasadas',
       value: atrasadas,
       icon: Clock,
@@ -908,10 +944,44 @@ export default function Dashboard() {
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Tempo Médio de Atendimento</h3>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">3.5 dias</div>
-            <div className="text-xs text-gray-500 mt-1">Últimos 30 dias</div>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Status dos Acessos</h3>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-gray-600">Solicitados</span>
+              <div className="flex items-center">
+                <div className="w-16 bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-yellow-500 h-2 rounded-full" 
+                    style={{width: `${acessosStats.total > 0 ? (acessosStats.solicitado / acessosStats.total) * 100 : 0}%`}}
+                  ></div>
+                </div>
+                <span className="text-xs font-medium ml-2 text-gray-700">{acessosStats.solicitado}</span>
+              </div>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-gray-600">Em Andamento</span>
+              <div className="flex items-center">
+                <div className="w-16 bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-500 h-2 rounded-full" 
+                    style={{width: `${acessosStats.total > 0 ? (acessosStats.em_andamento / acessosStats.total) * 100 : 0}%`}}
+                  ></div>
+                </div>
+                <span className="text-xs font-medium ml-2 text-gray-700">{acessosStats.em_andamento}</span>
+              </div>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-gray-600">Ativos</span>
+              <div className="flex items-center">
+                <div className="w-16 bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-green-500 h-2 rounded-full" 
+                    style={{width: `${acessosStats.total > 0 ? (acessosStats.ativo / acessosStats.total) * 100 : 0}%`}}
+                  ></div>
+                </div>
+                <span className="text-xs font-medium ml-2 text-gray-700">{acessosStats.ativo}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

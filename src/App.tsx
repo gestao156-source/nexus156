@@ -5,6 +5,7 @@ import MainLayout from './components/Layout/MainLayout';
 import Dashboard from './components/Dashboard/Dashboard';
 import Solicitacoes from './pages/Solicitacoes';
 import Demandas from './pages/Demandas';
+import Acessos from './pages/Acessos';
 import Perfil from './pages/Perfil';
 import AdminPanel from './pages/AdminPanel';
 import Relatorios from './pages/Relatorios';
@@ -34,6 +35,7 @@ function ProtectedRoutes() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/solicitacoes" element={<Solicitacoes />} />
         <Route path="/demandas" element={<Demandas />} />
+        <Route path="/acessos" element={<Acessos />} />
         <Route path="/mapa-fortaleza" element={<MapaFortaleza />} />
         <Route path="/relatorios" element={<Relatorios />} />
         <Route path="/admin" element={<AdminPanel />} />

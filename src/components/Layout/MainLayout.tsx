@@ -1,5 +1,5 @@
 import { useAuth } from '../../contexts/AuthContext';
-import { LayoutDashboard, FileText, ClipboardList, LogOut, Shield, User, Settings, BarChart3, Map } from 'lucide-react';
+import { LayoutDashboard, FileText, ClipboardList, LogOut, Shield, User, Settings, BarChart3, Map, Key } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../../assets/logo-nexus-156.png';
 
@@ -26,6 +26,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   ];
 
   const adminTabs = [
+    { id: 'acessos', name: 'Acessos', icon: Key },
     { id: 'admin', name: 'Admin', icon: Settings },
   ];
 

@@ -1,5 +1,7 @@
 export type UserRole = 'admin' | 'user';
 
+export type AcessoStatus = 'solicitado' | 'em_andamento' | 'criado' | 'ativo' | 'desativado';
+
 export interface Profile {
   id: string;
   email: string;
@@ -79,4 +81,20 @@ export interface KanbanItem {
   created_at: string;
   updated_at: string;
   tipo: 'solicitacao' | 'demanda';
+}
+
+export interface Acesso {
+  id: string;
+  solicitante_wpp: string;
+  servidor_beneficiado: string;
+  data_solicitacao: string;
+  data_criacao_acesso: string | null;
+  regional: string | null;
+  setor: string | null;
+  status: AcessoStatus;
+  responsavel_nexus: string | null;
+  observacoes: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
 }

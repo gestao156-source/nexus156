@@ -4,7 +4,7 @@ import { useHistoricoProcedimentos, Procedimento } from '../../hooks/useHistoric
 
 interface HistoricoProcedimentosProps {
   itemId: string;
-  itemTipo: 'solicitacao' | 'demanda';
+  itemTipo: 'solicitacao' | 'demanda' | 'acesso';
   disabled?: boolean;
   className?: string;
 }
