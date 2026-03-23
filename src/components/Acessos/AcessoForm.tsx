@@ -40,6 +40,14 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
         observacoes: acesso.observacoes || ''
       });
       setStatusOriginal(acesso.status || 'solicitado');
+    } else {
+      // Novo acesso: definir data atual como padrão
+      const hoje = new Date().toISOString().split('T')[0];
+      setFormData(prev => ({
+        ...prev,
+        data_solicitacao: hoje,
+        data_criacao_acesso: hoje
+      }));
     }
   }, [acesso]);
 
