@@ -29,7 +29,13 @@ export function useMapaDataSimple(filters: MapaFilters) {
           .order('full_name');
         
         if (error) throw error;
-        setProfiles(data || []);
+        setProfiles((data || []).map(p => ({
+          id: p.id,
+          email: p.email,
+          full_name: p.full_name,
+          role: 'user' as const,
+          created_at: new Date().toISOString()
+        })));
       } catch (error) {
         Logger.error('Erro ao carregar profiles', { error }, 'useMapaDataSimple');
       }
@@ -96,28 +102,30 @@ export function useMapaDataSimple(filters: MapaFilters) {
           assunto: item.assunto || 'Sem assunto',
           protocolo: item.protocolo || 'N/A',
           status: item.status || 'desconhecido',
+          tipo: 'solicitacao' as const,
+          latitude: item.endereco_latitude,
+          longitude: item.endereco_longitude,
+          possui_coordenadas: !!possuiCoords,
           responsavel: formatarResponsavel(item.responsavel, profiles),
           ponto_contato: item.ponto_contato || '',
           created_at: item.created_at || new Date().toISOString(),
           data_inicio: item.data_inicio,
           data_contato: item.data_contato,
           data_finalizado: item.data_finalizado,
+          user_id: item.user_id,
+          updated_at: item.updated_at,
           endereco_rua: item.endereco_rua || '',
           endereco_numero: item.endereco_numero || '',
           endereco_bairro: item.endereco_bairro || '',
-          endereco_complemento: item.endereco_complemento || '',
+          endereco_localidade: item.endereco_localidade || '',
           endereco_cep: item.endereco_cep || '',
+          endereco_complemento: item.endereco_complemento || '',
           endereco_cidade: item.endereco_localidade || 'Fortaleza',
           endereco_uf: 'CE',
-          endereco_latitude: item.endereco_latitude,
-          endereco_longitude: item.endereco_longitude,
           endereco_regional: regionalNumber,
           endereco_geocoding_status: possuiCoords ? 'sucesso' : 'pendente',
-          endereco_validado: possuiCoords,
-          possui_coordenadas: possuiCoords,
           usuario_nome: item.profiles?.full_name || 'Anônimo',
-          usuario_email: item.profiles?.email || '',
-          tipo: 'solicitacao'
+          usuario_email: item.profiles?.email || ''
         };
       };
 
@@ -133,28 +141,30 @@ export function useMapaDataSimple(filters: MapaFilters) {
           assunto: item.assunto || 'Sem assunto',
           protocolo: item.protocolo || 'N/A',
           status: item.status || 'desconhecido',
+          tipo: 'demanda' as const,
+          latitude: item.endereco_latitude,
+          longitude: item.endereco_longitude,
+          possui_coordenadas: !!possuiCoords,
           responsavel: formatarResponsavel(item.responsavel, profiles),
           ponto_contato: item.ponto_contato || '',
           created_at: item.created_at || new Date().toISOString(),
           data_inicio: item.data_inicio,
           data_contato: item.data_contato,
           data_finalizado: item.data_finalizado,
+          user_id: item.user_id,
+          updated_at: item.updated_at,
           endereco_rua: item.endereco_rua || '',
           endereco_numero: item.endereco_numero || '',
           endereco_bairro: item.endereco_bairro || '',
-          endereco_complemento: item.endereco_complemento || '',
+          endereco_localidade: item.endereco_localidade || '',
           endereco_cep: item.endereco_cep || '',
+          endereco_complemento: item.endereco_complemento || '',
           endereco_cidade: item.endereco_localidade || 'Fortaleza',
           endereco_uf: 'CE',
-          endereco_latitude: item.endereco_latitude,
-          endereco_longitude: item.endereco_longitude,
           endereco_regional: regionalNumber,
           endereco_geocoding_status: possuiCoords ? 'sucesso' : 'pendente',
-          endereco_validado: possuiCoords,
-          possui_coordenadas: possuiCoords,
           usuario_nome: item.profiles?.full_name || 'Anônimo',
-          usuario_email: item.profiles?.email || '',
-          tipo: 'demanda'
+          usuario_email: item.profiles?.email || ''
         };
       };
 
@@ -246,7 +256,8 @@ export function useMapaDataSimple(filters: MapaFilters) {
         comCoordenadas: todosDados.filter(d => d.possui_coordenadas).length,
         semCoordenadas: todosDados.filter(d => !d.possui_coordenadas).length,
         porRegional: todosDados.reduce((acc, item) => {
-          acc[item.endereco_regional] = (acc[item.endereco_regional] || 0) + 1;
+          const regional = item.endereco_regional || 0;
+          acc[regional] = (acc[regional] || 0) + 1;
           return acc;
         }, {} as Record<number, number>),
         porStatus: todosDados.reduce((acc, item) => {

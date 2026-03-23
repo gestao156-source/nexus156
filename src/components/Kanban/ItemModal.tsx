@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
-import { X, Calendar, User, MapPin, Trash } from 'lucide-react';
+import { X, Trash } from 'lucide-react';
+import { ItemStatus } from '../../types';
+import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { verificarAtraso } from '../../utils/calculoDiasUteis';
-import Logger from '../../utils/logger';
-import { ItemStatus } from '../../types/index';
 import { atualizarCoordenadasSolicitacao, atualizarCoordenadasDemanda } from '../../services/geocodingService';
 import { GeocodingService } from '../../services/geocoding';
 import EnderecoForm from '../Endereco/EnderecoForm';
 import HistoricoProcedimentos from '../Historico/HistoricoProcedimentos';
-import { useAuth } from '../../contexts/AuthContext';
 
 interface Item {
   id: string;

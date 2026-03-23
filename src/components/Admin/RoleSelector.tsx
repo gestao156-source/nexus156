@@ -15,7 +15,7 @@ export default function RoleSelector({ userId, currentRole, userName, onRoleUpda
   const [isEditing, setIsEditing] = useState(false);
   const [selectedRole, setSelectedRole] = useState(currentRole);
   const [loading, setLoading] = useState(false);
-  const { showSuccess, showError, showInfo } = useToast();
+  const { showSuccess, showError } = useToast();
 
   const handleSave = async () => {
     if (selectedRole === currentRole) {

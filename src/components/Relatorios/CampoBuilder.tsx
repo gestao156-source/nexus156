@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRightLeft, Search, Plus, Minus, RotateCcw } from 'lucide-react';
+import { ArrowRightLeft, Search, Plus, Minus } from 'lucide-react';
 import { CAMPOS_DISPONIVEIS, CAMPOS_GRUPOS } from '../../utils/campoConfig';
 
 interface CampoBuilderProps {

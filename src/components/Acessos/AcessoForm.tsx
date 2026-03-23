@@ -81,11 +81,11 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
     
     if (!validateForm()) return;
 
-    const dataToSave = {
+    const dataToSave: Partial<Acesso> = {
       ...formData,
       id: acesso?.id,
-      data_criacao_acesso: formData.data_criacao_acesso || null,
-      procedimentos_iniciais: procedimentosIniciais // Incluir procedimentos iniciais
+      data_criacao_acesso: formData.data_criacao_acesso || undefined,
+      procedimentos_iniciais: procedimentosIniciais
     };
 
     onSave(dataToSave);

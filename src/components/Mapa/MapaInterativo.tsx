@@ -3,7 +3,6 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaf
 import { Icon, LatLngBounds } from 'leaflet';
 import { MapaItem } from '../../types';
 import { verificarAtraso } from '../../utils/calculoDiasUteis';
-import Logger from '../../utils/logger';
 
 interface MapaInterativoProps {
   dados: MapaItem[];
@@ -44,15 +43,15 @@ export default function MapaInterativo({
 
   // Debug dos dados recebidos
   useEffect(() => {
-    Logger.debug('MapaInterativo recebeu', {
+    console.log('MapaInterativo recebeu', {
       total: dados.length,
       comCoordenadas: dados.filter(d => d.possui_coordenadas).length,
       dados: dados.map(d => ({
         id: d.id,
         tipo: d.tipo,
         possui_coordenadas: d.possui_coordenadas,
-        lat: d.endereco_latitude,
-        lng: d.endereco_longitude
+        lat: d.latitude,
+        lng: d.longitude
       }))
     });
   }, [dados]);
@@ -109,7 +108,7 @@ export default function MapaInterativo({
       return dadosFiltrados.slice(0, 1000).map(item => (
         <Marker
           key={item.id}
-          position={[item.endereco_latitude!, item.endereco_longitude!]}
+          position={[item.latitude!, item.longitude!]}
           icon={getIcon(item)}
           eventHandlers={{
             click: () => onItemSelect(item)
@@ -125,7 +124,7 @@ export default function MapaInterativo({
     return dadosFiltrados.map(item => (
       <Marker
         key={item.id}
-        position={[item.endereco_latitude!, item.endereco_longitude!]}
+        position={[item.latitude!, item.longitude!]}
         icon={getIcon(item)}
         eventHandlers={{
           click: () => onItemSelect(item)
@@ -144,7 +143,7 @@ export default function MapaInterativo({
       const validCoords = dados.filter(d => d.possui_coordenadas);
       if (validCoords.length > 0) {
         const bounds = new LatLngBounds(
-          validCoords.map(d => [d.endereco_latitude!, d.endereco_longitude!])
+          validCoords.map(d => [d.latitude!, d.longitude!])
         );
         
         if (bounds) {

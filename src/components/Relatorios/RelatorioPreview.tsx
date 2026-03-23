@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Eye, RefreshCw, Download, Save, Users } from 'lucide-react';
+import { Eye, RefreshCw, Download, Save } from 'lucide-react';
 import { RelatorioItem } from '../../hooks/useRelatoriosData';
 import { CAMPOS_DISPONIVEIS, formatarValorCampo } from '../../utils/campoConfig';
-import { exportCSV, generatePreviewCSV } from '../../utils/exportCSV';
+import { generatePreviewCSV } from '../../utils/exportCSV';
 
 interface RelatorioPreviewProps {
   dados: RelatorioItem[];
@@ -17,8 +17,6 @@ interface RelatorioPreviewProps {
 export default function RelatorioPreview({ 
   dados, 
   camposSelecionados, 
-  filtros, 
-  loading = false,
   compact = false,
   onSalvarModelo,
   onExportar 
@@ -54,12 +52,11 @@ export default function RelatorioPreview({
     });
   };
 
-  const getCellValue = (item: RelatorioItem, campoId: string) => {
+  const formatCellValue = (campoId: string, item: RelatorioItem) => {
     const campo = CAMPOS_DISPONIVEIS[campoId];
     if (!campo) return '';
     
-    const valor = item[campo.accessor as keyof RelatorioItem];
-    return formatarValorCampo(campoId, valor) || '-';
+    return formatarValorCampo(campoId, item[campo.accessor as keyof RelatorioItem]) || '-';
   };
 
   const getCellClass = (campoId: string, valor: any) => {
@@ -153,13 +150,12 @@ export default function RelatorioPreview({
               {previewData.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
                   {camposSelecionados.map(campoId => {
-                    const valor = item[campoId as keyof RelatorioItem];
                     return (
                       <td
                         key={campoId}
                         className="px-2 py-1 text-center border-b border-gray-100 text-gray-700"
                       >
-                        {getCellValue(item, campoId)}
+                        {formatCellValue(campoId, item)}
                       </td>
                     );
                   })}
@@ -289,16 +285,15 @@ export default function RelatorioPreview({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {previewData.map((item, index) => (
+            {previewData.map((item) => (
               <tr key={item.id} className="hover:bg-gray-50">
                 {camposSelecionados.map(campoId => {
-                  const valor = item[campoId as keyof RelatorioItem];
                   return (
                     <td
                       key={campoId}
-                      className={getCellClass(campoId, valor)}
+                      className={getCellClass(campoId, item[campoId as keyof RelatorioItem])}
                     >
-                      {getCellValue(item, campoId)}
+                      {formatCellValue(campoId, item)}
                     </td>
                   );
                 })}

@@ -6,6 +6,9 @@ import { supabase } from '../lib/supabase';
 import Logger from './logger';
 import { Profile } from '../types/index';
 
+// Re-exportar Profile para uso em outros módulos
+export type { Profile } from '../types/index';
+
 /**
  * Verifica se uma string é um UUID válido
  */

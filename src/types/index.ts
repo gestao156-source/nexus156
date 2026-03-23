@@ -99,3 +99,57 @@ export interface Acesso {
   created_at: string;
   updated_at: string;
 }
+
+// Tipos para o sistema de mapa
+export interface MapaFilters {
+  status: string[];
+  tipo: string;
+  periodo: {
+    inicio: Date;
+    fim: Date;
+  };
+  regional: number;
+  apenasComCoordenadas: boolean;
+  ordenarPor: string;
+  ordem: 'ASC' | 'DESC';
+}
+
+export interface MapaItem {
+  id: string;
+  assunto: string;
+  protocolo: string;
+  status: string;
+  tipo: 'solicitacao' | 'demanda';
+  latitude?: number;
+  longitude?: number;
+  possui_coordenadas: boolean;
+  responsavel: string;
+  ponto_contato: string;
+  created_at: string;
+  updated_at: string;
+  data_inicio?: string | null;
+  data_contato?: string | null;
+  data_finalizado?: string | null;
+  user_id?: string;
+  endereco_rua?: string;
+  endereco_numero?: string;
+  endereco_bairro?: string;
+  endereco_localidade?: string;
+  endereco_cidade?: string;
+  endereco_uf?: string;
+  endereco_cep?: string;
+  endereco_complemento?: string;
+  endereco_regional?: number;
+  endereco_geocoding_status?: string;
+  usuario_nome?: string;
+  usuario_email?: string;
+}
+
+export interface MapaStats {
+  total: number;
+  comCoordenadas: number;
+  semCoordenadas: number;
+  porRegional: Record<string, number>;
+  porStatus: Record<string, number>;
+  ultimoUpdate: Date;
+}

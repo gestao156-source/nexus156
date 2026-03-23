@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, FileSpreadsheet, FileText, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { FileSpreadsheet, FileText, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { exportCSV } from '../../utils/exportCSV';
 import { exportExcel } from '../../utils/exportExcel';
 import { RelatorioItem } from '../../hooks/useRelatoriosData';
@@ -41,11 +41,10 @@ export default function ExportButtons({
           filename: 'relatorio_nexus156',
         });
       } else if (type === 'excel') {
-        exportExcel({
-          dados,
+        await exportExcel({
           camposSelecionados,
-          filename: 'relatorio_nexus156',
-          sheetName: 'Relatório Nexus156',
+          dados,
+          filename: 'relatorio_nexus156'
         });
       }
 

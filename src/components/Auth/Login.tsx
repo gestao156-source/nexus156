@@ -1,11 +1,8 @@
 import { useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../contexts/ToastContext';
-import { Mail, Lock, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import Logger from '../../utils/logger';
 import ErrorService from '../../services/errorService';
-import { useNavigate } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
 
 interface LoginProps {

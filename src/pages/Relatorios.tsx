@@ -93,7 +93,6 @@ export default function Relatorios() {
           dados,
           camposSelecionados,
           filename: 'relatorio_nexus156_excel',
-          sheetName: 'Relatório Nexus156',
         });
       });
     } else if (formato === 'pdf') {

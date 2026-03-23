@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from 'react';
-import { ArrowUpDown, ArrowUp, ArrowDown, Eye } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Eye } from 'lucide-react';
 import { CAMPOS_DISPONIVEIS, formatarValorCampo } from '../../utils/campoConfig';
 import { RelatorioItem } from '../../hooks/useRelatoriosData';
 import { formatarResponsavel } from '../../utils/responsavelUtils';
@@ -13,8 +13,6 @@ interface TabelaDinamicaProps {
   onVisualizarItem?: (item: RelatorioItem) => void;
 }
 
-type SortDirection = 'asc' | 'desc' | null;
-
 export default function TabelaDinamica({ 
   dados, 
   camposSelecionados, 
@@ -22,11 +20,6 @@ export default function TabelaDinamica({
   compact = false,
   onVisualizarItem 
 }: TabelaDinamicaProps) {
-  const [sortConfig, setSortConfig] = useState<{ campo: string; direction: SortDirection }>({
-    campo: 'created_at',
-    direction: 'desc',
-  });
-
   // Cache de perfis para o formatarResponsavel
   const [profiles, setProfiles] = useState<any[]>([]);
 
@@ -44,42 +37,6 @@ export default function TabelaDinamica({
     loadProfiles();
   }, []);
 
-  const handleSort = (campo: string) => {
-    setSortConfig(prev => ({
-      campo,
-      direction: prev.campo === campo && prev.direction === 'asc' ? 'desc' : 'asc',
-    }));
-  };
-
-  const sortedData = useMemo(() => {
-    if (!sortConfig.direction || !sortConfig.campo) return dados;
-
-    return [...dados].sort((a, b) => {
-      const campoConfig = CAMPOS_DISPONIVEIS[sortConfig.campo];
-      if (!campoConfig) return 0;
-
-      const valorA = a[campoConfig.accessor as keyof RelatorioItem];
-      const valorB = b[campoConfig.accessor as keyof RelatorioItem];
-
-      // Tratar valores nulos/undefined
-      if (valorA === null || valorA === undefined) return 1;
-      if (valorB === null || valorB === undefined) return -1;
-
-      // Comparação baseada no tipo
-      let comparacao = 0;
-      if (typeof valorA === 'string' && typeof valorB === 'string') {
-        comparacao = valorA.localeCompare(valorB);
-      } else if (typeof valorA === 'number' && typeof valorB === 'number') {
-        comparacao = valorA - valorB;
-      } else {
-        // Fallback para string
-        comparacao = String(valorA).localeCompare(String(valorB));
-      }
-
-      return sortConfig.direction === 'asc' ? comparacao : -comparacao;
-    });
-  }, [dados, sortConfig]);
-
   const getHeaders = () => {
     return camposSelecionados.map(campoId => {
       const campo = CAMPOS_DISPONIVEIS[campoId];
@@ -87,18 +44,7 @@ export default function TabelaDinamica({
     });
   };
 
-  const getSortIcon = (campo: string) => {
-    if (sortConfig.campo !== campo || !sortConfig.direction) {
-      return <ArrowUpDown className="w-4 h-4 text-gray-400" />;
-    }
-    return sortConfig.direction === 'asc' 
-      ? <ArrowUp className="w-4 h-4 text-blue-600" />
-      : <ArrowDown className="w-4 h-4 text-blue-600" />;
-  };
-
   const getCellStyle = (campoId: string) => {
-    const campo = CAMPOS_DISPONIVEIS[campoId];
-    
     // Alinhamento baseado no tipo de campo
     if (campoId.includes('data') || campoId.includes('dias') || campoId.includes('tempo')) {
       return 'text-center';
@@ -192,10 +138,7 @@ export default function TabelaDinamica({
                     compact ? 'px-2 py-1 text-xs' : ''
                   }`}
                 >
-                  <div className="flex items-center space-x-1">
-                    <span>{header}</span>
-                    {getSortIcon(header)}
-                  </div>
+                  <span>{header}</span>
                 </th>
               ))}
               {!compact && (
@@ -206,7 +149,7 @@ export default function TabelaDinamica({
             </tr>
           </thead>
           <tbody className={`${compact ? 'divide-y divide-gray-100' : 'divide-y divide-gray-200'}`}>
-            {sortedData.map((item: RelatorioItem) => (
+            {dados.map((item: RelatorioItem) => (
               <tr key={item.id} className={`${compact ? 'hover:bg-gray-50' : 'hover:bg-gray-50'}`}>
                 {getHeaders().map((header) => {
                   const campo = Object.values(CAMPOS_DISPONIVEIS).find(c => c.label === header);
