@@ -295,18 +295,33 @@ export default function ItemModal({ type, item, onClose, onSave, isViewMode = fa
   const handleDelete = async () => {
     if (!item || !confirm('Tem certeza que deseja excluir este item?')) return;
 
+    console.log('🔴 [DEBUG] Iniciando exclusão...');
+    console.log('🔴 [DEBUG] Tipo:', type);
+    console.log('🔴 [DEBUG] Item ID:', item.id);
+
     setLoading(true);
     try {
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from(type)
         .delete()
-        .eq('id', item.id);
+        .eq('id', item.id)
+        .select();
 
-      if (error) throw error;
+      console.log('🔴 [DEBUG] Resposta do Supabase:', { error, data });
+
+      if (error) {
+        console.error('🔴 [DEBUG] Erro detalhado:', error);
+        console.error('🔴 [DEBUG] Código do erro:', error.code);
+        console.error('🔴 [DEBUG] Mensagem do erro:', error.message);
+        console.error('🔴 [DEBUG] Detalhes do erro:', error.details);
+        throw error;
+      }
+
+      console.log('🔴 [DEBUG] Exclusão bem-sucedida!');
       onSave();
-    } catch (err) {
-      console.error(err);
-      setError('Erro ao excluir. Tente novamente.');
+    } catch (err: any) {
+      console.error('🔴 [DEBUG] Erro no catch:', err);
+      setError(`Erro ao excluir: ${err?.message || 'Erro desconhecido'}`);
     } finally {
       setLoading(false);
     }
