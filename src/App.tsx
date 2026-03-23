@@ -110,8 +110,8 @@ function App() {
   return (
     <ErrorBoundary>
       <ToastProvider>
-        <NotificationProvider>
-          <AuthProvider>
+        <AuthProvider>
+          <NotificationProvider>
             <BrowserRouter>
               <Routes>
                 <Route path="/auth" element={
@@ -122,8 +122,8 @@ function App() {
                 <Route path="/*" element={<ProtectedRoutes />} />
               </Routes>
             </BrowserRouter>
-          </AuthProvider>
-        </NotificationProvider>
+          </NotificationProvider>
+        </AuthProvider>
       </ToastProvider>
     </ErrorBoundary>
   );
