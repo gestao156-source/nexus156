@@ -64,11 +64,6 @@ export function useHistoricoProcedimentos({ itemId, itemTipo }: UseHistoricoProc
   const adicionarProcedimento = async (procedimento: string): Promise<boolean> => {
     if (!itemId || !procedimento.trim()) return false;
 
-    console.log('🔵 [DEBUG] Iniciando adição de procedimento...');
-    console.log('🔵 [DEBUG] Item ID:', itemId);
-    console.log('🔵 [DEBUG] Item Tipo:', itemTipo);
-    console.log('🔵 [DEBUG] Procedimento:', procedimento.trim());
-
     setAdicionando(true);
     setError('');
 
@@ -76,8 +71,6 @@ export function useHistoricoProcedimentos({ itemId, itemTipo }: UseHistoricoProc
       // Obter dados do usuário atual
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
-
-      console.log('🔵 [DEBUG] Usuário autenticado:', user.id);
 
       // Obter profile do usuário
       const { data: profile } = await supabase
@@ -88,12 +81,9 @@ export function useHistoricoProcedimentos({ itemId, itemTipo }: UseHistoricoProc
 
       if (!profile) throw new Error('Profile não encontrado');
 
-      console.log('🔵 [DEBUG] Profile encontrado:', profile);
-
       let error;
       
       if (itemTipo === 'acesso') {
-        console.log('🔵 [DEBUG] Usando função de acesso...');
         // Usar a função específica para acessos
         const result = await supabase.rpc('adicionar_historico_acesso', {
           p_acesso_id: itemId,
@@ -102,10 +92,8 @@ export function useHistoricoProcedimentos({ itemId, itemTipo }: UseHistoricoProc
           p_usuario_nome: profile.full_name,
           p_usuario_email: profile.email
         });
-        console.log('🔵 [DEBUG] Resposta função acesso:', { error: result.error, data: result.data });
         error = result.error;
       } else {
-        console.log('🔵 [DEBUG] Usando função de procedimento...');
         // Usar a função existente para solicitacoes/demandas
         const result = await supabase.rpc('adicionar_historico_procedimento', {
           p_item_id: itemId,
@@ -115,23 +103,16 @@ export function useHistoricoProcedimentos({ itemId, itemTipo }: UseHistoricoProc
           p_usuario_nome: profile.full_name,
           p_usuario_email: profile.email
         });
-        console.log('🔵 [DEBUG] Resposta função procedimento:', { error: result.error, data: result.data });
         error = result.error;
       }
 
-      if (error) {
-        console.error('🔵 [DEBUG] Erro na RPC:', error);
-        throw error;
-      }
-
-      console.log('🔵 [DEBUG] Procedimento adicionado com sucesso!');
+      if (error) throw error;
 
       // Recarregar histórico para incluir o novo procedimento
       await carregarHistorico();
       
       return true;
     } catch (err) {
-      console.error('🔵 [DEBUG] Erro completo:', err);
       Logger.error('Erro ao adicionar procedimento', { err }, 'useHistoricoProcedimentos', false);
       setError(`Não foi possível adicionar o procedimento: ${(err as any)?.message || 'Erro desconhecido'}`);
       return false;
