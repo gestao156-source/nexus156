@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import MainLayout from './components/Layout/MainLayout';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -15,6 +16,7 @@ const AdminPanel = lazy(() => import('./pages/AdminPanel'));
 const Relatorios = lazy(() => import('./pages/Relatorios'));
 const MapaFortaleza = lazy(() => import('./pages/MapaFortaleza'));
 const ItemDetalhes = lazy(() => import('./pages/ItemDetalhes'));
+const Notifications = lazy(() => import('./pages/Notifications'));
 const Auth = lazy(() => import('./components/Auth/Auth'));
 
 // Loading component
@@ -93,6 +95,11 @@ function ProtectedRoutes() {
             <ItemDetalhes />
           </Suspense>
         } />
+        <Route path="/notifications" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <Notifications />
+          </Suspense>
+        } />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </MainLayout>
@@ -103,18 +110,20 @@ function App() {
   return (
     <ErrorBoundary>
       <ToastProvider>
-        <AuthProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={
-                <Suspense fallback={<LoadingSpinner />}>
-                  <Auth />
-                </Suspense>
-              } />
-              <Route path="/*" element={<ProtectedRoutes />} />
-            </Routes>
-          </BrowserRouter>
-        </AuthProvider>
+        <NotificationProvider>
+          <AuthProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/auth" element={
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <Auth />
+                  </Suspense>
+                } />
+                <Route path="/*" element={<ProtectedRoutes />} />
+              </Routes>
+            </BrowserRouter>
+          </AuthProvider>
+        </NotificationProvider>
       </ToastProvider>
     </ErrorBoundary>
   );

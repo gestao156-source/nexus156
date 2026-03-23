@@ -2,6 +2,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { LayoutDashboard, FileText, ClipboardList, LogOut, Shield, User, Settings, BarChart3, Map, Key } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../../assets/logo-nexus-156.png';
+import NotificationBadge from '../Notifications/NotificationBadge';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -85,6 +86,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
             </div>
 
             <div className="flex items-center space-x-4">
+              {/* Notification Badge */}
+              <NotificationBadge />
+              
               <div className="flex items-center space-x-2 text-sm">
                 {profile?.role === 'admin' ? (
                   <Shield className="w-5 h-5 text-orange-600" />

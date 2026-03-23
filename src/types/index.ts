@@ -2,6 +2,74 @@ export type UserRole = 'admin' | 'user';
 
 export type AcessoStatus = 'solicitado' | 'em_andamento' | 'criado' | 'ativo' | 'desativado';
 
+// Tipos de notificações
+export type NotificationType = 
+  | 'new_item'           // Novo item criado
+  | 'status_change'      // Mudança de status
+  | 'deadline_warning'   // Aviso de prazo
+  | 'deadline_passed'    // Prazo ultrapassado
+  | 'assignment'         // Atribuição de responsável
+  | 'comment'            // Comentário adicionado
+  | 'system_alert'       // Alerta do sistema
+  | 'reminder'           // Lembrete
+  | 'summary';            // Resumo diário/semanal
+
+export type NotificationStatus = 'unread' | 'read' | 'archived';
+export type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: NotificationType;
+  title: string;
+  message?: string;
+  metadata: Record<string, any>;
+  status: NotificationStatus;
+  priority: NotificationPriority;
+  created_at: string;
+  read_at?: string;
+  expires_at: string;
+  action_url?: string;
+  action_text?: string;
+}
+
+export interface NotificationPreferences {
+  id: string;
+  user_id: string;
+  email_notifications: boolean;
+  browser_notifications: boolean;
+  sound_notifications: boolean;
+  quiet_hours_enabled: boolean;
+  quiet_hours_start: string;
+  quiet_hours_end: string;
+  notification_types: Record<NotificationType, boolean>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateNotificationData {
+  user_id: string;
+  type: NotificationType;
+  title: string;
+  message?: string;
+  metadata?: Record<string, any>;
+  priority?: NotificationPriority;
+  action_url?: string;
+  action_text?: string;
+}
+
+export interface NotificationContextType {
+  notifications: Notification[];
+  unreadCount: number;
+  loading: boolean;
+  error: string | null;
+  markAsRead: (id: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
+  createNotification: (data: CreateNotificationData) => Promise<void>;
+  updatePreferences: (preferences: Partial<NotificationPreferences>) => Promise<void>;
+  refreshNotifications: () => Promise<void>;
+}
+
 export interface Profile {
   id: string;
   email: string;
