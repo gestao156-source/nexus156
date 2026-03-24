@@ -115,7 +115,7 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.solicitante_wpp ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholder="Nome de quem solicitou via WhatsApp"
+              placeholder="Nome de quem solicitou"
             />
             {errors.solicitante_wpp && (
               <p className="text-red-500 text-sm mt-1">{errors.solicitante_wpp}</p>
@@ -133,7 +133,7 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.servidor_beneficiado ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholder="Nome do servidor que receberá acesso"
+              placeholder="Servidor que receberá acesso"
             />
             {errors.servidor_beneficiado && (
               <p className="text-red-500 text-sm mt-1">{errors.servidor_beneficiado}</p>

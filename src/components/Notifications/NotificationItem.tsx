@@ -157,9 +157,6 @@ export default function NotificationItem({ notification, onAction }: Notificatio
       {/* Metadata adicional (se houver) */}
       {notification.metadata && Object.keys(notification.metadata).length > 0 && (
         <div className="mb-2 p-2 bg-gray-50 rounded text-xs text-gray-600">
-          {notification.metadata.item_id && (
-            <div>ID: {notification.metadata.item_id}</div>
-          )}
           {notification.metadata.protocolo && (
             <div>Protocolo: {notification.metadata.protocolo}</div>
           )}

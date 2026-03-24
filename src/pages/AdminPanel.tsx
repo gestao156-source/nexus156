@@ -5,6 +5,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { Users, Settings, Plus, Trash2, Key, Mail } from 'lucide-react';
 import RoleSelector from '../components/Admin/RoleSelector';
+import CreateUserModal from '../components/Admin/CreateUserModal';
+import CreateAssuntoModal from '../components/Admin/CreateAssuntoModal';
+import CreatePontoModal from '../components/Admin/CreatePontoModal';
 import Logger from '../utils/logger';
 import ErrorService from '../services/errorService';
 
@@ -30,6 +33,9 @@ export default function AdminPanel() {
   const [pontosContato, setPontosContato] = useState<PontoContato[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'users' | 'assuntos' | 'contatos'>('users');
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
+  const [showCreateAssuntoModal, setShowCreateAssuntoModal] = useState(false);
+  const [showCreatePontoModal, setShowCreatePontoModal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -68,60 +74,12 @@ export default function AdminPanel() {
   };
 
   const handleCreateUser = async () => {
-    try {
-      // Solicitar email com validação
-      let email = prompt('Email do novo usuário:');
-      if (!email || !email.includes('@')) {
-        alert('Email inválido!');
-        return;
-      }
-      
-      // Solicitar nome completo com validação
-      let fullName = prompt('Nome completo:');
-      if (!fullName || fullName.trim().length < 3) {
-        alert('Nome completo é obrigatório!');
-        return;
-      }
-      
-      // Role sempre será 'user' por padrão
-      const role = 'user';
-      
-      // Confirmar criação
-      if (!confirm(`Criar usuário:\nEmail: ${email}\nNome: ${fullName}\nRole: ${role}`)) {
-        return;
-      }
-      
-      const { data } = await supabase.auth.signUp({
-        email,
-        password: '123', // Senha padrão
-        options: {
-          data: {
-            full_name: fullName.trim(),
-            role: role
-          }
-        }
-      });
-      
-      if (data.user) {
-        // Criar perfil
-        await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: data.user.id,
-              email: data.user.email,
-              full_name: fullName.trim(),
-              role: role
-            }
-          ]);
-        
-        showSuccess('Usuário criado com sucesso! Senha padrão: 123');
-        loadData();
-      }
-    } catch (error) {
-      ErrorService.handleError(error, { component: 'AdminPanel', action: 'createUser' });
-      alert('Erro ao criar usuário');
-    }
+    setShowCreateUserModal(true);
+  };
+
+  const handleUserCreated = () => {
+    showSuccess('Usuário criado com sucesso!');
+    loadData();
   };
 
   const handleDeleteUser = async (userId: string) => {
@@ -185,22 +143,21 @@ export default function AdminPanel() {
   };
 
   const handleCreateAssunto = async () => {
-    try {
-      const nome = prompt('Nome do novo assunto:');
-      if (!nome) return;
-      
-      const { data } = await supabase
-        .from('assuntos_padrao')
-        .insert([{ nome }]);
-      
-      if (data) {
-        alert('Assunto criado com sucesso!');
-        loadData();
-      }
-    } catch (error) {
-      ErrorService.handleError(error, { component: 'AdminPanel', action: 'createAssunto' });
-      alert('Erro ao criar assunto');
-    }
+    setShowCreateAssuntoModal(true);
+  };
+
+  const handleAssuntoCreated = () => {
+    showSuccess('Assunto criado com sucesso!');
+    loadData();
+  };
+
+  const handleCreatePonto = async () => {
+    setShowCreatePontoModal(true);
+  };
+
+  const handlePontoCreated = () => {
+    showSuccess('Ponto de contato criado com sucesso!');
+    loadData();
   };
 
   const handleDeleteAssunto = async (assuntoId: string) => {
@@ -212,30 +169,11 @@ export default function AdminPanel() {
         .delete()
         .eq('id', assuntoId);
       
-      alert('Assunto excluído com sucesso!');
+      showSuccess('Assunto excluído com sucesso!');
       loadData();
     } catch (error) {
       ErrorService.handleError(error, { component: 'AdminPanel', action: 'deleteAssunto' });
-      alert('Erro ao excluir assunto');
-    }
-  };
-
-  const handleCreatePonto = async () => {
-    try {
-      const nome = prompt('Nome do novo ponto de contato:');
-      if (!nome) return;
-      
-      const { data } = await supabase
-        .from('pontos_contato')
-        .insert([{ nome }]);
-      
-      if (data) {
-        alert('Ponto de contato criado com sucesso!');
-        loadData();
-      }
-    } catch (error) {
-      ErrorService.handleError(error, { component: 'AdminPanel', action: 'createPontoContato' });
-      alert('Erro ao criar ponto de contato');
+      showError('Erro ao excluir assunto');
     }
   };
 
@@ -248,11 +186,11 @@ export default function AdminPanel() {
         .delete()
         .eq('id', pontoId);
       
-      alert('Ponto de contato excluído com sucesso!');
+      showSuccess('Ponto de contato excluído com sucesso!');
       loadData();
     } catch (error) {
       ErrorService.handleError(error, { component: 'AdminPanel', action: 'deletePontoContato' });
-      alert('Erro ao excluir ponto de contato');
+      showError('Erro ao excluir ponto de contato');
     }
   };
 
@@ -465,6 +403,27 @@ export default function AdminPanel() {
           </div>
         </div>
       )}
+      
+      {/* Modal de Criar Usuário */}
+      <CreateUserModal
+        isOpen={showCreateUserModal}
+        onClose={() => setShowCreateUserModal(false)}
+        onSuccess={handleUserCreated}
+      />
+      
+      {/* Modal de Criar Assunto */}
+      <CreateAssuntoModal
+        isOpen={showCreateAssuntoModal}
+        onClose={() => setShowCreateAssuntoModal(false)}
+        onSuccess={handleAssuntoCreated}
+      />
+      
+      {/* Modal de Criar Ponto de Contato */}
+      <CreatePontoModal
+        isOpen={showCreatePontoModal}
+        onClose={() => setShowCreatePontoModal(false)}
+        onSuccess={handlePontoCreated}
+      />
     </div>
   );
 }
