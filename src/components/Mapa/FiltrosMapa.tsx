@@ -21,6 +21,7 @@ export default function FiltrosMapa({ filtros, onFiltrosChange, onAplicarFiltros
     periodo: 'Filtrar por período de criação dos registros',
     regional: 'Visualizar dados de regionais específicas de Fortaleza',
     coordenadas: 'Exibir apenas registros com coordenadas geográficas válidas',
+    atrasadas: 'Mostrar apenas itens que ultrapassaram o prazo de atendimento',
     ordenacao: 'Ordenar resultados por data, protocolo ou assunto'
   };
 
@@ -214,7 +215,7 @@ export default function FiltrosMapa({ filtros, onFiltrosChange, onAplicarFiltros
             <label className="text-xs text-gray-600">Data Início</label>
             <input
               type="date"
-              value={filtros.periodo.inicio.toISOString().split('T')[0]}
+              value={filtros.periodo.inicio instanceof Date && !isNaN(filtros.periodo.inicio.getTime()) ? filtros.periodo.inicio.toISOString().split('T')[0] : ''}
               onChange={(e) => handlePeriodoChange('inicio', e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-lg text-sm"
             />
@@ -223,12 +224,47 @@ export default function FiltrosMapa({ filtros, onFiltrosChange, onAplicarFiltros
             <label className="text-xs text-gray-600">Data Fim</label>
             <input
               type="date"
-              value={filtros.periodo.fim.toISOString().split('T')[0]}
+              value={filtros.periodo.fim instanceof Date && !isNaN(filtros.periodo.fim.getTime()) ? filtros.periodo.fim.toISOString().split('T')[0] : ''}
               onChange={(e) => handlePeriodoChange('fim', e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-lg text-sm"
             />
           </div>
         </div>
+      </div>
+
+      {/* Filtro Atrasadas */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium">Itens Atrasados</label>
+          <div className="relative">
+            <button
+              onMouseEnter={() => !isMobile && setTooltipAtivo('atrasadas')}
+              onMouseLeave={() => !isMobile && setTooltipAtivo(null)}
+              onClick={() => isMobile && setTooltipAtivo(tooltipAtivo === 'atrasadas' ? null : 'atrasadas')}
+              className="text-gray-400 hover:text-gray-600 p-1"
+            >
+              <Info className="w-4 h-4" />
+            </button>
+            
+            {tooltipAtivo === 'atrasadas' && (
+              <div className="absolute right-0 top-8 w-64 bg-gray-800 text-white text-xs rounded-lg p-3 z-10 shadow-xl">
+                <div className="font-semibold mb-1">Itens Atrasados</div>
+                <div>Mostrar apenas itens que ultrapassaram o prazo de atendimento</div>
+                <div className="absolute -top-2 right-4 w-0 h-0 border-l-8 border-r-8 border-b-8 border-transparent border-b-gray-800"></div>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <label className="flex items-center gap-2 p-2 hover:bg-red-50 rounded">
+          <input
+            type="checkbox"
+            checked={filtros.apenasAtrasados || false}
+            onChange={(e) => onFiltrosChange({ ...filtros, apenasAtrasados: e.target.checked })}
+            className="rounded text-red-600"
+          />
+          <span className="text-sm text-red-700">Apenas itens atrasados</span>
+        </label>
       </div>
 
       {/* Estatísticas Compactas */}

@@ -16,7 +16,8 @@ export default function MapaFortaleza() {
       fim: new Date()
     },
     regional: 0,
-    apenasComCoordenadas: true, // Mudado para true - mostrar apenas com coordenadas
+    apenasComCoordenadas: false, // Mostrar todos os itens inicialmente
+    apenasAtrasados: false,
     ordenarPor: 'created_at',
     ordem: 'DESC'
   };
@@ -163,8 +164,16 @@ export default function MapaFortaleza() {
             <h4 className="font-semibold text-sm mb-2">Legenda</h4>
             <div className="space-y-1 text-xs">
               <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <span>Atrasado</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                <span>Atrasado (sobreposição)</span>
+              </div>
+              <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <span>Aguardando</span>
+                <span>Sobreposição</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
@@ -173,14 +182,6 @@ export default function MapaFortaleza() {
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                 <span>Finalizado</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-                <span>S - Solicitação</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-                <span>D - Demanda</span>
               </div>
             </div>
           </div>
@@ -193,6 +194,7 @@ export default function MapaFortaleza() {
                 <div>Total: <span className="font-bold">{stats.total}</span></div>
                 <div>Mapa: <span className="font-bold text-green-600">{stats.comCoordenadas}</span></div>
                 <div>Sem Coord: <span className="font-bold text-yellow-600">{stats.semCoordenadas}</span></div>
+                <div>Atrasados: <span className="font-bold text-red-600">{stats.atrasados}</span></div>
               </div>
             </div>
           </div>

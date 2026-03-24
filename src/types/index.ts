@@ -178,6 +178,7 @@ export interface MapaFilters {
   };
   regional: number;
   apenasComCoordenadas: boolean;
+  apenasAtrasados: boolean;
   ordenarPor: string;
   ordem: 'ASC' | 'DESC';
 }
@@ -211,6 +212,8 @@ export interface MapaItem {
   endereco_geocoding_status?: string;
   usuario_nome?: string;
   usuario_email?: string;
+  atrasado: boolean;
+  dias_atraso: number;
 }
 
 export interface MapaStats {
@@ -219,5 +222,6 @@ export interface MapaStats {
   semCoordenadas: number;
   porRegional: Record<string, number>;
   porStatus: Record<string, number>;
+  atrasados: number;
   ultimoUpdate: Date;
 }

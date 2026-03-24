@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import { Icon, LatLngBounds } from 'leaflet';
 import { MapaItem } from '../../types';
-import { verificarAtraso } from '../../utils/calculoDiasUteis';
 
 interface MapaInterativoProps {
   dados: MapaItem[];
@@ -41,45 +40,35 @@ export default function MapaInterativo({
   const [clusteringEnabled, setClusteringEnabled] = useState(true);
   const mapRef = useRef<any>(null);
 
-  // Debug dos dados recebidos
-  useEffect(() => {
-    console.log('MapaInterativo recebeu', {
-      total: dados.length,
-      comCoordenadas: dados.filter(d => d.possui_coordenadas).length,
-      dados: dados.map(d => ({
-        id: d.id,
-        tipo: d.tipo,
-        possui_coordenadas: d.possui_coordenadas,
-        lat: d.latitude,
-        lng: d.longitude
-      }))
-    });
-  }, [dados]);
-
   // Determinar clustering baseado no volume
   const shouldUseClustering = useMemo(() => {
     const dadosComCoordenadas = dados.filter(d => d.possui_coordenadas);
     return dadosComCoordenadas.length > 200 && clusteringEnabled;
   }, [dados, clusteringEnabled]);
 
-  // Ícones responsivos com lógica de atraso
-  const getIcon = (item: MapaItem) => {
+  // Ícones responsivos com hierarquia de cores
+  const getIcon = (item: MapaItem & { temSobreposicao?: boolean }) => {
     const tamanho = isMobile ? 30 : 40;
     
-    // Verificar se está atrasado
-    const estaAtrasado = verificarAtraso(item.status, item.data_contato || null);
-    
-    // Definir cor baseada no status e atraso
+    // Hierarquia de cores: Atrasado > Sobreposição > Status
     let cor: string;
-    if (estaAtrasado) {
-      cor = '#EF4444'; // Vermelho para atrasado
+    if (item.atrasado) {
+      if (item.temSobreposicao) {
+        cor = '#FF6B35'; // Laranja para atrasado com sobreposição
+      } else {
+        cor = '#EF4444'; // Vermelho para atrasado normal
+      }
     } else {
-      const cores: Record<string, string> = {
-        aguardando: '#F59E0B', // Amarelo
-        em_analise: '#3B82F6', // Azul
-        finalizado: '#10B981'  // Verde
-      };
-      cor = cores[item.status] || '#6B7280'; // Cinza padrão
+      if (item.temSobreposicao) {
+        cor = '#EAB308'; // Amarelo para sobreposição normal
+      } else {
+        const cores: Record<string, string> = {
+          aguardando: '#F59E0B', // Amarelo
+          em_analise: '#3B82F6', // Azul
+          finalizado: '#10B981'  // Verde
+        };
+        cor = cores[item.status] || '#6B7280'; // Cinza padrão
+      }
     }
 
     return new Icon({
@@ -87,9 +76,6 @@ export default function MapaInterativo({
         <svg width="${tamanho}" height="${tamanho * 1.6}" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
           <path fill="${cor}" d="M12.5 0C5.6 0 0 5.6 0 12.5S5.6 25 12.5 25 25 19.4 25 12.5 19.4 12.5 25z"/>
           <circle fill="white" cx="12.5" cy="12.5" r="${tamanho/8}"/>
-          <text x="12.5" y="12.5" text-anchor="middle" dy="3" fill="white" font-size="${tamanho/10}" font-weight="bold">
-            ${item.tipo === 'solicitacao' ? 'S' : 'D'}
-          </text>
         </svg>
       `)}`,
       iconSize: [tamanho, tamanho * 1.6],
@@ -99,16 +85,38 @@ export default function MapaInterativo({
     });
   };
 
-  // Renderizar marcadores
+  // Renderizar marcadores com detecção de sobreposição visual (sem alterar coordenadas)
   const marcadores = useMemo(() => {
     const dadosFiltrados = dados.filter(item => item.possui_coordenadas);
     
-    // Virtualização para grandes volumes
-    if (dadosFiltrados.length > 1000) {
-      return dadosFiltrados.slice(0, 1000).map(item => (
+    // Detecção de sobreposição - apenas para cores, sem alterar coordenadas
+    const dadosComSobreposicao = dadosFiltrados.map((item, index) => {
+      let temSobreposicao = false;
+      
+      // Verificar sobreposição com todos os itens anteriores
+      for (let i = 0; i < index; i++) {
+        const anterior = dadosFiltrados[i];
+        const dist = Math.sqrt(
+          Math.pow((item.latitude || 0) - (anterior.latitude || 0), 2) + 
+          Math.pow((item.longitude || 0) - (anterior.longitude || 0), 2)
+        );
+        
+        // Limiar para 100 metros (0.001 graus) - mais preciso
+        if (dist < 0.001 && dist > 0) {
+          temSobreposicao = true;
+          break;
+        }
+      }
+      
+      return { ...item, temSobreposicao };
+    });
+    
+    // Renderização mantendo coordenadas originais
+    if (dadosComSobreposicao.length > 1000) {
+      return dadosComSobreposicao.slice(0, 1000).map(item => (
         <Marker
           key={item.id}
-          position={[item.latitude!, item.longitude!]}
+          position={[item.latitude || 0, item.longitude || 0]}
           icon={getIcon(item)}
           eventHandlers={{
             click: () => onItemSelect(item)
@@ -121,10 +129,10 @@ export default function MapaInterativo({
       ));
     }
     
-    return dadosFiltrados.map(item => (
+    return dadosComSobreposicao.map(item => (
       <Marker
         key={item.id}
-        position={[item.latitude!, item.longitude!]}
+        position={[item.latitude || 0, item.longitude || 0]}
         icon={getIcon(item)}
         eventHandlers={{
           click: () => onItemSelect(item)
@@ -251,13 +259,20 @@ function PopupConteudo({ item, isMobile }: { item: MapaItem; isMobile: boolean }
         
         <div className="flex justify-between">
           <span className="font-medium">Status:</span>
-          <span className={`px-2 py-1 rounded text-xs ${
-            item.status === 'aguardando' ? 'bg-yellow-100 text-yellow-800' :
-            item.status === 'em_analise' ? 'bg-blue-100 text-blue-800' :
-            'bg-green-100 text-green-800'
-          }`}>
-            {item.status.replace('_', ' ')}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className={`px-2 py-1 rounded text-xs ${
+              item.status === 'aguardando' ? 'bg-yellow-100 text-yellow-800' :
+              item.status === 'em_analise' ? 'bg-blue-100 text-blue-800' :
+              'bg-green-100 text-green-800'
+            }`}>
+              {item.status.replace('_', ' ')}
+            </span>
+            {item.atrasado && (
+              <span className="px-2 py-1 rounded text-xs bg-red-100 text-red-800 font-medium">
+                {item.dias_atraso}d atraso
+              </span>
+            )}
+          </div>
         </div>
         
         <div>

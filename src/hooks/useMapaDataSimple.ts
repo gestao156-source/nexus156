@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { MapaFilters, MapaItem, MapaStats } from '../types';
 import { GeocodingService } from '../services/geocoding';
 import { formatarResponsavel, Profile } from '../utils/responsavelUtils';
+import { verificarAtraso } from '../utils/calculoDiasUteis';
 import Logger from '../utils/logger';
 
 export function useMapaDataSimple(filters: MapaFilters) {
@@ -16,6 +17,7 @@ export function useMapaDataSimple(filters: MapaFilters) {
     semCoordenadas: 0,
     porRegional: {},
     porStatus: {},
+    atrasados: 0,
     ultimoUpdate: new Date()
   });
 
@@ -97,6 +99,9 @@ export function useMapaDataSimple(filters: MapaFilters) {
         const regionalText = GeocodingService.buscarRegionalPorBairro(item.endereco_bairro || '');
         const regionalNumber = GeocodingService.extrairNumeroRegional(regionalText);
         
+        // Calcular dias de atraso
+        const diasAtraso = verificarAtraso(item.status || '', item.data_contato);
+        
         return {
           id: item.id,
           assunto: item.assunto || 'Sem assunto',
@@ -125,7 +130,9 @@ export function useMapaDataSimple(filters: MapaFilters) {
           endereco_regional: regionalNumber,
           endereco_geocoding_status: possuiCoords ? 'sucesso' : 'pendente',
           usuario_nome: item.profiles?.full_name || 'Anônimo',
-          usuario_email: item.profiles?.email || ''
+          usuario_email: item.profiles?.email || '',
+          atrasado: diasAtraso > 0,
+          dias_atraso: diasAtraso
         };
       };
 
@@ -135,6 +142,9 @@ export function useMapaDataSimple(filters: MapaFilters) {
         // Calcular regional baseada no bairro
         const regionalText = GeocodingService.buscarRegionalPorBairro(item.endereco_bairro || '');
         const regionalNumber = GeocodingService.extrairNumeroRegional(regionalText);
+        
+        // Calcular dias de atraso
+        const diasAtraso = verificarAtraso(item.status || '', item.data_contato);
         
         return {
           id: item.id,
@@ -164,7 +174,9 @@ export function useMapaDataSimple(filters: MapaFilters) {
           endereco_regional: regionalNumber,
           endereco_geocoding_status: possuiCoords ? 'sucesso' : 'pendente',
           usuario_nome: item.profiles?.full_name || 'Anônimo',
-          usuario_email: item.profiles?.email || ''
+          usuario_email: item.profiles?.email || '',
+          atrasado: diasAtraso > 0,
+          dias_atraso: diasAtraso
         };
       };
 
@@ -173,25 +185,29 @@ export function useMapaDataSimple(filters: MapaFilters) {
 
       const todosDados = [...solicitacoesFormatadas, ...demandasFormatadas];
       
-      // Aplicar filtros
+      // Aplicar filtros - ordem otimizada
       let dadosFiltrados = todosDados;
       
-      // Filtro de status
+      // 1. Filtro de itens atrasados (prioridade máxima)
+      if (filters.apenasAtrasados) {
+        dadosFiltrados = dadosFiltrados.filter(d => d.atrasado);
+      }
+      
+      // 2. Filtro de status
       if (filters.status && filters.status.length > 0) {
         dadosFiltrados = dadosFiltrados.filter(d => filters.status.includes(d.status));
       }
       
-      // Filtro de tipo
+      // 3. Filtro de tipo
       if (filters.tipo && filters.tipo !== '') {
         if (filters.tipo === 'solicitacao') {
           dadosFiltrados = dadosFiltrados.filter(d => d.tipo === 'solicitacao');
         } else if (filters.tipo === 'demanda') {
           dadosFiltrados = dadosFiltrados.filter(d => d.tipo === 'demanda');
         }
-        // 'todos' não filtra nada
       }
       
-      // Filtro de período
+      // 4. Filtro de período
       if (filters.periodo) {
         const dataInicio = filters.periodo.inicio;
         const dataFim = filters.periodo.fim;
@@ -204,12 +220,12 @@ export function useMapaDataSimple(filters: MapaFilters) {
         }
       }
       
-      // Filtro de regional
+      // 5. Filtro de regional
       if (filters.regional && filters.regional > 0) {
         dadosFiltrados = dadosFiltrados.filter(d => d.endereco_regional === filters.regional);
       }
       
-      // Filtro de ordenação
+      // 6. Filtro de ordenação
       if (filters.ordenarPor) {
         dadosFiltrados.sort((a, b) => {
           let valorA: any, valorB: any;
@@ -240,30 +256,28 @@ export function useMapaDataSimple(filters: MapaFilters) {
         });
       }
       
-      // Aplicar filtro de coordenadas se necessário
+      // 7. Filtro de coordenadas (último)
       if (filters.apenasComCoordenadas) {
         dadosFiltrados = dadosFiltrados.filter(d => d.possui_coordenadas);
       }
       
-      Logger.debug('Dados para o mapa (filtrados)', { count: dadosFiltrados.length }, 'useMapaDataSimple');
-      Logger.debug('Itens com coordenadas', { items: dadosFiltrados.map(d => ({ id: d.id, assunto: d.assunto })) }, 'useMapaDataSimple');
-      
       setDados(dadosFiltrados);
 
-      // Calcular estatísticas (baseado nos dados totais, não filtrados)
+      // Calcular estatísticas centralizadas
       const statsCalculadas: MapaStats = {
-        total: todosDados.length,
-        comCoordenadas: todosDados.filter(d => d.possui_coordenadas).length,
-        semCoordenadas: todosDados.filter(d => !d.possui_coordenadas).length,
-        porRegional: todosDados.reduce((acc, item) => {
+        total: dadosFiltrados.length,
+        comCoordenadas: dadosFiltrados.filter(d => d.possui_coordenadas).length,
+        semCoordenadas: dadosFiltrados.filter(d => !d.possui_coordenadas).length,
+        porRegional: dadosFiltrados.reduce((acc, item) => {
           const regional = item.endereco_regional || 0;
           acc[regional] = (acc[regional] || 0) + 1;
           return acc;
         }, {} as Record<number, number>),
-        porStatus: todosDados.reduce((acc, item) => {
+        porStatus: dadosFiltrados.reduce((acc, item) => {
           acc[item.status] = (acc[item.status] || 0) + 1;
           return acc;
         }, {} as Record<string, number>),
+        atrasados: dadosFiltrados.filter(d => d.atrasado).length,
         ultimoUpdate: new Date()
       };
 
