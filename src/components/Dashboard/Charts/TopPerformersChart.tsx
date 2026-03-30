@@ -12,7 +12,7 @@ export default function TopPerformersChart({ data, title = "Top Responsáveis", 
     return (
       <div className="bg-white rounded-lg shadow-sm p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
-        <div className="flex items-center justify-center h-64 text-gray-400">
+        <div className="flex items-center justify-center h-64 text-gray-500">
           Nenhum dado disponível
         </div>
       </div>
@@ -79,14 +79,14 @@ export default function TopPerformersChart({ data, title = "Top Responsáveis", 
           <p className="text-green-600">{sortedData[0]?.name}</p>
           <p className="text-green-600">{sortedData[0]?.completed} itens</p>
         </div>
-        <div className="bg-blue-50 p-3 rounded-lg">
-          <p className="text-blue-800 font-medium">Maior Eficiência</p>
-          <p className="text-blue-600">
+        <div className="bg-primary-50 p-3 rounded-lg">
+          <p className="text-primary-800 font-medium">Maior Eficiência</p>
+          <p className="text-primary-600">
             {sortedData.reduce((max, current) => 
               current.efficiency > max.efficiency ? current : max
             ).name}
           </p>
-          <p className="text-blue-600">
+          <p className="text-primary-600">
             {Math.max(...sortedData.map(d => d.efficiency))}% eficiência
           </p>
         </div>
@@ -94,3 +94,4 @@ export default function TopPerformersChart({ data, title = "Top Responsáveis", 
     </div>
   );
 }
+

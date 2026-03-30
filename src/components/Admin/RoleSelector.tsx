@@ -43,9 +43,10 @@ export default function RoleSelector({ userId, currentRole, userName, onRoleUpda
       } else {
         showError('Erro ao atualizar', 'Não foi possível alterar o role');
       }
-    } catch (error: any) {
-      ErrorService.handleError(error, { component: 'RoleSelector', action: 'updateRole' });
-      showError('Erro de conexão', error.message || 'Falha na comunicação com o servidor');
+    } catch (error: unknown) {
+      const err = error as Error;
+      ErrorService.handleError(err, { component: 'RoleSelector', action: 'updateRole' });
+      showError('Erro de conexão', err.message || 'Falha na comunicação com o servidor');
     } finally {
       setLoading(false);
     }
@@ -107,7 +108,7 @@ export default function RoleSelector({ userId, currentRole, userName, onRoleUpda
       
       <button
         onClick={handleEdit}
-        className="text-blue-600 hover:text-blue-800"
+        className="text-primary-600 hover:text-primary-800"
         title="Editar role"
       >
         <Edit2 className="w-3 h-3" />
@@ -115,3 +116,4 @@ export default function RoleSelector({ userId, currentRole, userName, onRoleUpda
     </div>
   );
 }
+

@@ -47,83 +47,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadProfile = async (userId: string) => {
     try {
-      // Tentar carregar perfil com tratamento de erro
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
 
-      // Se houver erro de recursão, criar perfil local temporário
       if (error) {
         console.error('Erro ao carregar perfil:', error);
-        
-        // Criar perfil temporário local para permitir funcionamento
-        const tempProfile: Profile = {
-          id: userId,
-          email: 'user@example.com',
-          full_name: 'Usuário Temporário',
-          role: 'user',
-          created_at: new Date().toISOString()
-        };
-        
-        setProfile(tempProfile);
+        setProfile(null);
+        setLoading(false);
         return;
       }
       
-      // Se não encontrar perfil, cria um básico
       if (!data) {
-        const { data: newProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: userId,
-              email: 'user@example.com', // Será atualizado depois
-              full_name: '',
-              role: 'user'
-            }
-          ])
-          .select()
-          .single();
-          
-        if (createError) {
-          console.error('Erro ao criar perfil:', createError);
-          // Obter dados do usuário para criar perfil temporário correto
-          const { data: { user } } = await supabase.auth.getUser();
-          
-          // Detectar automaticamente se é admin
-          const isAdmin = user?.email === 'admin@nexus156.com' || 
-                         user?.email?.includes('admin') ||
-                         user?.user_metadata?.role === 'admin';
-          
-          // Criar perfil temporário local com dados reais
-          const tempProfile: Profile = {
-            id: userId,
-            email: user?.email || 'user@example.com',
-            full_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário',
-            role: isAdmin ? 'admin' : 'user',
-            created_at: new Date().toISOString()
-          };
-          setProfile(tempProfile);
-          return;
-        }
-        
-        setProfile(newProfile);
-      } else {
-        setProfile(data);
+        console.warn('Perfil não encontrado para usuário:', userId);
+        setProfile(null);
+        setLoading(false);
+        return;
       }
+      
+      setProfile(data);
     } catch (error) {
       console.error('Error loading profile:', error);
-      // Criar perfil temporário local em caso de erro
-      const tempProfile: Profile = {
-        id: userId,
-        email: 'user@example.com',
-        full_name: 'Usuário Temporário',
-        role: 'user',
-        created_at: new Date().toISOString()
-      };
-      setProfile(tempProfile);
-      setLoading(false); // Mesmo com erro, define loading como false para permitir navegação
+      setProfile(null);
     } finally {
       setLoading(false);
     }
@@ -149,8 +96,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    try {
+      await supabase.auth.signOut();
+    } catch (error: any) {
+      // Ignora erro se a sessão já não existe (usuário já está deslogado)
+      if (error.name === 'AuthSessionMissingError' || 
+          error.message?.includes('session')) {
+        console.warn('Sessão já expirada, limpando estado local');
+      } else {
+        console.error('Erro no logout:', error);
+      }
+    } finally {
+      // Sempre limpa o estado local mesmo se o logout no servidor falhar
+      setUser(null);
+      setProfile(null);
+    }
   };
 
   // FUNÇÃO NOVA: Atualiza o profile localmente
@@ -160,31 +120,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // FUNÇÃO NOVA: Criar usuário de teste para desenvolvimento
   const createTestUser = async () => {
-    try {
-      const testEmail = 'teste@nexus156.com';
-      const testPassword = '123456';
-      
-      // Tenta criar o usuário
-      const { error } = await supabase.auth.signUp({
-        email: testEmail,
-        password: testPassword
-      });
-      
-      if (error && !error.message.includes('already registered')) {
-        console.error('Erro ao criar usuário de teste:', error);
-        return;
-      }
-      
-      // Se usuário já existe, tenta fazer login
-      if (error?.message.includes('already registered')) {
-        await signIn(testEmail, testPassword);
-      } else {
-          // Faz login automático após criar
-        await signIn(testEmail, testPassword);
-      }
-    } catch (error) {
-      console.error('Erro ao criar/usar usuário de teste:', error);
-    }
+    console.warn('createTestUser depreciado - usar fluxo de convite formal');
+    throw new Error('Função createTestUser foi removida por razões de segurança');
   };
 
   return (

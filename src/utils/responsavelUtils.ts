@@ -74,7 +74,7 @@ export async function buscarNomesResponsaveis(
     if (error) throw error;
     
     // Preencher mapa com nomes encontrados
-    (data || []).forEach((profile: any) => {
+    (data || []).forEach((profile: { id: string; full_name: string }) => {
       if (profile.full_name) {
         nomesMap.set(profile.id, profile.full_name);
       }

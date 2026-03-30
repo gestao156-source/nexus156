@@ -30,7 +30,7 @@ export default function RegionalDrillDownChart({
     return (
       <div className="bg-white rounded-lg shadow-sm p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
-        <div className="flex items-center justify-center h-64 text-gray-400">
+        <div className="flex items-center justify-center h-64 text-gray-500">
           Nenhum dado disponível
         </div>
       </div>
@@ -146,7 +146,7 @@ export default function RegionalDrillDownChart({
         {selectedRegional && (
           <button
             onClick={() => setSelectedRegional(null)}
-            className="flex items-center space-x-1 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+            className="flex items-center space-x-1 text-sm text-primary-600 hover:text-primary-800 transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
             <span>Voltar</span>
@@ -225,8 +225,8 @@ export default function RegionalDrillDownChart({
           <div className="grid grid-cols-3 gap-2 text-sm">
             {sortedData.slice(0, 3).map((item, index) => (
               <div key={item.region} className="bg-gray-50 p-2 rounded text-center">
-                <p className="font-medium text-gray-900 text-xs">#{index + 1}</p>
-                <p className="text-gray-600 truncate">{item.region}</p>
+                <p className="font-medium text-text-primary text-xs">#{index + 1}</p>
+                <p className="text-text-secondary truncate">{item.region}</p>
                 <p className="text-gray-800 font-semibold">{item.value}</p>
               </div>
             ))}
@@ -236,3 +236,4 @@ export default function RegionalDrillDownChart({
     </div>
   );
 }
+

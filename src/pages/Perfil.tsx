@@ -35,8 +35,9 @@ export default function Perfil() {
       // Atualizar perfil localmente
       updateProfile({ full_name: fullName });
       showSuccess('Perfil atualizado!', 'Seu nome foi atualizado com sucesso');
-    } catch (err: any) {
-      ErrorService.handleError(err, { component: 'Perfil', action: 'updateProfile' });
+    } catch (err: unknown) {
+      const error = err as Error;
+      ErrorService.handleError(error, { component: 'Perfil', action: 'updateProfile' });
       showError('Erro ao atualizar', 'Não foi possível salvar as alterações');
     } finally {
       setSaving(false);

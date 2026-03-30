@@ -13,7 +13,7 @@ export default function PieChart({ data }: PieChartProps) {
 
   if (total === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-400">
+      <div className="flex items-center justify-center h-64 text-text-muted">
         Nenhum dado disponível
       </div>
     );
@@ -60,9 +60,9 @@ export default function PieChart({ data }: PieChartProps) {
                 className="w-4 h-4 rounded"
                 style={{ backgroundColor: item.color }}
               />
-              <span className="text-sm text-gray-700">{item.name}</span>
+              <span className="text-sm text-text-primary">{item.name}</span>
             </div>
-            <span className="text-sm font-semibold text-gray-900">
+            <span className="text-sm font-semibold text-text-primary">
               {item.value} ({((item.value / total) * 100).toFixed(1)}%)
             </span>
           </div>
@@ -71,3 +71,4 @@ export default function PieChart({ data }: PieChartProps) {
     </div>
   );
 }
+

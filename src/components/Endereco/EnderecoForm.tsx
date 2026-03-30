@@ -266,7 +266,7 @@ export default function EnderecoForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* CEP */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-text-primary mb-2">
             CEP
           </label>
           <div className="flex gap-2">
@@ -283,7 +283,7 @@ export default function EnderecoForm({
               type="button"
               onClick={handleBuscarCEP}
               disabled={disabled || loading || !value.cep}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -300,7 +300,7 @@ export default function EnderecoForm({
 
         {/* Número */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-text-primary mb-2">
             Número
           </label>
           <input
@@ -317,7 +317,7 @@ export default function EnderecoForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Rua */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-text-primary mb-2">
             Rua/Avenida
           </label>
           <input
@@ -332,7 +332,7 @@ export default function EnderecoForm({
 
         {/* Bairro */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-text-primary mb-2">
             Bairro
           </label>
           <input
@@ -349,7 +349,7 @@ export default function EnderecoForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Localidade */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-text-primary mb-2">
             Localidade/Cidade
           </label>
           <input
@@ -364,7 +364,7 @@ export default function EnderecoForm({
 
         {/* Regional */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-text-primary mb-2">
             Regional
           </label>
           <input
@@ -381,7 +381,7 @@ export default function EnderecoForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Complemento */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-text-primary mb-2">
             Complemento
           </label>
           <input
@@ -396,7 +396,7 @@ export default function EnderecoForm({
 
         {/* UF */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-text-primary mb-2">
             UF
           </label>
           <input
@@ -414,7 +414,7 @@ export default function EnderecoForm({
       {/* Mapa */}
       {showMap && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-text-primary mb-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
@@ -448,7 +448,7 @@ export default function EnderecoForm({
       {/* Endereço formatado */}
       {value.rua && (
         <div className="p-3 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-text-secondary">
             <strong>Endereço completo:</strong> {GeocodingService.formatarEnderecoCompleto(value)}
           </p>
           {coordenadaAtual && (
@@ -461,3 +461,4 @@ export default function EnderecoForm({
     </div>
   );
 }
+

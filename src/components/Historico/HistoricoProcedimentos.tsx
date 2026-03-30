@@ -68,13 +68,13 @@ export default function HistoricoProcedimentos({
   }
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg ${className}`}>
+    <div className={`bg-bg-primary border border-gray-200 rounded-lg ${className}`}>
       {/* Header */}
       <div className="border-b border-gray-200 px-4 py-3 bg-gray-50 rounded-t-lg">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Clock className="w-4 h-4 text-gray-600" />
-            <h3 className="font-semibold text-gray-900">Histórico de Procedimentos</h3>
+            <Clock className="w-4 h-4 text-text-secondary" />
+            <h3 className="font-semibold text-text-primary">Histórico de Procedimentos</h3>
             <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
               {historico.length} registro{historico.length !== 1 ? 's' : ''}
             </span>
@@ -83,7 +83,7 @@ export default function HistoricoProcedimentos({
           {podeAdicionar && !disabled && !mostrarAdicionar && (
             <button
               onClick={() => setMostrarAdicionar(true)}
-              className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 text-sm font-medium"
+              className="flex items-center space-x-1 text-primary-600 hover:text-primary-700 text-sm font-medium"
             >
               <Plus className="w-4 h-4" />
               <span>Adicionar</span>
@@ -104,10 +104,10 @@ export default function HistoricoProcedimentos({
 
       {/* Formulário para adicionar procedimento */}
       {mostrarAdicionar && podeAdicionar && !disabled && (
-        <div className="border-b border-gray-200 p-4 bg-blue-50">
+        <div className="border-b border-gray-200 p-4 bg-primary-50">
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 Descreva o procedimento realizado:
               </label>
               <textarea
@@ -126,7 +126,7 @@ export default function HistoricoProcedimentos({
                 type="button"
                 onClick={handleCancelarAdicao}
                 disabled={adicionando}
-                className="px-3 py-1.5 text-gray-600 hover:text-gray-800 text-sm font-medium"
+                className="px-3 py-1.5 text-text-secondary hover:text-gray-800 text-sm font-medium"
               >
                 Cancelar
               </button>
@@ -134,7 +134,7 @@ export default function HistoricoProcedimentos({
                 type="button"
                 onClick={handleAdicionarProcedimento}
                 disabled={adicionando || !novoProcedimento.trim()}
-                className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-1.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {adicionando ? 'Adicionando...' : 'Adicionar Procedimento'}
               </button>
@@ -149,7 +149,7 @@ export default function HistoricoProcedimentos({
           <div className="p-8 text-center text-gray-500">
             <Clock className="w-12 h-12 mx-auto mb-4 text-gray-300" />
             <p className="text-lg font-medium mb-2">Nenhum procedimento registrado</p>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-text-muted">
               {podeAdicionar && !disabled 
                 ? 'Adicione o primeiro procedimento usando o botão acima.'
                 : 'Nenhum procedimento foi registrado para este item.'
@@ -164,7 +164,7 @@ export default function HistoricoProcedimentos({
                   {/* Avatar/Círculo do usuário */}
                   <div className="flex-shrink-0">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <User className="w-4 h-4 text-blue-600" />
+                      <User className="w-4 h-4 text-primary-600" />
                     </div>
                   </div>
                   
@@ -172,7 +172,7 @@ export default function HistoricoProcedimentos({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center space-x-2">
-                        <span className="font-medium text-gray-900 text-sm">
+                        <span className="font-medium text-text-primary text-sm">
                           {procedimento.usuario_nome}
                         </span>
                         <span className="text-xs text-gray-500">
@@ -184,7 +184,7 @@ export default function HistoricoProcedimentos({
                       </span>
                     </div>
                     
-                    <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+                    <p className="text-text-primary text-sm leading-relaxed whitespace-pre-wrap">
                       {procedimento.procedimento}
                     </p>
                     
@@ -211,3 +211,4 @@ export default function HistoricoProcedimentos({
     </div>
   );
 }
+

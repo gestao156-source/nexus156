@@ -8,7 +8,6 @@ import RoleSelector from '../components/Admin/RoleSelector';
 import CreateUserModal from '../components/Admin/CreateUserModal';
 import CreateAssuntoModal from '../components/Admin/CreateAssuntoModal';
 import CreatePontoModal from '../components/Admin/CreatePontoModal';
-import Logger from '../utils/logger';
 import ErrorService from '../services/errorService';
 
 interface AssuntoPadrao {
@@ -114,31 +113,37 @@ export default function AdminPanel() {
   };
 
   const handleResetPassword = async (userId: string, userEmail: string) => {
-    if (!confirm(`Deseja resetar a senha do usuário "${userEmail}" para 123?`)) return;
-    
+    const confirmed = window.confirm(
+      `Deseja resetar a senha do usuário "${userEmail}" para 123456?` 
+    );
+
+    if (!confirmed) return;
+
     try {
-      // Usar nova RPC function para reset de senha
-      const { data, error } = await supabase.rpc('reset_user_password_real', {
-        user_id: userId,
-        new_password: '123'
+      const { error } = await supabase.functions.invoke("reset-user-password", {
+        body: {
+          userId,
+          tempPassword: "123456",
+        },
       });
 
       if (error) {
-        ErrorService.handleError(error, { component: 'AdminPanel', action: 'resetPassword' });
-        showError('Erro ao resetar senha', error.message || 'Não foi possível resetar a senha');
-        return;
+        throw error;
       }
 
-      if (data) {
-        showSuccess('Senha resetada!', `Senha de ${userEmail} foi registrada para reset. Nota: O reset real precisa ser feito via Admin API.`);
-        Logger.debug('Password reset registered', { data }, 'AdminPanel');
-      } else {
-        showError('Erro ao resetar senha', 'Não foi possível resetar a senha');
-      }
-      
+      showSuccess(`Senha do usuário ${userEmail} resetada para 123456 com sucesso!`);
     } catch (error: any) {
-      ErrorService.handleError(error, { component: 'AdminPanel', action: 'resetPassword' });
-      showError('Erro de conexão', error.message || 'Falha na comunicação com o servidor');
+      console.error("Erro ao resetar senha:", error);
+
+      if (error?.context) {
+        try {
+          const errorBody = await error.context.json();
+          showError(errorBody?.error || "Erro ao resetar senha");
+          return;
+        } catch (_) {}
+      }
+
+      showError(error?.message || "Erro ao resetar senha");
     }
   };
 
@@ -198,8 +203,8 @@ export default function AdminPanel() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <Settings className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700">Acesso Restrito</h2>
+          <Settings className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900">Acesso Restrito</h2>
           <p className="text-gray-600">Apenas administradores podem acessar esta página.</p>
         </div>
       </div>
@@ -226,7 +231,7 @@ export default function AdminPanel() {
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'users'
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
             }`}
           >
             <Users className="w-4 h-4 mr-2" />
@@ -237,7 +242,7 @@ export default function AdminPanel() {
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'assuntos'
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
             }`}
           >
             <Settings className="w-4 h-4 mr-2" />
@@ -248,7 +253,7 @@ export default function AdminPanel() {
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'contatos'
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
             }`}
           >
             <Mail className="w-4 h-4 mr-2" />
@@ -427,3 +432,4 @@ export default function AdminPanel() {
     </div>
   );
 }
+

@@ -93,7 +93,7 @@ export default function ChangePasswordModal({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
          onClick={handleClose}>
-      <div className="bg-white rounded-xl shadow-xl max-w-md w-full"
+      <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
            onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -102,7 +102,7 @@ export default function ChangePasswordModal({
               <Key className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+              <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
               <p className="text-sm text-gray-600">Digite sua nova senha</p>
             </div>
           </div>
@@ -118,7 +118,7 @@ export default function ChangePasswordModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {showCurrentPassword && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-900 mb-1">
                 Senha Atual
               </label>
               <div className="relative">
@@ -133,7 +133,7 @@ export default function ChangePasswordModal({
                 <button
                   type="button"
                   onClick={() => setShowCurrent(!showCurrent)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-600"
                 >
                   {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -142,7 +142,7 @@ export default function ChangePasswordModal({
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-900 mb-1">
               Nova Senha
             </label>
             <div className="relative">
@@ -157,7 +157,7 @@ export default function ChangePasswordModal({
               <button
                 type="button"
                 onClick={() => setShowNew(!showNew)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-600"
               >
                 {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -165,7 +165,7 @@ export default function ChangePasswordModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-900 mb-1">
               Confirmar Nova Senha
             </label>
             <div className="relative">
@@ -180,7 +180,7 @@ export default function ChangePasswordModal({
               <button
                 type="button"
                 onClick={() => setShowConfirm(!showConfirm)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-600"
               >
                 {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -211,3 +211,4 @@ export default function ChangePasswordModal({
     </div>
   );
 }
+

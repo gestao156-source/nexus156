@@ -17,7 +17,7 @@ export default function NotificationItem({ notification, onAction }: Notificatio
   const getIcon = () => {
     switch (notification.type) {
       case 'new_item':
-        return <Bell className="w-4 h-4 text-blue-600" />;
+        return <Bell className="w-4 h-4 text-primary-600" />;
       case 'status_change':
         return <CheckCircle className="w-4 h-4 text-green-600" />;
       case 'deadline_warning':
@@ -29,7 +29,7 @@ export default function NotificationItem({ notification, onAction }: Notificatio
       case 'system_alert':
         return <AlertTriangle className="w-4 h-4 text-orange-600" />;
       default:
-        return <Bell className="w-4 h-4 text-gray-600" />;
+        return <Bell className="w-4 h-4 text-text-secondary" />;
     }
   };
 
@@ -44,7 +44,7 @@ export default function NotificationItem({ notification, onAction }: Notificatio
       case 'low':
         return 'border-l-gray-500 bg-gray-50';
       default:
-        return 'border-l-gray-500 bg-white';
+        return 'border-l-gray-500 bg-gray-50';
     }
   };
 
@@ -124,7 +124,7 @@ export default function NotificationItem({ notification, onAction }: Notificatio
             <button
               onClick={handleMarkAsRead}
               disabled={isMarkingAsRead}
-              className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+              className="p-1 text-text-muted hover:text-primary-600 transition-colors"
               title="Marcar como lida"
             >
               <CheckCircle className="w-4 h-4" />
@@ -134,7 +134,7 @@ export default function NotificationItem({ notification, onAction }: Notificatio
           {/* Botão de fechar */}
           <button
             onClick={(e) => e.stopPropagation()}
-            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-1 text-text-muted hover:text-text-secondary transition-colors"
             title="Fechar"
           >
             <X className="w-4 h-4" />
@@ -144,11 +144,11 @@ export default function NotificationItem({ notification, onAction }: Notificatio
 
       {/* Conteúdo */}
       <div className="mb-2">
-        <h4 className="text-sm font-medium text-gray-900 mb-1">
+        <h4 className="text-sm font-medium text-text-primary mb-1">
           {notification.title}
         </h4>
         {notification.message && (
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-text-secondary">
             {notification.message}
           </p>
         )}
@@ -156,7 +156,7 @@ export default function NotificationItem({ notification, onAction }: Notificatio
 
       {/* Metadata adicional (se houver) */}
       {notification.metadata && Object.keys(notification.metadata).length > 0 && (
-        <div className="mb-2 p-2 bg-gray-50 rounded text-xs text-gray-600">
+        <div className="mb-2 p-2 bg-gray-50 rounded text-xs text-text-secondary">
           {notification.metadata.protocolo && (
             <div>Protocolo: {notification.metadata.protocolo}</div>
           )}
@@ -179,7 +179,7 @@ export default function NotificationItem({ notification, onAction }: Notificatio
         {notification.action_url && notification.action_text && (
           <button
             onClick={handleAction}
-            className="flex items-center space-x-1 px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            className="flex items-center space-x-1 px-3 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors"
           >
             <span>{notification.action_text}</span>
             <ExternalLink className="w-3 h-3" />
@@ -194,3 +194,4 @@ export default function NotificationItem({ notification, onAction }: Notificatio
     </div>
   );
 }
+

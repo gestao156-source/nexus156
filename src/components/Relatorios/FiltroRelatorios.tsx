@@ -4,7 +4,7 @@ import { FiltrosType, getResponsaveisDisponiveis } from '../../hooks/useRelatori
 
 interface FiltroRelatoriosProps {
   filtros: FiltrosType;
-  onFiltroChange: (filtro: string, valor: any) => void;
+  onFiltroChange: (filtro: string, valor: string | string[] | Record<string, unknown>) => void;
   onLimparFiltros: () => void;
   isAdmin: boolean;
 }
@@ -74,13 +74,13 @@ export default function FiltroRelatorios({
     <div className="bg-white rounded-xl border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-2">
-          <Filter className="w-5 h-5 text-gray-600" />
+          <Filter className="w-5 h-5 text-gray-500" />
           <h3 className="text-lg font-semibold text-gray-900">Filtros</h3>
         </div>
         
         <button
           onClick={limparTodosFiltros}
-          className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+          className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-gray-50 text-gray-500 rounded-lg hover:bg-gray-100 transition-colors"
         >
           <RotateCcw className="w-4 h-4" />
           <span>Limpar Filtros</span>
@@ -91,13 +91,13 @@ export default function FiltroRelatorios({
         {/* Período */}
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
-            <Calendar className="w-4 h-4 text-gray-600" />
+            <Calendar className="w-4 h-4 text-gray-500" />
             <h4 className="font-medium text-gray-900">Período</h4>
           </div>
           
           <div className="space-y-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-900 mb-1">
                 Data Início
               </label>
               <input
@@ -109,7 +109,7 @@ export default function FiltroRelatorios({
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-900 mb-1">
                 Data Fim
               </label>
               <input
@@ -125,7 +125,7 @@ export default function FiltroRelatorios({
         {/* Tipo */}
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
-            <FileText className="w-4 h-4 text-gray-600" />
+            <FileText className="w-4 h-4 text-gray-500" />
             <h4 className="font-medium text-gray-900">Tipo de Item</h4>
           </div>
           
@@ -140,7 +140,7 @@ export default function FiltroRelatorios({
                   onChange={(e) => onFiltroChange('tipo', e.target.value)}
                   className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">{tipo.label}</span>
+                <span className="text-sm text-gray-900">{tipo.label}</span>
               </label>
             ))}
           </div>
@@ -149,7 +149,7 @@ export default function FiltroRelatorios({
         {/* Status */}
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
-            <Filter className="w-4 h-4 text-gray-600" />
+            <Filter className="w-4 h-4 text-gray-500" />
             <h4 className="font-medium text-gray-900">Status</h4>
           </div>
           
@@ -162,7 +162,7 @@ export default function FiltroRelatorios({
                   onChange={(e) => handleStatusChange(status.value, e.target.checked)}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">{status.label}</span>
+                <span className="text-sm text-gray-900">{status.label}</span>
               </label>
             ))}
           </div>
@@ -171,7 +171,7 @@ export default function FiltroRelatorios({
         {/* Responsáveis */}
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
-            <Users className="w-4 h-4 text-gray-600" />
+            <Users className="w-4 h-4 text-gray-500" />
             <h4 className="font-medium text-gray-900">Responsáveis</h4>
           </div>
           
@@ -184,7 +184,7 @@ export default function FiltroRelatorios({
                   onChange={(e) => handleResponsavelChange(responsavel, e.target.checked)}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">{responsavel}</span>
+                <span className="text-sm text-gray-900">{responsavel}</span>
               </label>
             ))}
           </div>
@@ -194,7 +194,7 @@ export default function FiltroRelatorios({
         {isAdmin && (
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
-              <Users className="w-4 h-4 text-gray-600" />
+              <Users className="w-4 h-4 text-gray-500" />
               <h4 className="font-medium text-gray-900">Escopo de Usuário</h4>
             </div>
             
@@ -208,7 +208,7 @@ export default function FiltroRelatorios({
                   onChange={(e) => onFiltroChange('usuario', e.target.value)}
                   className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">Meus itens</span>
+                <span className="text-sm text-gray-900">Meus itens</span>
               </label>
               
               <label className="flex items-center space-x-2 cursor-pointer">
@@ -220,7 +220,7 @@ export default function FiltroRelatorios({
                   onChange={(e) => onFiltroChange('usuario', e.target.value)}
                   className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">Todos os itens</span>
+                <span className="text-sm text-gray-900">Todos os itens</span>
               </label>
             </div>
           </div>
@@ -264,3 +264,4 @@ export default function FiltroRelatorios({
     </div>
   );
 }
+

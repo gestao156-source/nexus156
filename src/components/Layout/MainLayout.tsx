@@ -1,5 +1,5 @@
 import { useAuth } from '../../contexts/AuthContext';
-import { LayoutDashboard, FileText, ClipboardList, LogOut, Shield, User, Settings, BarChart3, Map, Key } from 'lucide-react';
+import { LayoutDashboard, FileText, ClipboardList, LogOut, Shield, User, Settings, BarChart3, Map, Key, CheckSquare } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../../assets/logo-nexus-156.png';
 import NotificationBadge from '../Notifications/NotificationBadge';
@@ -22,6 +22,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
     { id: 'solicitacoes', name: 'Solicitações', icon: FileText },
     { id: 'demandas', name: 'Demandas', icon: ClipboardList },
+    { id: 'planejamento', name: 'Planejamento', icon: CheckSquare },
     { id: 'mapa-fortaleza', name: 'Mapa', icon: Map },
     { id: 'relatorios', name: 'Relatórios', icon: BarChart3 },
   ];
@@ -35,48 +36,50 @@ export default function MainLayout({ children }: MainLayoutProps) {
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-24">
-            <div className="flex items-center space-x-8">
+          <div className="flex items-center h-24">
+            {/* Logo - Esquerda */}
+            <div className="flex-shrink-0">
               <a href="/dashboard" className="flex items-center">
-                <img src={logo} alt="Nexus 156" className="h-40 w-auto object-contain" />
+                <img src={logo} alt="Nexus 156" className="h-12 w-auto object-contain" />
               </a>
+            </div>
 
-              <div className="hidden md:flex space-x-1">
-                {tabs.map((tab) => {
-                  const Icon = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => navigate(`/${tab.id}`)}
-                      className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                        activeTab === tab.id
-                          ? 'bg-blue-50 text-blue-600'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span>{tab.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
+            {/* Tabs - Centro */}
+            <div className="hidden md:flex flex-1 justify-center items-center space-x-0.5 mx-2">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => navigate(`/${tab.id}`)}
+                    className={`flex items-center space-x-1 px-2 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                      activeTab === tab.id
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{tab.name}</span>
+                  </button>
+                );
+              })}
+              
               {/* Aba Admin - só para administradores */}
               {profile?.role === 'admin' && (
-                <div className="hidden md:flex space-x-1 ml-4 pl-4 border-l border-gray-200">
+                <div className="flex space-x-0.5 ml-2 pl-2 border-l border-gray-200">
                   {adminTabs.map((tab) => {
                     const Icon = tab.icon;
                     return (
                       <button
                         key={tab.id}
                         onClick={() => navigate(`/${tab.id}`)}
-                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                        className={`flex items-center space-x-1 px-2 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                           activeTab === tab.id
                             ? 'bg-orange-50 text-orange-600'
                             : 'text-gray-600 hover:bg-gray-50'
                         }`}
                       >
-                        <Icon className="w-5 h-5" />
+                        <Icon className="w-4 h-4" />
                         <span>{tab.name}</span>
                       </button>
                     );
@@ -85,7 +88,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
               )}
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 flex-shrink-0">
               {/* Notification Badge */}
               <NotificationBadge />
               

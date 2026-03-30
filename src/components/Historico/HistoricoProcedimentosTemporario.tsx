@@ -74,14 +74,14 @@ export default function HistoricoProcedimentosTemporario({
         <div className="flex justify-end space-x-2 mt-2">
           <button
             onClick={() => setNovoProcedimento('')}
-            className="px-3 py-1 text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors text-sm"
+            className="px-3 py-1 text-text-secondary bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors text-sm"
             disabled={adicionando}
           >
             Limpar
           </button>
           <button
             onClick={handleAdicionarProcedimento}
-            className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm disabled:opacity-50"
+            className="px-3 py-1 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm disabled:opacity-50"
             disabled={adicionando || !novoProcedimento.trim()}
           >
             {adicionando ? 'Adicionando...' : 'Adicionar'}
@@ -106,13 +106,13 @@ export default function HistoricoProcedimentosTemporario({
                 <div className="flex items-start space-x-3">
                   {/* Avatar/Círculo do usuário */}
                   <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-blue-600" />
+                    <User className="w-4 h-4 text-primary-600" />
                   </div>
                   
                   {/* Conteúdo do procedimento */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm font-medium text-text-primary">
                         {procedimento.usuario_nome || 'Usuário'}
                       </span>
                       <span className="text-xs text-gray-500">
@@ -120,7 +120,7 @@ export default function HistoricoProcedimentosTemporario({
                       </span>
                     </div>
                     
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">
+                    <p className="text-sm text-text-primary whitespace-pre-wrap break-words">
                       {procedimento.procedimento}
                     </p>
                     
@@ -140,3 +140,4 @@ export default function HistoricoProcedimentosTemporario({
     </div>
   );
 }
+

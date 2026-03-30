@@ -64,14 +64,17 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
   }, [autoGeneratePassword, isOpen]);
 
   useEffect(() => {
-    const updatedRequirements = passwordRequirements.map(req => ({
-      ...req,
-      met: req.regex.test(password)
-    }));
-    setPasswordRequirements(updatedRequirements);
-
-    const metCount = updatedRequirements.filter(req => req.met).length;
-    setPasswordStrength((metCount / updatedRequirements.length) * 100);
+    setPasswordRequirements(prev => {
+      const updated = prev.map(req => ({
+        ...req,
+        met: req.regex.test(password)
+      }));
+      
+      const metCount = updated.filter(req => req.met).length;
+      setPasswordStrength((metCount / updated.length) * 100);
+      
+      return updated;
+    });
   }, [password]);
 
   const getStrengthColor = () => {
@@ -155,10 +158,11 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
         onClose();
         resetForm();
       }
-    } catch (err: any) {
-      if (err.message?.includes('User already registered')) {
+    } catch (err: unknown) {
+      const error = err as Error;
+      if (error.message?.includes('User already registered')) {
         setError('Este email já está cadastrado');
-      } else if (err.message?.includes('Password should be')) {
+      } else if (error.message?.includes('Password should be')) {
         setError('A senha não atende aos requisitos de segurança');
       } else {
         setError('Erro ao criar usuário. Tente novamente.');
@@ -193,7 +197,7 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
               <User className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -222,7 +226,7 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
 
           {/* Campo Nome */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <label className="block text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
               <User className="w-4 h-4" />
               Nome Completo
             </label>
@@ -244,7 +248,7 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
 
           {/* Campo Email */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <label className="block text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
               <Mail className="w-4 h-4" />
               Email
             </label>
@@ -266,17 +270,17 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
 
           {/* Campo Role */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <label className="block text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
               <Shield className="w-4 h-4" />
               Nível de Acesso
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-3">
               <button
                 type="button"
                 onClick={() => setRole('user')}
-                className={`p-3 rounded-lg border-2 transition-all duration-200 ${
+                className={`w-full p-3 rounded-lg border-2 transition-all duration-200 ${
                   role === 'user'
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    ? 'border-blue-500 bg-primary-50 text-primary-700'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
@@ -286,7 +290,7 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
               <button
                 type="button"
                 onClick={() => setRole('admin')}
-                className={`p-3 rounded-lg border-2 transition-all duration-200 ${
+                className={`w-full p-3 rounded-lg border-2 transition-all duration-200 ${
                   role === 'admin'
                     ? 'border-orange-500 bg-orange-50 text-orange-700'
                     : 'border-gray-200 hover:border-gray-300'
@@ -301,14 +305,14 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
           {/* Campo Senha */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <label className="block text-sm font-semibold text-gray-900 flex items-center gap-2">
                 <Key className="w-4 h-4" />
                 Senha
               </label>
               <button
                 type="button"
                 onClick={() => setAutoGeneratePassword(!autoGeneratePassword)}
-                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                className="text-xs text-primary-600 hover:text-primary-700 font-medium"
               >
                 {autoGeneratePassword ? 'Definir manualmente' : 'Gerar automaticamente'}
               </button>
@@ -335,7 +339,7 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600 transition-colors"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -394,14 +398,14 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
               type="button"
               onClick={handleClose}
               disabled={loading}
-              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-3 border border-gray-300 text-gray-900 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading || !passwordRequirements.every(req => req.met)}
-              className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="flex-1 bg-primary-600 text-white px-4 py-3 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
@@ -418,3 +422,4 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
     </div>
   );
 }
+

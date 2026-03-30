@@ -39,7 +39,7 @@ export default function Relatorios() {
     }
   }, [isAdmin, filtros.usuario]);
 
-  const handleFiltroChange = (filtro: string, valor: any) => {
+  const handleFiltroChange = (filtro: string, valor: string | string[] | Record<string, unknown>) => {
     setFiltros(prev => {
       const novosFiltros = {
         ...prev,
@@ -71,7 +71,7 @@ export default function Relatorios() {
     setFiltros(getDefaultFiltros());
   };
 
-  const handleVisualizarItem = (item: any) => {
+  const handleVisualizarItem = (item: { id: string; tipo: 'solicitacao' | 'demanda' }) => {
     // Navegar para o item específico usando path parameter
     const tipo = item.tipo === 'solicitacao' ? 'solicitacoes' : 'demandas';
     window.open(`/${tipo}/${item.id}`, '_blank');

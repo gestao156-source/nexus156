@@ -10,9 +10,9 @@ interface HeatmapChartProps {
 export default function HeatmapChart({ data, title = "Distribuição Regional", height = 300 }: HeatmapChartProps) {
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
-        <div className="flex items-center justify-center h-64 text-gray-400">
+      <div className="bg-bg-primary rounded-lg shadow-sm p-6">
+        <h3 className="text-lg font-semibold text-text-primary mb-4">{title}</h3>
+        <div className="flex items-center justify-center h-64 text-text-muted">
           Nenhum dado disponível
         </div>
       </div>
@@ -40,10 +40,10 @@ export default function HeatmapChart({ data, title = "Distribuição Regional", 
       const total = sortedData.reduce((sum, item) => sum + item.value, 0);
       const percentage = total > 0 ? Math.round((data.value / total) * 100) : 0;
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-semibold text-gray-900">{data.region}</p>
-          <p className="text-sm text-gray-600">Quantidade: {data.value}</p>
-          <p className="text-sm text-gray-600">Percentual: {percentage}%</p>
+        <div className="bg-bg-primary p-3 border border-gray-200 rounded-lg shadow-lg">
+          <p className="font-semibold text-text-primary">{data.region}</p>
+          <p className="text-sm text-text-secondary">Quantidade: {data.value}</p>
+          <p className="text-sm text-text-secondary">Percentual: {percentage}%</p>
         </div>
       );
     }
@@ -51,8 +51,8 @@ export default function HeatmapChart({ data, title = "Distribuição Regional", 
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
+    <div className="bg-bg-primary rounded-lg shadow-sm p-6">
+      <h3 className="text-lg font-semibold text-text-primary mb-4">{title}</h3>
       <ResponsiveContainer width="100%" height={height}>
         <RechartsBarChart 
           data={sortedData} 
@@ -81,19 +81,19 @@ export default function HeatmapChart({ data, title = "Distribuição Regional", 
       
       {/* Legenda de intensidade */}
       <div className="mt-4 flex items-center justify-between text-sm">
-        <span className="text-gray-600">Intensidade:</span>
+        <span className="text-text-secondary">Intensidade:</span>
         <div className="flex items-center space-x-2">
           <div className="flex items-center space-x-1">
             <div className="w-3 h-3 rounded" style={{ backgroundColor: '#DC2626' }} />
-            <span className="text-gray-600">Alta</span>
+            <span className="text-text-secondary">Alta</span>
           </div>
           <div className="flex items-center space-x-1">
             <div className="w-3 h-3 rounded" style={{ backgroundColor: '#F59E0B' }} />
-            <span className="text-gray-600">Média</span>
+            <span className="text-text-secondary">Média</span>
           </div>
           <div className="flex items-center space-x-1">
             <div className="w-3 h-3 rounded" style={{ backgroundColor: '#3B82F6' }} />
-            <span className="text-gray-600">Baixa</span>
+            <span className="text-text-secondary">Baixa</span>
           </div>
         </div>
       </div>
@@ -102,8 +102,8 @@ export default function HeatmapChart({ data, title = "Distribuição Regional", 
       <div className="mt-4 grid grid-cols-3 gap-2 text-sm">
         {sortedData.slice(0, 3).map((item, index) => (
           <div key={item.region} className="bg-gray-50 p-2 rounded text-center">
-            <p className="font-medium text-gray-900 text-xs">#{index + 1}</p>
-            <p className="text-gray-600 truncate">{item.region}</p>
+            <p className="font-medium text-text-primary text-xs">#{index + 1}</p>
+            <p className="text-text-secondary truncate">{item.region}</p>
             <p className="text-gray-800 font-semibold">{item.value}</p>
           </div>
         ))}
@@ -111,3 +111,4 @@ export default function HeatmapChart({ data, title = "Distribuição Regional", 
     </div>
   );
 }
+

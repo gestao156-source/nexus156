@@ -26,11 +26,11 @@ export default function AcessoCard({ acesso, onEdit, onDelete, getStatusColor }:
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
+    <div className="bg-bg-primary rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
       {/* Header */}
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 text-lg mb-1">
+          <h3 className="font-semibold text-text-primary text-lg mb-1">
             {acesso.servidor_beneficiado}
           </h3>
           <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(acesso.status)}`}>
@@ -41,19 +41,19 @@ export default function AcessoCard({ acesso, onEdit, onDelete, getStatusColor }:
         <div className="relative">
           <button
             onClick={() => setShowMenu(!showMenu)}
-            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-1 text-text-muted hover:text-text-secondary transition-colors"
           >
             <MoreVertical className="w-5 h-5" />
           </button>
           
           {showMenu && (
-            <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+            <div className="absolute right-0 mt-1 w-48 bg-bg-primary rounded-lg shadow-lg border border-gray-200 py-1 z-10">
               <button
                 onClick={() => {
                   onEdit(acesso);
                   setShowMenu(false);
                 }}
-                className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full"
+                className="flex items-center px-3 py-2 text-sm text-text-primary hover:bg-gray-50 w-full"
               >
                 <Edit className="w-4 h-4 mr-2" />
                 Editar
@@ -75,29 +75,29 @@ export default function AcessoCard({ acesso, onEdit, onDelete, getStatusColor }:
 
       {/* Informações principais */}
       <div className="space-y-2">
-        <div className="flex items-center text-sm text-gray-600">
-          <User className="w-4 h-4 mr-2 text-gray-400" />
+        <div className="flex items-center text-sm text-text-secondary">
+          <User className="w-4 h-4 mr-2 text-text-muted" />
           <span className="font-medium">Solicitante:</span>
           <span className="ml-1">{acesso.solicitante_wpp}</span>
         </div>
 
-        <div className="flex items-center text-sm text-gray-600">
-          <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+        <div className="flex items-center text-sm text-text-secondary">
+          <Calendar className="w-4 h-4 mr-2 text-text-muted" />
           <span className="font-medium">Solicitação:</span>
           <span className="ml-1">{formatDate(acesso.data_solicitacao)}</span>
         </div>
 
         {acesso.data_criacao_acesso && (
-          <div className="flex items-center text-sm text-gray-600">
-            <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+          <div className="flex items-center text-sm text-text-secondary">
+            <Calendar className="w-4 h-4 mr-2 text-text-muted" />
             <span className="font-medium">Criação:</span>
             <span className="ml-1">{formatDate(acesso.data_criacao_acesso)}</span>
           </div>
         )}
 
         {(acesso.regional || acesso.setor) && (
-          <div className="flex items-center text-sm text-gray-600">
-            <MapPin className="w-4 h-4 mr-2 text-gray-400" />
+          <div className="flex items-center text-sm text-text-secondary">
+            <MapPin className="w-4 h-4 mr-2 text-text-muted" />
             {acesso.regional && (
               <>
                 <span className="font-medium">Regional:</span>
@@ -115,8 +115,8 @@ export default function AcessoCard({ acesso, onEdit, onDelete, getStatusColor }:
         )}
 
         {acesso.responsavel_nexus && (
-          <div className="flex items-center text-sm text-gray-600">
-            <Building className="w-4 h-4 mr-2 text-gray-400" />
+          <div className="flex items-center text-sm text-text-secondary">
+            <Building className="w-4 h-4 mr-2 text-text-muted" />
             <span className="font-medium">Responsável NEXUS:</span>
             <span className="ml-1">{acesso.responsavel_nexus}</span>
           </div>
@@ -126,7 +126,7 @@ export default function AcessoCard({ acesso, onEdit, onDelete, getStatusColor }:
       {/* Observações */}
       {acesso.observacoes && (
         <div className="mt-3 pt-3 border-t border-gray-100">
-          <p className="text-sm text-gray-600 line-clamp-2">
+          <p className="text-sm text-text-secondary line-clamp-2">
             {acesso.observacoes}
           </p>
         </div>
@@ -146,3 +146,4 @@ export default function AcessoCard({ acesso, onEdit, onDelete, getStatusColor }:
     </div>
   );
 }
+

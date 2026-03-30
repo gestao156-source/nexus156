@@ -73,7 +73,7 @@ export default function FiltrosMapa({ filtros, onFiltrosChange, onAplicarFiltros
               onMouseEnter={() => !isMobile && setTooltipAtivo('status')}
               onMouseLeave={() => !isMobile && setTooltipAtivo(null)}
               onClick={() => isMobile && setTooltipAtivo(tooltipAtivo === 'status' ? null : 'status')}
-              className="text-gray-400 hover:text-gray-600 p-1"
+              className="text-text-muted hover:text-text-secondary p-1"
             >
               <Info className="w-4 h-4" />
             </button>
@@ -95,8 +95,10 @@ export default function FiltrosMapa({ filtros, onFiltrosChange, onAplicarFiltros
                 type="checkbox"
                 checked={filtros.status.includes(status)}
                 onChange={(e) => handleStatusChange(status, e.target.checked)}
-                className="rounded text-blue-600"
+                className="rounded text-primary-600"
               />
+              <div className="border border-blue-200">
+              </div>
               <span className="text-sm capitalize">{status.replace('_', ' ')}</span>
             </label>
           ))}
@@ -112,7 +114,7 @@ export default function FiltrosMapa({ filtros, onFiltrosChange, onAplicarFiltros
               onMouseEnter={() => !isMobile && setTooltipAtivo('tipo')}
               onMouseLeave={() => !isMobile && setTooltipAtivo(null)}
               onClick={() => isMobile && setTooltipAtivo(tooltipAtivo === 'tipo' ? null : 'tipo')}
-              className="text-gray-400 hover:text-gray-600 p-1"
+              className="text-text-muted hover:text-text-secondary p-1"
             >
               <Info className="w-4 h-4" />
             </button>
@@ -140,7 +142,7 @@ export default function FiltrosMapa({ filtros, onFiltrosChange, onAplicarFiltros
                 value={tipo.value}
                 checked={filtros.tipo === tipo.value}
                 onChange={(e) => onFiltrosChange({ ...filtros, tipo: e.target.value })}
-                className="text-blue-600"
+                className="text-primary-600"
               />
               <span className="text-sm">{tipo.label}</span>
             </label>
@@ -157,7 +159,7 @@ export default function FiltrosMapa({ filtros, onFiltrosChange, onAplicarFiltros
               onMouseEnter={() => !isMobile && setTooltipAtivo('regional')}
               onMouseLeave={() => !isMobile && setTooltipAtivo(null)}
               onClick={() => isMobile && setTooltipAtivo(tooltipAtivo === 'regional' ? null : 'regional')}
-              className="text-gray-400 hover:text-gray-600 p-1"
+              className="text-text-muted hover:text-text-secondary p-1"
             >
               <Info className="w-4 h-4" />
             </button>
@@ -195,7 +197,7 @@ export default function FiltrosMapa({ filtros, onFiltrosChange, onAplicarFiltros
               onMouseEnter={() => !isMobile && setTooltipAtivo('periodo')}
               onMouseLeave={() => !isMobile && setTooltipAtivo(null)}
               onClick={() => isMobile && setTooltipAtivo(tooltipAtivo === 'periodo' ? null : 'periodo')}
-              className="text-gray-400 hover:text-gray-600 p-1"
+              className="text-text-muted hover:text-text-secondary p-1"
             >
               <Info className="w-4 h-4" />
             </button>
@@ -212,7 +214,7 @@ export default function FiltrosMapa({ filtros, onFiltrosChange, onAplicarFiltros
         
         <div className="space-y-2">
           <div>
-            <label className="text-xs text-gray-600">Data Início</label>
+            <label className="text-xs text-text-secondary">Data Início</label>
             <input
               type="date"
               value={filtros.periodo.inicio instanceof Date && !isNaN(filtros.periodo.inicio.getTime()) ? filtros.periodo.inicio.toISOString().split('T')[0] : ''}
@@ -221,7 +223,7 @@ export default function FiltrosMapa({ filtros, onFiltrosChange, onAplicarFiltros
             />
           </div>
           <div>
-            <label className="text-xs text-gray-600">Data Fim</label>
+            <label className="text-xs text-text-secondary">Data Fim</label>
             <input
               type="date"
               value={filtros.periodo.fim instanceof Date && !isNaN(filtros.periodo.fim.getTime()) ? filtros.periodo.fim.toISOString().split('T')[0] : ''}
@@ -241,7 +243,7 @@ export default function FiltrosMapa({ filtros, onFiltrosChange, onAplicarFiltros
               onMouseEnter={() => !isMobile && setTooltipAtivo('atrasadas')}
               onMouseLeave={() => !isMobile && setTooltipAtivo(null)}
               onClick={() => isMobile && setTooltipAtivo(tooltipAtivo === 'atrasadas' ? null : 'atrasadas')}
-              className="text-gray-400 hover:text-gray-600 p-1"
+              className="text-text-muted hover:text-text-secondary p-1"
             >
               <Info className="w-4 h-4" />
             </button>
@@ -268,8 +270,8 @@ export default function FiltrosMapa({ filtros, onFiltrosChange, onAplicarFiltros
       </div>
 
       {/* Estatísticas Compactas */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
-        <h4 className="font-semibold text-blue-900 mb-3 text-sm">Estatísticas em Tempo Real</h4>
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-primary-200">
+        <h4 className="font-semibold text-gray-900 mb-3 text-sm">Estatísticas em Tempo Real</h4>
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="bg-white p-2 rounded border border-blue-100">
             <div className="text-blue-600 font-bold text-lg">{stats.total}</div>
@@ -277,11 +279,11 @@ export default function FiltrosMapa({ filtros, onFiltrosChange, onAplicarFiltros
           </div>
           <div className="bg-white p-2 rounded border border-blue-100">
             <div className="text-green-600 font-bold text-lg">{stats.comCoordenadas}</div>
-            <div className="text-gray-600">Mapa</div>
+            <div className="text-text-secondary">Mapa</div>
           </div>
           <div className="bg-white p-2 rounded border border-blue-100">
             <div className="text-yellow-600 font-bold text-lg">{stats.semCoordenadas}</div>
-            <div className="text-gray-600">Sem Coord.</div>
+            <div className="text-text-secondary">Sem Coord.</div>
           </div>
           <div className="bg-white p-2 rounded border border-blue-100 col-span-2">
             <div className="text-indigo-600 font-bold text-xs">Atualizado: {stats.ultimoUpdate.toLocaleTimeString()}</div>
@@ -293,7 +295,7 @@ export default function FiltrosMapa({ filtros, onFiltrosChange, onAplicarFiltros
       {!isMobile && (
         <button
           onClick={onAplicarFiltros}
-          className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          className="w-full bg-primary-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors"
         >
           Aplicar Filtros
         </button>
@@ -303,7 +305,7 @@ export default function FiltrosMapa({ filtros, onFiltrosChange, onAplicarFiltros
       {isMobile && (
         <button
           onClick={onAplicarFiltros}
-          className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          className="w-full bg-primary-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors"
         >
           Aplicar Filtros
         </button>
@@ -311,3 +313,4 @@ export default function FiltrosMapa({ filtros, onFiltrosChange, onAplicarFiltros
     </div>
   );
 }
+

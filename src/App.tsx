@@ -18,6 +18,7 @@ const MapaFortaleza = lazy(() => import('./pages/MapaFortaleza'));
 const ItemDetalhes = lazy(() => import('./pages/ItemDetalhes'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const Auth = lazy(() => import('./components/Auth/Auth'));
+const Planejamento = lazy(() => import('./pages/Planejamento'));
 
 // Loading component
 const LoadingSpinner = () => (
@@ -98,6 +99,11 @@ function ProtectedRoutes() {
         <Route path="/notifications" element={
           <Suspense fallback={<LoadingSpinner />}>
             <Notifications />
+          </Suspense>
+        } />
+        <Route path="/planejamento" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <Planejamento />
           </Suspense>
         } />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />

@@ -35,7 +35,7 @@ export default function RegionalBairrosChart({
     return (
       <div className="bg-white rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
-        <div className="flex items-center justify-center h-64 text-gray-400">
+        <div className="flex items-center justify-center h-64 text-text-muted">
           Nenhum dado disponível
         </div>
       </div>
@@ -216,7 +216,7 @@ export default function RegionalBairrosChart({
                 setSelectedBairro(null);
                 setItensData([]);
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+              className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200"
             >
               <ChevronLeft className="w-4 h-4" />
               <span className="font-medium">Voltar para Regionais</span>
@@ -227,11 +227,11 @@ export default function RegionalBairrosChart({
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center h-64 text-gray-400">
+            <div className="flex items-center justify-center h-64 text-gray-500">
               Carregando bairros...
             </div>
           ) : bairrosData.length === 0 ? (
-            <div className="flex items-center justify-center h-64 text-gray-400">
+            <div className="flex items-center justify-center h-64 text-gray-500">
               Nenhum bairro encontrado para esta regional
             </div>
           ) : (
@@ -244,10 +244,10 @@ export default function RegionalBairrosChart({
                   className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200 cursor-pointer"
                 >
                   <div>
-                    <p className="font-medium text-gray-900">{bairro.bairro}</p>
-                    <p className="text-sm text-gray-600">{bairro.quantidade} demandas</p>
+                    <p className="font-medium text-text-primary">{bairro.bairro}</p>
+                    <p className="text-sm text-text-secondary">{bairro.quantidade} demandas</p>
                   </div>
-                  <div className="text-sm font-medium text-gray-700">
+                  <div className="text-sm font-medium text-text-primary">
                     #{index + 1}
                   </div>
                 </div>
@@ -264,7 +264,7 @@ export default function RegionalBairrosChart({
                 setSelectedBairro(null);
                 setItensData([]);
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+              className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200"
             >
               <ChevronLeft className="w-4 h-4" />
               <span className="font-medium">Voltar para Bairros</span>
@@ -275,11 +275,11 @@ export default function RegionalBairrosChart({
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center h-64 text-gray-400">
+            <div className="flex items-center justify-center h-64 text-gray-500">
               Carregando demandas...
             </div>
           ) : itensData.length === 0 ? (
-            <div className="flex items-center justify-center h-64 text-gray-400">
+            <div className="flex items-center justify-center h-64 text-gray-500">
               Nenhuma demanda encontrada para este bairro
             </div>
           ) : (
@@ -293,8 +293,8 @@ export default function RegionalBairrosChart({
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <FileText className="w-4 h-4 text-blue-600" />
-                      <p className="font-medium text-gray-900">{item.protocolo || 'N/A'}</p>
+                      <FileText className="w-4 h-4 text-primary-600" />
+                      <p className="font-medium text-text-primary">{item.protocolo || 'N/A'}</p>
                       <span className={`px-2 py-1 text-xs rounded ${
                         item.status === 'finalizado' ? 'bg-green-100 text-green-800' :
                         item.status === 'em_analise' ? 'bg-yellow-100 text-yellow-800' :
@@ -306,7 +306,7 @@ export default function RegionalBairrosChart({
                          'Pendente'}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 mb-1">{item.assunto || 'Sem assunto'}</p>
+                    <p className="text-sm text-text-secondary mb-1">{item.assunto || 'Sem assunto'}</p>
                     <div className="flex items-center gap-4 text-xs text-gray-500">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
@@ -323,7 +323,7 @@ export default function RegionalBairrosChart({
                       )}
                     </div>
                   </div>
-                  <div className="text-sm text-gray-400">
+                  <div className="text-sm text-text-muted">
                     Clique para ver detalhes
                   </div>
                 </div>
@@ -335,3 +335,4 @@ export default function RegionalBairrosChart({
     </div>
   );
 }
+

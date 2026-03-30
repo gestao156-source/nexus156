@@ -19,8 +19,8 @@ export default function BarChart({ data }: BarChartProps) {
         return (
           <div key={index} className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">{item.name}</span>
-              <span className="text-sm font-semibold text-gray-900">{item.value}</span>
+              <span className="text-sm font-medium text-text-primary">{item.name}</span>
+              <span className="text-sm font-semibold text-text-primary">{item.value}</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-8 overflow-hidden">
               <div
@@ -44,3 +44,4 @@ export default function BarChart({ data }: BarChartProps) {
     </div>
   );
 }
+

@@ -17,7 +17,7 @@ export default function NotificationBadge({ className = '' }: NotificationBadgeP
   // Mostrar loading state
   if (loading) {
     return (
-      <button className={`relative p-2 text-gray-600 hover:text-gray-900 transition-colors ${className}`}>
+      <button className={`relative p-2 text-text-secondary hover:text-text-primary transition-colors ${className}`}>
         <Bell className="w-5 h-5" />
         <div className="absolute top-1 right-1 w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
       </button>
@@ -27,7 +27,7 @@ export default function NotificationBadge({ className = '' }: NotificationBadgeP
   return (
     <button
       onClick={handleClick}
-      className={`relative p-2 text-gray-600 hover:text-gray-900 transition-colors ${className}`}
+      className={`relative p-2 text-text-secondary hover:text-text-primary transition-colors ${className}`}
       title={`Notificações${unreadCount > 0 ? ` (${unreadCount} não lidas)` : ''}`}
     >
       <Bell className="w-5 h-5" />
@@ -46,3 +46,4 @@ export default function NotificationBadge({ className = '' }: NotificationBadgeP
     </button>
   );
 }
+

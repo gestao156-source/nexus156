@@ -17,7 +17,7 @@ export default function NotificationsPage() {
     markAllAsRead, 
     refreshNotifications 
   } = useNotifications();
-  const { showSuccess, showError } = useToast();
+  const { showSuccess } = useToast();
 
   const [filter, setFilter] = useState<{
     status: NotificationStatus | 'all';
@@ -43,8 +43,8 @@ export default function NotificationsPage() {
     try {
       await refreshNotifications();
       showSuccess('Notificações atualizadas');
-    } catch (err) {
-      showError('Erro ao atualizar notificações');
+    } catch (error: unknown) {
+      console.error('Erro ao criar notificação:', error);
     } finally {
       setIsRefreshing(false);
     }
@@ -55,8 +55,8 @@ export default function NotificationsPage() {
     try {
       await markAllAsRead();
       showSuccess('Todas as notificações marcadas como lidas');
-    } catch (err) {
-      showError('Erro ao marcar notificações como lidas');
+    } catch (error: unknown) {
+      console.error('Erro ao marcar notificação como lida:', error);
     }
   };
 
@@ -69,18 +69,18 @@ export default function NotificationsPage() {
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => navigate(-1)}
-                className="p-2 text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-gray-500 hover:text-gray-700 transition-colors"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <h1 className="text-xl font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Notificações
                 {unreadCount > 0 && (
-                  <span className="ml-2 text-sm text-blue-600">
+                  <span className="ml-2 text-sm text-gray-500">
                     ({unreadCount} não lidas)
                   </span>
                 )}
-              </h1>
+              </h3>
             </div>
 
             <div className="flex items-center space-x-2">
@@ -88,7 +88,7 @@ export default function NotificationsPage() {
               <button
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className="p-2 text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-gray-500 hover:text-gray-700 transition-colors"
                 title="Atualizar"
               >
                 <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -97,7 +97,7 @@ export default function NotificationsPage() {
               {/* Settings button */}
               <button
                 onClick={() => setShowCenter(true)}
-                className="p-2 text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-gray-500 hover:text-gray-700 transition-colors"
                 title="Configurações"
               >
                 <Settings className="w-5 h-5" />
@@ -116,8 +116,8 @@ export default function NotificationsPage() {
               <Filter className="w-4 h-4 text-gray-500" />
               <select
                 value={filter.status}
-                onChange={(e) => setFilter(prev => ({ ...prev, status: e.target.value as any }))}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => setFilter(prev => ({ ...prev, status: e.target.value as NotificationStatus | 'all' }))}
+                className="bg-white rounded-xl border border-gray-200 p-4"
               >
                 <option value="all">Todos os status</option>
                 <option value="unread">Não lidas</option>
@@ -130,8 +130,8 @@ export default function NotificationsPage() {
             <div className="flex items-center space-x-2">
               <select
                 value={filter.type}
-                onChange={(e) => setFilter(prev => ({ ...prev, type: e.target.value as any }))}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => setFilter(prev => ({ ...prev, type: e.target.value as NotificationType | 'all' }))}
+                className="bg-white rounded-xl border border-gray-200 p-4"
               >
                 <option value="all">Todos os tipos</option>
                 <option value="new_item">Novos itens</option>
@@ -172,7 +172,7 @@ export default function NotificationsPage() {
         {loading && (
           <div className="flex items-center justify-center py-12">
             <RefreshCw className="w-6 h-6 animate-spin text-blue-600" />
-            <span className="ml-2 text-gray-600">Carregando notificações...</span>
+            <span className="ml-2 text-sm text-gray-600">Carregando notificações...</span>
           </div>
         )}
 
@@ -221,7 +221,7 @@ export default function NotificationsPage() {
 
         {!loading && !error && filteredNotifications.length > 0 && (
           <div>
-            <div className="mb-4 text-sm text-gray-600">
+            <div className="mb-4 text-sm text-gray-400">
               {filteredNotifications.length} notificação{filteredNotifications.length !== 1 ? 's' : ''}
               {filter.status !== 'all' || filter.type !== 'all' && ' (filtradas)'}
             </div>

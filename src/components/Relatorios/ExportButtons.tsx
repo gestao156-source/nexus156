@@ -74,7 +74,7 @@ export default function ExportButtons({
         disabled={isDisabled || exportando !== null}
         className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
           isDisabled || exportando !== null
-            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            ? 'bg-gray-100 text-text-muted cursor-not-allowed'
             : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
         }`}
       >
@@ -94,7 +94,7 @@ export default function ExportButtons({
         disabled={isDisabled || exportando !== null}
         className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
           isDisabled || exportando !== null
-            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
             : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
         }`}
       >
@@ -151,22 +151,22 @@ export function ExportInfo({ dados, camposSelecionados }: { dados: RelatorioItem
       
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div>
-          <span className="text-gray-600">Registros:</span>
+          <span className="text-gray-500">Registros:</span>
           <span className="ml-2 font-medium text-gray-900">{dados.length}</span>
         </div>
         
         <div>
-          <span className="text-gray-600">Campos:</span>
+          <span className="text-gray-500">Campos:</span>
           <span className="ml-2 font-medium text-gray-900">{camposSelecionados.length}</span>
         </div>
         
         <div>
-          <span className="text-gray-600">Formatos:</span>
+          <span className="text-gray-500">Formatos:</span>
           <span className="ml-2 font-medium text-gray-900">CSV, Excel</span>
         </div>
         
         <div>
-          <span className="text-gray-600">Tamanho estimado:</span>
+          <span className="text-gray-500">Tamanho estimado:</span>
           <span className="ml-2 font-medium text-gray-900">
             ~{Math.round((dados.length * camposSelecionados.length * 50) / 1024)}KB
           </span>
@@ -181,3 +181,4 @@ export function ExportInfo({ dados, camposSelecionados }: { dados: RelatorioItem
     </div>
   );
 }
+

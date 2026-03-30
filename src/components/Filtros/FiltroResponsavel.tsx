@@ -54,7 +54,7 @@ export default function FiltroResponsavel({
 
   if (loading) {
     return (
-      <div className={`bg-white rounded-xl border border-gray-200 p-4 ${className}`}>
+      <div className={`bg-bg-primary rounded-xl border border-gray-200 p-4 ${className}`}>
         <div className="animate-pulse flex items-center space-x-3">
           <div className="h-4 bg-gray-200 rounded w-20"></div>
           <div className="h-10 bg-gray-200 rounded w-48"></div>
@@ -66,12 +66,12 @@ export default function FiltroResponsavel({
   const todosResponsaveis = profiles.filter(p => p.full_name);
 
   return (
-    <div className={`bg-white rounded-xl border border-gray-200 p-4 ${className}`}>
+    <div className={`bg-bg-primary rounded-xl border border-gray-200 p-4 ${className}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3 flex-1">
           <div className="flex items-center space-x-2">
-            <Users className="w-4 h-4 text-gray-600" />
-            <label className="font-medium text-gray-700">
+            <Users className="w-4 h-4 text-text-secondary" />
+            <label className="font-medium text-text-primary">
               Responsável:
             </label>
           </div>
@@ -104,7 +104,7 @@ export default function FiltroResponsavel({
         {responsaveisSelecionados.length > 0 && (
           <button
             onClick={limparFiltro}
-            className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+            className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-gray-50 text-text-secondary rounded-lg hover:bg-gray-100 transition-colors"
           >
             <RotateCcw className="w-3 h-3" />
             <span>Limpar</span>
@@ -120,7 +120,7 @@ export default function FiltroResponsavel({
               return (
                 <span
                   key={responsavelId}
-                  className="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded"
+                  className="inline-flex items-center px-2 py-1 bg-primary-50 text-primary-700 text-xs rounded"
                 >
                   {responsavel?.full_name || responsavelId}
                 </span>
@@ -132,3 +132,4 @@ export default function FiltroResponsavel({
     </div>
   );
 }
+

@@ -9,7 +9,7 @@ class Logger {
   private static isDevelopment = import.meta.env.DEV;
   private static isProduction = import.meta.env.PROD;
 
-  static error(message: string, error?: any, context?: string, allowInProduction: boolean = false) {
+  static error(message: string, error?: unknown, context?: string, allowInProduction: boolean = false) {
     if (this.isDevelopment) {
       console.error(`[ERROR] ${context ? `[${context}] ` : ''}${message}`, error);
     }
@@ -20,7 +20,7 @@ class Logger {
     }
   }
 
-  static critical(message: string, error?: any, context?: string) {
+  static critical(message: string, error?: unknown, context?: string) {
     if (this.isDevelopment) {
       console.error(`[CRITICAL] ${context ? `[${context}] ` : ''}${message}`, error);
     }
@@ -45,7 +45,7 @@ class Logger {
     // Infos NUNCA aparecem em produção
   }
 
-  static debug(message: string, data?: any, context?: string) {
+  static debug(message: string, data?: unknown, context?: string) {
     if (this.isDevelopment) {
       console.log(`[DEBUG] ${context ? `[${context}] ` : ''}${message}`, data);
     }

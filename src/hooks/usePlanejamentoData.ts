@@ -1,0 +1,270 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import { 
+  TarefaPlanejamentoExtendida, 
+  CreateTarefaData, 
+  UpdateTarefaData,
+  Profile 
+} from '../types';
+import { useToast } from '../contexts/ToastContext';
+
+export function usePlanejamentoData() {
+  const [tarefas, setTarefas] = useState<TarefaPlanejamentoExtendida[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { showSuccess, showError } = useToast();
+
+  // Carregar dados iniciais
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Carregar tarefas com informações de responsável e criador (consulta temporária)
+      const { data: tarefasData, error: tarefasError } = await supabase
+        .from('tarefas_planejamento')
+        .select(`
+          *,
+          profiles!responsavel_id (
+            full_name
+          ),
+          creator:profiles!criador_id (
+            full_name
+          )
+        `);
+
+      if (tarefasError) {
+        console.error('Erro ao carregar tarefas:', tarefasError);
+        setError('Erro ao carregar tarefas');
+        return;
+      }
+
+      // Formatar dados para o formato esperado
+      const tarefasFormatadas = (tarefasData || []).map(tarefa => ({
+        ...tarefa,
+        responsavel_nome: tarefa.profiles?.full_name,
+        criador_nome: tarefa.creator?.full_name
+      }));
+
+      // Carregar profiles para seleção de responsáveis
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, email, full_name, role, created_at')
+        .order('full_name');
+
+      if (profilesError) {
+        console.error('Erro ao carregar profiles:', profilesError);
+        setError('Erro ao carregar usuários');
+        return;
+      }
+
+      setTarefas(tarefasFormatadas);
+      setProfiles(profilesData || []);
+    } catch (err) {
+      console.error('Erro inesperado:', err);
+      setError('Erro inesperado ao carregar dados');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Criar nova tarefa
+  const createTarefa = async (data: CreateTarefaData) => {
+    try {
+      // Obter usuário atual
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        throw new Error('Usuário não autenticado');
+      }
+      
+      if (!user) {
+        throw new Error('Usuário não encontrado');
+      }
+
+      // Obter próxima ordem para a coluna
+      const { data: maxOrdem } = await supabase
+        .from('tarefas_planejamento')
+        .select('ordem')
+        .eq('coluna', data.coluna || 'backlog')
+        .order('ordem', { ascending: false })
+        .limit(1)
+        .single();
+
+      const novaOrdem = maxOrdem ? maxOrdem.ordem + 1 : 0;
+
+      // Preparar dados apenas com campos válidos do CreateTarefaData
+      const novaTarefa: any = {
+        titulo: data.titulo,
+        descricao: data.descricao || '',
+        coluna: data.coluna || 'backlog',
+        etiqueta: data.etiqueta || '',
+        responsavel_id: data.responsavel_id || '',
+        criador_id: user.id,
+        prioridade: data.prioridade || 'media',
+        ordem: novaOrdem,
+        tags: data.tags || [],
+        created_at: new Date().toISOString() // Data de criação automática
+      };
+
+      // Adicionar campos de data apenas se tiverem valores
+      if (data.data_inicio) novaTarefa.data_inicio = data.data_inicio;
+      if (data.data_limite) novaTarefa.data_limite = data.data_limite;
+
+      const { error } = await supabase
+        .from('tarefas_planejamento')
+        .insert(novaTarefa)
+        .select();
+
+      if (error) {
+        console.error('Erro ao criar tarefa:', error);
+        throw error;
+      }
+
+      // Recarregar dados para obter informações completas
+      await loadData();
+      showSuccess('Tarefa Criada', `"${data.titulo}" foi criada com sucesso!`);
+      return novaTarefa;
+    } catch (err) {
+      console.error('Erro ao criar tarefa:', err);
+      showError('Erro ao Criar', 'Não foi possível criar a tarefa. Tente novamente.');
+      throw err;
+    }
+  };
+
+  // Atualizar tarefa existente
+  const updateTarefa = async (data: UpdateTarefaData) => {
+    try {
+      // Verificar se é ação de exclusão
+      if (data.action === 'delete') {
+        await deleteTarefa(data.id);
+        return;
+      }
+
+      // Atualização normal - limpar campos vazios
+      const updateData: any = {
+        ...data,
+        updated_at: new Date().toISOString()
+      };
+
+      // Remover campos vazios para evitar erro de data
+      if (!updateData.data_inicio) delete updateData.data_inicio;
+      if (!updateData.data_limite) delete updateData.data_limite;
+      if (!updateData.data_conclusao) delete updateData.data_conclusao;
+      
+      // Remover campo action se existir
+      delete updateData.action;
+
+      const { error } = await supabase
+        .from('tarefas_planejamento')
+        .update(updateData)
+        .eq('id', data.id);
+
+      if (error) {
+        console.error('Erro ao atualizar tarefa:', error);
+        showError('Erro ao Atualizar', 'Não foi possível atualizar a tarefa.');
+        throw error;
+      }
+
+      // Recarregar dados
+      await loadData();
+      showSuccess('Tarefa Atualizada', 'Tarefa atualizada com sucesso!');
+    } catch (err) {
+      console.error('Erro ao atualizar tarefa:', err);
+      showError('Erro ao Atualizar', 'Não foi possível atualizar a tarefa. Tente novamente.');
+      throw err;
+    }
+  };
+
+  // Excluir tarefa
+  const deleteTarefa = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('tarefas_planejamento')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Erro ao excluir tarefa:', error);
+        showError('Erro ao Excluir', 'Não foi possível excluir a tarefa.');
+        throw error;
+      }
+
+      // Recarregar dados
+      await loadData();
+      showSuccess('Tarefa Excluída', 'Tarefa excluída com sucesso!');
+    } catch (err) {
+      console.error('Erro ao excluir tarefa:', err);
+      showError('Erro ao Excluir', 'Não foi possível excluir a tarefa. Tente novamente.');
+      throw err;
+    }
+  };
+
+  // Mover tarefa entre colunas (com reordenação)
+  const moveTarefa = async (tarefaId: string, novaColuna: string, novaOrdem?: number) => {
+    try {
+      const { error } = await supabase
+        .from('tarefas_planejamento')
+        .update({
+          coluna: novaColuna,
+          ordem: novaOrdem || 0,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', tarefaId);
+
+      if (error) {
+        console.error('Erro ao mover tarefa:', error);
+        showError('Erro ao Mover', 'Não foi possível mover a tarefa.');
+        throw error;
+      }
+
+      // Recarregar dados
+      await loadData();
+      showSuccess('Tarefa Movida', 'Tarefa movida com sucesso!');
+    } catch (err) {
+      console.error('Erro ao mover tarefa:', err);
+      showError('Erro ao Mover', 'Não foi possível mover a tarefa. Tente novamente.');
+      throw err;
+    }
+  };
+
+  // Carregar dados na montagem do componente
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // Inscrever para atualizações em tempo real
+  useEffect(() => {
+    const channel = supabase
+      .channel('tarefas_planejamento_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tarefas_planejamento'
+        },
+        () => {
+          loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  return {
+    tarefas,
+    profiles,
+    loading,
+    error,
+    refetch: loadData,
+    createTarefa,
+    updateTarefa,
+    deleteTarefa,
+    moveTarefa
+  };
+}

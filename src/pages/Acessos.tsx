@@ -217,7 +217,14 @@ Dados do acesso foram atualizados. Continuando tramitação para liberação do 
   };
 
   const formatarStatusTexto = (status: string): string => {
-    return status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
+    switch (status) {
+      case 'solicitado': return 'Solicitado';
+      case 'em_andamento': return 'Em Andamento';
+      case 'criado': return 'Criado';
+      case 'ativo': return 'Ativo';
+      case 'desativado': return 'Desativado';
+      default: return status;
+    }
   };
 
   const adicionarProcedimentosIniciais = async (acessoId: string, procedimentos: string[]) => {
@@ -286,7 +293,7 @@ Dados do acesso foram atualizados. Continuando tramitação para liberação do 
       case 'criado': return 'bg-purple-100 text-purple-800';
       case 'ativo': return 'bg-green-100 text-green-800';
       case 'desativado': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-blue-50 border-blue-200';
     }
   };
 
@@ -321,7 +328,7 @@ Dados do acesso foram atualizados. Continuando tramitação para liberação do 
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+            <label className="block text-sm font-medium text-gray-900 mb-2">Buscar</label>
             <input
               type="text"
               value={busca}
@@ -332,7 +339,7 @@ Dados do acesso foram atualizados. Continuando tramitação para liberação do 
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Responsável NEXUS</label>
+            <label className="block text-sm font-medium text-gray-900 mb-2">Responsável NEXUS</label>
             <select
               multiple
               value={responsaveisFiltro}
@@ -350,7 +357,7 @@ Dados do acesso foram atualizados. Continuando tramitação para liberação do 
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <label className="block text-sm font-medium text-gray-900 mb-2">Status</label>
             <select
               multiple
               value={statusFiltro}
@@ -412,3 +419,4 @@ Dados do acesso foram atualizados. Continuando tramitação para liberação do 
     </div>
   );
 }
+

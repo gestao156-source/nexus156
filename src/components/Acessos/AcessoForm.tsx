@@ -105,7 +105,7 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-text-primary mb-1">
               Solicitante (WhatsApp) *
             </label>
             <input
@@ -123,7 +123,7 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-text-primary mb-1">
               Servidor Beneficiado *
             </label>
             <input
@@ -141,7 +141,7 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-text-primary mb-1">
               Data da Solicitação *
             </label>
             <input
@@ -158,7 +158,7 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-text-primary mb-1">
               Data de Criação do Acesso
             </label>
             <input
@@ -175,7 +175,7 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-text-primary mb-1">
               Regional
             </label>
             <input
@@ -188,7 +188,7 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-text-primary mb-1">
               Setor
             </label>
             <input
@@ -201,7 +201,7 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-text-primary mb-1">
               Status
             </label>
             <select
@@ -224,7 +224,7 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-text-primary mb-1">
               Responsável NEXUS
             </label>
             <input
@@ -241,13 +241,13 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            className="px-4 py-2 text-text-primary bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
           >
             Cancelar
           </button>
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
           >
             {acesso ? 'Salvar' : 'Criar'} Acesso
           </button>
@@ -256,7 +256,7 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
         {/* Histórico de Procedimentos - sempre visível */}
         <div className="border-t pt-6 mt-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Histórico de Procedimentos</h3>
+            <h3 className="text-lg font-semibold text-text-primary">Histórico de Procedimentos</h3>
           </div>
           
           {acesso ? (
@@ -275,3 +275,4 @@ export default function AcessoForm({ acesso, onSave, onCancel }: AcessoFormProps
     </div>
   );
 }
+

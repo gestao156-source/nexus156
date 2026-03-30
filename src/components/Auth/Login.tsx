@@ -118,16 +118,8 @@ export default function Login({ onToggleMode }: LoginProps) {
             Não tem uma conta? Cadastre-se
           </button>
           
-          <div className="pt-3 border-t border-gray-200">
-            <button
-              onClick={() => {
-                setEmail('teste@nexus156.com');
-                setPassword('123456');
-              }}
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              Preencher com usuário de teste
-            </button>
+          <div className="text-center text-sm text-gray-600">
+            <p>Entre com suas credenciais para acessar o sistema</p>
           </div>
         </div>
       </div>

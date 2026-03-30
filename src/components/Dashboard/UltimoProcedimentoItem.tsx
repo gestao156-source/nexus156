@@ -23,10 +23,10 @@ export default function UltimoProcedimentoItem({ itemId, itemTipo }: UltimoProce
       <div className="flex items-start space-x-2">
         <Clock className="w-3 h-3 text-gray-500 mt-0.5" />
         <div className="flex-1">
-          <p className="text-xs text-gray-600 line-clamp-2">
+          <p className="text-xs text-text-secondary line-clamp-2">
             {ultimoProcedimento.procedimento}
           </p>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-text-muted mt-1">
             {ultimoProcedimento.usuario_nome} • {formatarData(ultimoProcedimento.created_at)}
           </p>
         </div>
@@ -34,3 +34,4 @@ export default function UltimoProcedimentoItem({ itemId, itemTipo }: UltimoProce
     </div>
   );
 }
+

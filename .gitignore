@@ -21,3 +21,17 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Arquivos SQL avulsos (manter apenas em supabase/migrations/)
+SQL_*.sql
+
+# Backups e arquivos temporários
+*.tar.gz
+*.zip
+backups/
+tmp/
+.temp/
+
+# Arquivos de documentação temporários
+PROGRESSO_*.md
+VERIFICACAO_*.md

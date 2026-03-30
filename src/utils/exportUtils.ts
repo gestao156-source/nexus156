@@ -3,11 +3,23 @@
  */
 
 import { CAMPOS_DISPONIVEIS, formatarValorCampo } from './campoConfig';
-import { formatarResponsavel } from './responsavelUtils';
+import { formatarResponsavel, Profile } from './responsavelUtils';
+
+interface ExportItem {
+  id: string;
+  created_at: string;
+  protocolo?: string;
+  assunto?: string;
+  status: string;
+  responsavel?: string;
+  ponto_contato?: string;
+  data_contato?: string;
+  [key: string]: unknown;
+}
 
 export interface ExportOptions {
   camposSelecionados: string[];
-  dados: any[];
+  dados: ExportItem[];
   filename?: string;
 }
 
@@ -21,17 +33,17 @@ export const gerarHeaders = (camposSelecionados: string[]): string[] => {
 /**
  * Gera linhas de dados para exportação usando formatarResponsavel
  */
-export const gerarLinhasDados = (dados: any[], camposSelecionados: string[], profiles: any[] = []): any[][] => {
+export const gerarLinhasDados = (dados: ExportItem[], camposSelecionados: string[], profiles: Profile[] = []): unknown[][] => {
   return dados.map(item => {
     return camposSelecionados.map(campoId => {
       const campo = CAMPOS_DISPONIVEIS[campoId];
       if (!campo) return '';
       
-      let valor = item[campo.accessor];
+      let valor: unknown = item[campo.accessor];
       
       // Usar formatarResponsavel para campos responsavel e ponto_contato
       if (campo.accessor === 'responsavel' || campo.accessor === 'ponto_contato') {
-        valor = formatarResponsavel(valor, profiles);
+        valor = formatarResponsavel(valor as string | null, profiles);
       } else {
         valor = formatarValorCampo(campoId, valor);
       }
@@ -52,7 +64,7 @@ export const gerarNomeArquivo = (filename: string, extensao: string): string => 
 /**
  * Valida dados para exportação
  */
-export const validarDadosExportacao = (dados: any[], camposSelecionados: string[]): boolean => {
+export const validarDadosExportacao = (dados: ExportItem[], camposSelecionados: string[]): boolean => {
   if (!Array.isArray(dados)) return false;
   if (dados.length === 0) return false;
   if (!Array.isArray(camposSelecionados)) return false;

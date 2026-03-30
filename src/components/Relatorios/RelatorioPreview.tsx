@@ -68,11 +68,11 @@ export default function RelatorioPreview({
         case 'aguardando':
           return baseClass + ' bg-yellow-50 text-yellow-700';
         case 'em_analise':
-          return baseClass + ' bg-blue-50 text-blue-700';
+          return baseClass + ' text-blue-700 bg-blue-50';
         case 'finalizado':
           return baseClass + ' bg-green-50 text-green-700';
         default:
-          return baseClass + ' text-gray-700';
+          return baseClass + ' text-gray-900';
       }
     }
     
@@ -80,10 +80,10 @@ export default function RelatorioPreview({
     if (campoId === 'status_atraso') {
       return valor 
         ? baseClass + ' bg-red-50 text-red-700'
-        : baseClass + ' text-gray-700';
+        : baseClass + ' text-gray-900';
     }
     
-    return baseClass + ' text-gray-700';
+    return baseClass + ' text-gray-900';
   };
 
   const getCSVPreview = () => {
@@ -93,7 +93,7 @@ export default function RelatorioPreview({
 
   if (!dados || dados.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="bg-white rounded-xl border border-gray-200 p-8">
         <div className="text-center text-gray-500">
           <Eye className="w-12 h-12 mx-auto mb-4 text-gray-300" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Sem dados para preview</h3>
@@ -112,7 +112,7 @@ export default function RelatorioPreview({
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
             <Eye className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-medium text-gray-900">Preview</span>
+            <span className="text-sm text-gray-900">Preview</span>
             <span className="text-xs text-gray-500">📊 {dados.length} | 📋 {camposSelecionados.length}</span>
           </div>
           
@@ -125,7 +125,7 @@ export default function RelatorioPreview({
             </button>
             <button
               onClick={() => onExportar?.('excel')}
-              className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200"
+              className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full hover:bg-blue-200"
             >
               Excel
             </button>
@@ -139,7 +139,7 @@ export default function RelatorioPreview({
                 {getHeaders().map((header, index) => (
                   <th
                     key={index}
-                    className="px-2 py-1 text-xs font-medium text-gray-700 text-center border-b border-gray-200"
+                    className={`px-3 py-3 text-left font-medium text-gray-900 uppercase tracking-wider border-b border-gray-200`}
                   >
                     {header}
                   </th>
@@ -153,7 +153,7 @@ export default function RelatorioPreview({
                     return (
                       <td
                         key={campoId}
-                        className="px-2 py-1 text-center border-b border-gray-100 text-gray-700"
+                        className="px-2 py-1 text-center border-b border-gray-100 text-gray-900"
                       >
                         {formatCellValue(campoId, item)}
                       </td>
@@ -173,15 +173,15 @@ export default function RelatorioPreview({
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 p-8 overflow-hidden">
       {/* Header do Preview */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Eye className="w-5 h-5 text-blue-600" />
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Preview do Relatório</h3>
-              <div className="flex items-center space-x-4 text-sm text-gray-600">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Preview do Relatório</h3>
+              <div className="flex items-center space-x-4 text-sm text-gray-500">
                 <span>📊 {dados.length} registros</span>
                 <span>📋 {camposSelecionados.length} campos</span>
                 <span>🔄 Atualizado há {getTempoDesdeAtualizacao()}</span>
@@ -192,7 +192,7 @@ export default function RelatorioPreview({
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setPreviewData(dados.slice(0, 10))}
-              className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              className="p-2 text-gray-500 hover:text-gray-700 rounded-lg transition-colors"
               title="Atualizar preview"
             >
               <RefreshCw className="w-4 h-4" />
@@ -277,7 +277,7 @@ export default function RelatorioPreview({
               {getHeaders().map((header, index) => (
                 <th
                   key={index}
-                  className="px-3 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider text-center border-b border-gray-200"
+                  className="px-3 py-3 text-xs font-medium text-gray-900 uppercase tracking-wider text-center border-b border-gray-200"
                 >
                   {header}
                 </th>
@@ -305,7 +305,7 @@ export default function RelatorioPreview({
 
       {/* Rodapé com informações */}
       <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
-        <div className="flex items-center justify-between text-sm text-gray-600">
+        <div className="flex items-center justify-between text-sm text-gray-500">
           <div className="flex items-center space-x-4">
             <span>Preview: {previewData.length} de {dados.length} registros</span>
             <span>•</span>
@@ -327,3 +327,4 @@ export default function RelatorioPreview({
     </div>
   );
 }
+

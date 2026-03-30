@@ -34,15 +34,15 @@ class ErrorBoundary extends Component<Props, State> {
       return this.props.fallback || (
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl font-bold text-text-primary mb-4">
               Ops! Algo deu errado
             </h1>
-            <p className="text-gray-600 mb-4">
+            <p className="text-text-secondary mb-4">
               Ocorreu um erro inesperado. Por favor, recarregue a página.
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+              className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700"
             >
               Recarregar Página
             </button>
@@ -56,3 +56,4 @@ class ErrorBoundary extends Component<Props, State> {
 }
 
 export default ErrorBoundary;
+

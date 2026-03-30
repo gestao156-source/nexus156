@@ -277,7 +277,7 @@ function PopupConteudo({ item, isMobile }: { item: MapaItem; isMobile: boolean }
         
         <div>
           <span className="font-medium">Endereço:</span>
-          <div className="text-gray-600">
+          <div className="text-text-secondary">
             {item.endereco_rua}, {item.endereco_numero}
             {item.endereco_bairro && <><br/>{item.endereco_bairro}</>}
           </div>
@@ -296,7 +296,7 @@ function PopupConteudo({ item, isMobile }: { item: MapaItem; isMobile: boolean }
       
       <button
         onClick={() => window.open(`/${item.tipo}s/${item.id}`, '_blank')}
-        className={`mt-3 w-full bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 transition-colors ${
+        className={`mt-3 w-full bg-primary-600 text-white px-3 py-2 rounded hover:bg-primary-700 transition-colors ${
           isMobile ? 'py-2 text-sm' : 'py-2'
         }`}
       >
@@ -305,3 +305,4 @@ function PopupConteudo({ item, isMobile }: { item: MapaItem; isMobile: boolean }
     </div>
   );
 }
+

@@ -17,23 +17,23 @@ export default function ChartAccordion({
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-bg-primary rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors duration-200"
       >
         <div className="flex items-center space-x-3">
           {icon}
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+          <h3 className="text-lg font-semibold text-text-primary">{title}</h3>
         </div>
         <div className="flex items-center space-x-2">
           <span className="text-sm text-gray-500">
             {isOpen ? 'Recolher' : 'Expandir'}
           </span>
           {isOpen ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
+            <ChevronUp className="w-5 h-5 text-text-muted" />
           ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
+            <ChevronDown className="w-5 h-5 text-text-muted" />
           )}
         </div>
       </button>
@@ -50,3 +50,4 @@ export default function ChartAccordion({
     </div>
   );
 }
+

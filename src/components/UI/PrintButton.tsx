@@ -370,7 +370,7 @@ export default function PrintButton({ item, itemType = 'solicitacao' }: PrintBut
     <button
       onClick={handlePrint}
       disabled={isPrinting}
-      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {isPrinting ? (
         <>
@@ -386,3 +386,4 @@ export default function PrintButton({ item, itemType = 'solicitacao' }: PrintBut
     </button>
   );
 }
+

@@ -12,7 +12,7 @@ export default function ScatterChart({ data, title = "Tempo de Resposta", height
     return (
       <div className="bg-white rounded-lg shadow-sm p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
-        <div className="flex items-center justify-center h-64 text-gray-400">
+        <div className="flex items-center justify-center h-64 text-gray-500">
           Nenhum dado disponível
         </div>
       </div>
@@ -96,3 +96,4 @@ export default function ScatterChart({ data, title = "Tempo de Resposta", height
     </div>
   );
 }
+

@@ -1,118 +1,154 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+};
+
+interface ResetPasswordRequest {
+  userId: string;
+  tempPassword: string;
 }
 
-serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 200,
+      headers: corsHeaders,
+    });
+  }
+
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({ error: "Method not allowed" }),
+      {
+        status: 405,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    )
+    const authHeader = req.headers.get("Authorization");
 
-    // Verificar se o usuário está autenticado
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "No authorization header" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Cliente do usuário: valida quem está chamando
+    const supabaseUser = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      {
+        global: {
+          headers: {
+            Authorization: authHeader,
+          },
+        },
+      }
+    );
+
     const {
       data: { user },
       error: authError,
-    } = await supabaseClient.auth.getUser(
-      req.headers.get('Authorization')!.replace('Bearer ', '')
-    )
+    } = await supabaseUser.auth.getUser();
 
     if (authError || !user) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
-      )
-    }
-
-    // Verificar se o usuário é admin
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profileError || profile?.role !== 'admin') {
-      return new Response(
-        JSON.stringify({ error: 'Insufficient permissions' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
-      )
-    }
-
-    // Obter dados do request
-    const { userId } = await req.json()
-
-    if (!userId) {
-      return new Response(
-        JSON.stringify({ error: 'User ID is required' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      )
-    }
-
-    // Verificar se o usuário alvo existe
-    const { data: targetProfile, error: targetError } = await supabaseClient
-      .from('profiles')
-      .select('email')
-      .eq('id', userId)
-      .single()
-
-    if (targetError) {
-      return new Response(
-        JSON.stringify({ error: 'Target user not found' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
-      )
-    }
-
-    // Resetar senha para "123" usando Admin API
-    const { error: resetError } = await supabaseClient.auth.admin.updateUserById(
-      userId,
-      { password: '123' }
-    )
-
-    if (resetError) {
-      console.error('Error resetting password:', resetError)
-      return new Response(
-        JSON.stringify({ error: 'Failed to reset password' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      )
-    }
-
-    // Log da operação
-    console.log(`Password reset: ${user.email} reset password for user ${targetProfile.email} (${userId})`)
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: 'Password reset successfully',
-        data: {
-          userId: userId,
-          userEmail: targetProfile.email,
-          newPassword: '123',
-          resetBy: user.email
+        JSON.stringify({
+          error: "Unauthorized",
+          details: authError?.message ?? null,
+        }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-    )
+      );
+    }
 
-  } catch (error) {
-    console.error('Error in reset-user-password function:', error)
+    // Confirma se é admin
+    const { data: profile, error: profileError } = await supabaseUser
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || profile?.role !== "admin") {
+      return new Response(
+        JSON.stringify({ error: "Forbidden - Admin only" }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const { userId, tempPassword }: ResetPasswordRequest = await req.json();
+
+    if (!userId || !tempPassword) {
+      return new Response(
+        JSON.stringify({ error: "Invalid userId or tempPassword" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Cliente admin: faz o reset real
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+      userId,
+      {
+        password: tempPassword,
+      }
+    );
+
+    if (updateError) {
+      return new Response(
+        JSON.stringify({
+          error: updateError.message,
+          code: "UPDATE_USER_FAILED",
+          userId,
+          tempPasswordLength: tempPassword.length,
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    )
+      JSON.stringify({
+        success: true,
+        message: "Password reset successfully",
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   }
-})
+});

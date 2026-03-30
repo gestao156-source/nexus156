@@ -359,7 +359,7 @@ export class GeocodingService {
       }
 
       return null;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -407,11 +407,11 @@ export class GeocodingService {
         }
 
         return coords;
-      } catch (fetchError) {
+      } catch {
         clearTimeout(timeoutId);
         return null;
       }
-    } catch (error) {
+    } catch {
       return null;
     }
   }

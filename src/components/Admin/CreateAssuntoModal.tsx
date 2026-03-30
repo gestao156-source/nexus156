@@ -49,10 +49,11 @@ export default function CreateAssuntoModal({ isOpen, onClose, onSuccess }: Creat
         onClose();
         resetForm();
       }
-    } catch (err: any) {
-      if (err.message?.includes('duplicate key')) {
+    } catch (err: unknown) {
+      const error = err as Error;
+      if (error.message?.includes('duplicate key')) {
         setError('Este assunto já existe');
-      } else if (err.message?.includes('violates row level security')) {
+      } else if (error.message?.includes('violates row level security')) {
         setError('Sem permissão para criar assuntos');
       } else {
         setError('Erro ao criar assunto. Tente novamente.');
@@ -201,3 +202,4 @@ export default function CreateAssuntoModal({ isOpen, onClose, onSuccess }: Creat
     </div>
   );
 }
+

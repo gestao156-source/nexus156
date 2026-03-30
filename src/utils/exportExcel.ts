@@ -1,11 +1,11 @@
 import * as XLSX from 'xlsx';
-import { gerarHeaders, gerarLinhasDados, gerarNomeArquivo, validarDadosExportacao } from './exportUtils';
+import { gerarHeaders, gerarLinhasDados, gerarNomeArquivo, validarDadosExportacao, ExportItem } from './exportUtils';
 import { CAMPOS_DISPONIVEIS, formatarValorCampo } from './campoConfig';
 import { supabase } from '../lib/supabase';
 
 export interface ExcelExportOptions {
   camposSelecionados: string[];
-  dados: any[];
+  dados: ExportItem[];
   filename?: string;
 }
 
@@ -100,7 +100,7 @@ const formatWorksheet = (ws: XLSX.WorkSheet, headerCount: number, rowCount: numb
   }
 };
 
-export const generatePreviewExcel = (camposSelecionados: string[], dados: any[], maxRows: number = 5): any[][] => {
+export const generatePreviewExcel = (camposSelecionados: string[], dados: ExportItem[], maxRows: number = 5): unknown[][] => {
   if (!dados || dados.length === 0 || !camposSelecionados || camposSelecionados.length === 0) {
     return [];
   }
@@ -125,7 +125,7 @@ export const generatePreviewExcel = (camposSelecionados: string[], dados: any[],
   return [headers, ...rows];
 };
 
-export const validateExcelExport = (dados: any[], camposSelecionados: string[]): boolean => {
+export const validateExcelExport = (dados: ExportItem[], camposSelecionados: string[]): boolean => {
   if (!Array.isArray(dados)) return false;
   if (dados.length === 0) return false;
   if (!Array.isArray(camposSelecionados)) return false;

@@ -1,10 +1,10 @@
 import Papa from 'papaparse';
-import { gerarHeaders, gerarLinhasDados, gerarNomeArquivo, validarDadosExportacao } from './exportUtils';
+import { gerarHeaders, gerarLinhasDados, gerarNomeArquivo, validarDadosExportacao, ExportItem } from './exportUtils';
 import { supabase } from '../lib/supabase';
 
 export interface CSVExportOptions {
   camposSelecionados: string[];
-  dados: any[];
+  dados: ExportItem[];
   filename?: string;
 }
 
@@ -74,7 +74,7 @@ export const exportCSV = async ({ camposSelecionados, dados, filename = 'relator
 /**
  * Gera preview dos dados para exportação
  */
-export const generatePreviewCSV = (camposSelecionados: string[], dados: any[], maxRows: number = 5): string => {
+export const generatePreviewCSV = (camposSelecionados: string[], dados: ExportItem[], maxRows: number = 5): string => {
   if (!validarDadosExportacao(dados, camposSelecionados)) {
     return '';
   }
@@ -102,7 +102,7 @@ export const generatePreviewCSV = (camposSelecionados: string[], dados: any[], m
   return bom + csvContent;
 };
 
-export const validateExportData = (dados: any[]): boolean => {
+export const validateExportData = (dados: ExportItem[]): boolean => {
   if (!Array.isArray(dados)) return false;
   if (dados.length === 0) return false;
   

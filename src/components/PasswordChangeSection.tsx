@@ -32,7 +32,7 @@ export default function PasswordChangeSection() {
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center space-x-3">
-              <Key className="w-5 h-5 text-gray-600" />
+              <Key className="w-5 h-5 text-gray-500" />
               <div>
                 <p className="font-medium text-gray-900">Senha de Acesso</p>
                 <p className="text-sm text-gray-600">Altere sua senha regularmente para manter a segurança</p>
@@ -46,7 +46,7 @@ export default function PasswordChangeSection() {
             </LoadingButton>
           </div>
 
-          <div className="text-xs text-gray-500 bg-blue-50 p-3 rounded-lg">
+          <div className="text-xs text-gray-500 bg-primary-50 p-3 rounded-lg">
             <p className="font-medium mb-1">💡 Dica de Segurança:</p>
             <ul className="space-y-1">
               <li>• Use senhas com pelo menos 4 caracteres</li>
@@ -67,3 +67,4 @@ export default function PasswordChangeSection() {
     </>
   );
 }
+

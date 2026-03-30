@@ -72,7 +72,7 @@ export default function TabelaDinamica({
         case 'atrasado':
           return baseClass + ' text-red-700 bg-red-50';
         default:
-          return baseClass + ' text-gray-700';
+          return baseClass + ' text-gray-900';
       }
     }
     
@@ -80,7 +80,7 @@ export default function TabelaDinamica({
     if (campoId === 'status_atraso') {
       return valor 
         ? baseClass + ' text-red-700 bg-red-50'
-        : baseClass + ' text-gray-700';
+        : baseClass + ' text-gray-900';
     }
     
     // Dias de atraso
@@ -88,7 +88,7 @@ export default function TabelaDinamica({
       return baseClass + ' text-red-700 font-medium';
     }
     
-    return baseClass + ' text-gray-700';
+    return baseClass + ' text-text-primary';
   };
 
   if (loading) {
@@ -134,7 +134,7 @@ export default function TabelaDinamica({
               {getHeaders().map((header, index) => (
                 <th
                   key={index}
-                  className={`px-3 py-3 text-left font-medium text-gray-700 uppercase tracking-wider border-b border-gray-200 ${
+                  className={`px-3 py-3 text-left font-medium text-gray-900 uppercase tracking-wider border-b border-gray-200 ${
                     compact ? 'px-2 py-1 text-xs' : ''
                   }`}
                 >
@@ -142,7 +142,7 @@ export default function TabelaDinamica({
                 </th>
               ))}
               {!compact && (
-                <th className="px-3 py-3 text-center font-medium text-gray-700 uppercase tracking-wider border-b border-gray-200">
+                <th className="px-3 py-3 text-center font-medium text-gray-900 uppercase tracking-wider border-b border-gray-200">
                   Ações
                 </th>
               )}
@@ -189,7 +189,7 @@ export default function TabelaDinamica({
       {/* Footer */}
       {!compact && (
         <div className="px-6 py-4 border-t border-gray-200">
-          <div className="flex items-center justify-between text-sm text-gray-600">
+          <div className="flex items-center justify-between text-sm text-gray-500">
             <span>Total de registros: {dados.length}</span>
             <span>Campos exibidos: {camposSelecionados.length}</span>
           </div>
@@ -198,3 +198,4 @@ export default function TabelaDinamica({
     </div>
   );
 }
+

@@ -12,9 +12,9 @@ export default function FunnelChart({ data, title = "Funil de Processo", height 
   // Verificar se data é um array válido
   if (!Array.isArray(data) || data.length === 0) {
     return (
-      <div className="bg-white rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
-        <div className="flex items-center justify-center h-64 text-gray-400">
+      <div className="bg-bg-primary rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-text-primary mb-4">{title}</h3>
+        <div className="flex items-center justify-center h-64 text-text-muted">
           Nenhum dado disponível
         </div>
       </div>
@@ -33,8 +33,8 @@ export default function FunnelChart({ data, title = "Funil de Processo", height 
   const colors = ['#F59E0B', '#3B82F6', '#EF4444', '#10B981'];
 
   return (
-    <div className="bg-white rounded-lg p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
+    <div className="bg-bg-primary rounded-lg p-6">
+      <h3 className="text-lg font-semibold text-text-primary mb-4">{title}</h3>
       {onBarClick && (
         <div className="text-xs text-gray-500 mb-2">
           Clique nas barras para ver detalhes
@@ -72,10 +72,10 @@ export default function FunnelChart({ data, title = "Funil de Processo", height 
                 className="w-3 h-3 rounded" 
                 style={{ backgroundColor: colors[index % colors.length] }}
               />
-              <span className="text-gray-700">{item.stage}</span>
+              <span className="text-text-primary">{item.stage}</span>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-gray-600">{item.displayValue}</span>
+              <span className="text-text-secondary">{item.displayValue}</span>
               <span className="text-gray-500">
                 ({item.conversionRate}%)
               </span>
@@ -86,3 +86,4 @@ export default function FunnelChart({ data, title = "Funil de Processo", height 
     </div>
   );
 }
+

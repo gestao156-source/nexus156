@@ -46,7 +46,7 @@ export default function CampoBuilder({ camposSelecionados, onCampoChange, onReor
     <div className="space-y-4">
       {/* Busca */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
         <input
           type="text"
           placeholder="Buscar campos..."
@@ -80,7 +80,7 @@ export default function CampoBuilder({ camposSelecionados, onCampoChange, onReor
                       onClick={() => toggleGrupo(grupo)}
                       className="w-full px-3 py-2 bg-white hover:bg-gray-50 transition-colors flex items-center justify-between text-left"
                     >
-                      <span className="text-sm font-medium text-gray-700">{grupo}</span>
+                      <span className="text-sm font-medium text-gray-900">{grupo}</span>
                       <span className="text-xs text-gray-500">({camposDoGrupo.length})</span>
                     </button>
                     
@@ -125,7 +125,7 @@ export default function CampoBuilder({ camposSelecionados, onCampoChange, onReor
           {camposSelecionadosObj.length === 0 ? (
             <div className="text-center text-gray-500 py-4">
               <div className="w-8 h-8 mx-auto mb-2 bg-gray-200 rounded-full flex items-center justify-center">
-                <ArrowRightLeft className="w-4 h-4 text-gray-400" />
+                <ArrowRightLeft className="w-4 h-4 text-gray-500" />
               </div>
               <p className="text-sm">Nenhum campo selecionado</p>
             </div>
@@ -147,7 +147,7 @@ export default function CampoBuilder({ camposSelecionados, onCampoChange, onReor
                         <button
                           onClick={() => handleMoverCampo(campo.id, 'up')}
                           disabled={index === 0}
-                          className="p-1 text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50"
+                          className="p-1 text-gray-500 hover:bg-gray-100 rounded disabled:opacity-50"
                           title="Mover para cima"
                         >
                           ▲
@@ -155,7 +155,7 @@ export default function CampoBuilder({ camposSelecionados, onCampoChange, onReor
                         <button
                           onClick={() => handleMoverCampo(campo.id, 'down')}
                           disabled={index === camposSelecionadosObj.length - 1}
-                          className="p-1 text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50"
+                          className="p-1 text-gray-500 hover:bg-gray-100 rounded disabled:opacity-50"
                           title="Mover para baixo"
                         >
                           ▼
@@ -207,7 +207,7 @@ export default function CampoBuilder({ camposSelecionados, onCampoChange, onReor
                 }
               });
             }}
-            className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+            className="px-3 py-1 text-sm bg-gray-100 text-gray-900 rounded hover:bg-gray-200 transition-colors"
           >
             Limpar
           </button>
@@ -226,3 +226,4 @@ export default function CampoBuilder({ camposSelecionados, onCampoChange, onReor
     </div>
   );
 }
+

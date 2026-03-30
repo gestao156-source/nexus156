@@ -44,7 +44,7 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
     try {
       await refreshNotifications();
       showSuccess('Notificações atualizadas');
-    } catch (err) {
+    } catch {
       showError('Erro ao atualizar notificações');
     } finally {
       setIsRefreshing(false);
@@ -56,7 +56,7 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
     try {
       await markAllAsRead();
       showSuccess('Todas as notificações marcadas como lidas');
-    } catch (err) {
+    } catch {
       showError('Erro ao marcar notificações como lidas');
     }
   };
@@ -83,7 +83,7 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
           <h2 className="text-xl font-semibold text-gray-900">
             Centro de Notificações
             {unreadCount > 0 && (
-              <span className="ml-2 text-sm text-blue-600">
+              <span className="ml-2 text-sm text-primary-600">
                 ({unreadCount} não lidas)
               </span>
             )}
@@ -94,7 +94,7 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="p-2 text-gray-500 hover:text-gray-700 transition-colors"
+              className="p-2 text-gray-500 hover:text-text-primary transition-colors"
               title="Atualizar"
             >
               <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -103,7 +103,7 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
             {/* Close button */}
             <button
               onClick={onClose}
-              className="p-2 text-gray-500 hover:text-gray-700 transition-colors"
+              className="p-2 text-gray-500 hover:text-text-primary transition-colors"
               title="Fechar"
             >
               <X className="w-5 h-5" />
@@ -150,7 +150,7 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
-                className="flex items-center space-x-1 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                className="flex items-center space-x-1 px-3 py-1 text-sm bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors"
               >
                 <CheckSquare className="w-4 h-4" />
                 <span>Marcar todas como lidas</span>
@@ -163,8 +163,8 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
         <div className="flex-1 overflow-y-auto">
           {loading && (
             <div className="flex items-center justify-center p-8">
-              <RefreshCw className="w-6 h-6 animate-spin text-blue-600" />
-              <span className="ml-2 text-gray-600">Carregando notificações...</span>
+              <RefreshCw className="w-6 h-6 animate-spin text-primary-600" />
+              <span className="ml-2 text-text-secondary">Carregando notificações...</span>
             </div>
           )}
 
@@ -184,7 +184,7 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
           {!loading && !error && filteredNotifications.length === 0 && (
             <div className="flex flex-col items-center justify-center p-8 text-gray-500">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <Filter className="w-8 h-8 text-gray-400" />
+                <Filter className="w-8 h-8 text-text-muted" />
               </div>
               <p className="text-center">
                 {filter.status !== 'all' || filter.type !== 'all' 
@@ -195,7 +195,7 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
               {(filter.status !== 'all' || filter.type !== 'all') && (
                 <button
                   onClick={() => setFilter({ status: 'all', type: 'all' })}
-                  className="mt-4 text-blue-600 hover:text-blue-700 transition-colors"
+                  className="mt-4 text-primary-600 hover:text-primary-700 transition-colors"
                 >
                   Limpar filtros
                 </button>
@@ -221,7 +221,7 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
 
         {/* Footer */}
         <div className="p-4 border-t bg-gray-50">
-          <div className="flex items-center justify-between text-sm text-gray-600">
+          <div className="flex items-center justify-between text-sm text-text-secondary">
             <div>
               {filteredNotifications.length} notificação{filteredNotifications.length !== 1 ? 's' : ''}
               {filter.status !== 'all' || filter.type !== 'all' && ' (filtradas)'}
@@ -229,11 +229,11 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setFilter({ status: 'all', type: 'all' })}
-                className="text-blue-600 hover:text-blue-700 transition-colors"
+                className="text-primary-600 hover:text-primary-700 transition-colors"
               >
                 Limpar filtros
               </button>
-              <button className="text-gray-500 hover:text-gray-700 transition-colors">
+              <button className="text-gray-500 hover:text-text-primary transition-colors">
                 <Settings className="w-4 h-4" />
               </button>
             </div>
@@ -243,3 +243,4 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
     </div>
   );
 }
+

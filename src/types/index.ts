@@ -225,3 +225,79 @@ export interface MapaStats {
   atrasados: number;
   ultimoUpdate: Date;
 }
+
+// Tipos para o sistema de Planejamento
+export type TarefaColuna = 'backlog' | 'semana_atual' | 'em_andamento' | 'em_validacao' | 'concluido' | 'indicadores';
+export type TarefaEtiqueta = 'diagnostico' | 'padronizacao' | 'capacitacao' | 'monitoramento';
+export type TarefaPrioridade = 'baixa' | 'media' | 'alta' | 'urgente';
+
+export interface TarefaPlanejamento {
+  id: string;
+  titulo: string;
+  descricao?: string;
+  coluna: TarefaColuna;
+  etiqueta?: TarefaEtiqueta;
+  responsavel_id?: string;
+  criador_id: string;
+  prioridade: TarefaPrioridade;
+  data_inicio?: string;
+  data_limite?: string;
+  data_conclusao?: string;
+  tags?: string[];
+  ordem: number;
+  arquivos?: Record<string, any>[];
+  comentarios?: ComentarioTarefa[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TarefaPlanejamentoExtendida extends TarefaPlanejamento {
+  responsavel_nome?: string;
+  criador_nome?: string;
+}
+
+export interface ComentarioTarefa {
+  id: string;
+  texto: string;
+  autor_id: string;
+  autor_nome: string;
+  created_at: string;
+}
+
+export interface EtiquetaPlanejamento {
+  id: string;
+  nome: TarefaEtiqueta;
+  cor: string;
+  descricao?: string;
+  ativa: boolean;
+  created_at: string;
+}
+
+export interface PlanejamentoFilters {
+  etiqueta?: TarefaEtiqueta;
+  responsavel_id?: string;
+  prioridade?: TarefaPrioridade;
+  busca?: string;
+  data_limite_inicio?: string;
+  data_limite_fim?: string;
+}
+
+export interface CreateTarefaData {
+  titulo: string;
+  descricao?: string;
+  coluna?: TarefaColuna;
+  etiqueta?: TarefaEtiqueta;
+  responsavel_id?: string;
+  prioridade?: TarefaPrioridade;
+  data_inicio?: string;
+  data_limite?: string;
+  tags?: string[];
+}
+
+export interface UpdateTarefaData extends Partial<CreateTarefaData> {
+  id: string;
+  action?: 'delete' | 'update';
+  coluna?: TarefaColuna;
+  ordem?: number;
+  data_conclusao?: string;
+}

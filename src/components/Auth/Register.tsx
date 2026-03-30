@@ -127,7 +127,7 @@ export default function Register({ onToggleMode }: RegisterProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
-      <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-lg p-8 border border-white/20">
+      <div className="bg-bg-primary/80 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-lg p-8 border border-white/20">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl mb-4 shadow-lg">
@@ -136,7 +136,7 @@ export default function Register({ onToggleMode }: RegisterProps) {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
             Criar Conta
           </h1>
-          <p className="text-gray-600">
+          <p className="text-text-secondary">
             Junte-se ao Nexus156 e gerencie suas solicitações
           </p>
         </div>
@@ -159,7 +159,7 @@ export default function Register({ onToggleMode }: RegisterProps) {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Campo Nome */}
           <div className="relative">
-            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <label className="block text-sm font-semibold text-text-primary mb-2 flex items-center gap-2">
               <User className="w-4 h-4" />
               Nome Completo
             </label>
@@ -181,7 +181,7 @@ export default function Register({ onToggleMode }: RegisterProps) {
 
           {/* Campo Email */}
           <div className="relative">
-            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <label className="block text-sm font-semibold text-text-primary mb-2 flex items-center gap-2">
               <Mail className="w-4 h-4" />
               Email
             </label>
@@ -203,7 +203,7 @@ export default function Register({ onToggleMode }: RegisterProps) {
 
           {/* Campo Senha */}
           <div className="relative">
-            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <label className="block text-sm font-semibold text-text-primary mb-2 flex items-center gap-2">
               <Key className="w-4 h-4" />
               Senha
             </label>
@@ -225,7 +225,7 @@ export default function Register({ onToggleMode }: RegisterProps) {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -235,7 +235,7 @@ export default function Register({ onToggleMode }: RegisterProps) {
             {password && (
               <div className="mt-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium text-gray-600">Força da senha</span>
+                  <span className="text-xs font-medium text-text-secondary">Força da senha</span>
                   <span className={`text-xs font-medium ${
                     passwordStrength <= 40 ? 'text-red-600' : 
                     passwordStrength <= 60 ? 'text-yellow-600' : 
@@ -256,7 +256,7 @@ export default function Register({ onToggleMode }: RegisterProps) {
             {/* Requisitos da senha */}
             {password && (
               <div className="mt-3 space-y-2">
-                <p className="text-xs font-semibold text-gray-600 flex items-center gap-2">
+                <p className="text-xs font-semibold text-text-secondary flex items-center gap-2">
                   <Shield className="w-3 h-3" />
                   Requisitos da senha:
                 </p>
@@ -266,7 +266,7 @@ export default function Register({ onToggleMode }: RegisterProps) {
                       {req.met ? (
                         <Check className="w-3 h-3 text-green-600" />
                       ) : (
-                        <X className="w-3 h-3 text-gray-400" />
+                        <X className="w-3 h-3 text-text-muted" />
                       )}
                       <span className={req.met ? 'text-green-600' : 'text-gray-500'}>
                         {req.text}
@@ -280,7 +280,7 @@ export default function Register({ onToggleMode }: RegisterProps) {
 
           {/* Campo Confirmar Senha */}
           <div className="relative">
-            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <label className="block text-sm font-semibold text-text-primary mb-2 flex items-center gap-2">
               <Shield className="w-4 h-4" />
               Confirmar Senha
             </label>
@@ -308,7 +308,7 @@ export default function Register({ onToggleMode }: RegisterProps) {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
               >
                 {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -347,11 +347,11 @@ export default function Register({ onToggleMode }: RegisterProps) {
 
         {/* Link para Login */}
         <div className="mt-8 text-center">
-          <p className="text-gray-600">
+          <p className="text-text-secondary">
             Já tem uma conta?{' '}
             <button
               onClick={onToggleMode}
-              className="text-blue-600 hover:text-blue-700 font-semibold transition-colors hover:underline"
+              className="text-primary-600 hover:text-primary-700 font-semibold transition-colors hover:underline"
             >
               Faça login
             </button>
@@ -361,3 +361,4 @@ export default function Register({ onToggleMode }: RegisterProps) {
     </div>
   );
 }
+

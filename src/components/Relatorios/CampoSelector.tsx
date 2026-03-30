@@ -61,14 +61,14 @@ export default function CampoSelector({
     <div className="bg-white rounded-xl border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-2">
-          <Settings className="w-5 h-5 text-gray-600" />
+          <Settings className="w-5 h-5 text-gray-500" />
           <h3 className="text-lg font-semibold text-gray-900">Seleção de Campos</h3>
         </div>
         
         <div className="flex items-center space-x-2">
           <button
             onClick={onSelecionarTodos}
-            className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+            className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <CheckSquare className="w-4 h-4" />
             <span>Selecionar Todos</span>
@@ -76,7 +76,7 @@ export default function CampoSelector({
           
           <button
             onClick={onLimparSelecao}
-            className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+            className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-gray-50 text-gray-500 rounded-lg hover:bg-gray-100 transition-colors"
           >
             <RotateCcw className="w-4 h-4" />
             <span>Limpar</span>
@@ -111,7 +111,7 @@ export default function CampoSelector({
                   </div>
                   
                   <div className="text-left">
-                    <h4 className="font-medium text-gray-900">{grupo}</h4>
+                    <span className="text-sm text-gray-900">{grupo}</span>
                     <p className="text-sm text-gray-500">
                       {camposDoGrupo.filter(c => isCampoSelecionado(c.id)).length} de {camposDoGrupo.length} selecionados
                     </p>
@@ -124,7 +124,7 @@ export default function CampoSelector({
                       e.stopPropagation();
                       handleGrupoChange(grupo, !isGrupoCompleto);
                     }}
-                    className="px-2 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-50"
+                    className="px-2 py-1 text-xs bg-blue-600 text-white border border-gray-300 rounded hover:bg-gray-50"
                   >
                     {isGrupoCompleto ? 'Desmarcar' : 'Marcar'}
                   </button>
@@ -156,7 +156,7 @@ export default function CampoSelector({
 
       <div className="mt-6 pt-4 border-t border-gray-200">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">
+          <span className="text-gray-500">
             Total de campos selecionados: <span className="font-medium text-gray-900">{camposSelecionados.length}</span>
           </span>
           <span className="text-gray-500">
@@ -197,7 +197,7 @@ function CampoCheckbox({ campo, selecionado, onChange }: CampoCheckboxProps) {
       </button>
       
       <div className="flex-1">
-        <span className={`text-sm ${campo.obrigatorio ? 'font-medium text-gray-900' : 'text-gray-700'}`}>
+        <span className={`text-sm ${campo.obrigatorio ? 'font-medium text-gray-900' : 'text-gray-900'}`}>
           {campo.label}
         </span>
         {campo.obrigatorio && (
@@ -207,3 +207,4 @@ function CampoCheckbox({ campo, selecionado, onChange }: CampoCheckboxProps) {
     </div>
   );
 }
+

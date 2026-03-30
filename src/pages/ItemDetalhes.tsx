@@ -1,99 +1,64 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, MapPin, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, MapPin } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { verificarAtraso } from '../utils/calculoDiasUteis';
-import PrintButton from '../components/UI/PrintButton';
-import HistoricoProcedimentos from '../components/Historico/HistoricoProcedimentos';
 
 interface ItemDetalhes {
   id: string;
-  assunto: string;
   protocolo: string;
-  status: string;
-  data_inicio: string | null;
-  data_contato: string | null;
-  data_finalizado: string | null;
-  responsavel: string;
-  ponto_contato: string;
-  user_id: string;
-  created_at: string;
-  updated_at: string;
-  endereco_rua: string;
-  endereco_numero: string;
-  endereco_bairro: string;
-  endereco_localidade: string;
-  endereco_cep: string;
-  endereco_complemento: string;
-  endereco_latitude: number | null;
-  endereco_longitude: number | null;
+  assunto: string;
   tipo: 'solicitacao' | 'demanda';
+  status: string;
+  created_at: string;
+  user_id?: string;
+  responsavel?: string;
+  ponto_contato?: string;
+  data_inicio?: string;
+  data_contato?: string;
+  data_finalizado?: string;
+  endereco_bairro?: string;
+  endereco_cep?: string;
+  endereco_rua?: string;
+  endereco_numero?: string;
+  endereco_complemento?: string;
   profiles?: {
-    full_name: string;
-    email: string;
+    full_name?: string;
+    email?: string;
   };
   responsavel_profile?: {
-    full_name: string;
-    email: string;
+    full_name?: string;
+    email?: string;
   };
 }
 
 export default function ItemDetalhes() {
-  const { itemId } = useParams<{ itemId: string }>();
-  const navigate = useNavigate();
-  const location = useLocation();
   const [item, setItem] = useState<ItemDetalhes | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const fetchItemDetalhes = async () => {
-    if (!itemId) return;
-    
     setLoading(true);
     setError(null);
 
     try {
-      console.log('🔍 Buscando item:', itemId);
-      
-      let tipo = 'solicitacao';
-      
       // Tentar buscar em solicitacoes primeiro
-      let { data: query, error: queryError } = await supabase
+      console.log('📋 Buscando em solicitacoes...');
+      const { data: querySol, error: querySolError } = await supabase
         .from('solicitacoes')
         .select('*')
-        .eq('id', itemId)
+        .eq('id', location.pathname.split('/')[2])
         .single();
 
-      console.log('📋 Resultado solicitacoes:', { data: query, error: queryError });
+      console.log('📋 Resultado solicitacoes:', { data: querySol, error: querySolError });
 
-      // Se temos dados, ignorar erro 406 (que parece ser um falso positivo)
-      if (query && !queryError) {
-        console.log('✅ Dados encontrados em solicitacoes, ignorando possível erro 406');
-      } else if (queryError) {
-        console.log('⚠️ Erro em solicitacoes:', queryError.message);
-        // Se for erro 406 mas temos dados, continuar
-        if (queryError.message && queryError.message.includes('406') && query) {
-          console.log('🔄 Erro 406 detectado mas dados presentes, continuando...');
-        } else {
-          // Para outros erros, tentar demandas
-          console.log('🔄 Tentando buscar em demandas...');
-          const { data: queryDem, error: queryDemError } = await supabase
-            .from('demandas')
-            .select('*')
-            .eq('id', itemId)
-            .single();
-
-          console.log('📋 Resultado demandas:', { data: queryDem, error: queryDemError });
-
-          if (queryDemError || !queryDem) {
-            console.error('❌ Item não encontrado em nenhuma tabela');
-            throw new Error('Item não encontrado em nenhuma tabela');
-          }
-
-          query = queryDem;
-          tipo = 'demanda';
-        }
+      if (querySolError || !querySol) {
+        console.error('❌ Item não encontrado em solicitacoes');
+        throw new Error('Item não encontrado em solicitacoes');
       }
+
+      let query = querySol;
+      let tipo = 'solicitacao';
 
       // Se não encontrou em solicitacoes, tentar demandas
       if (!query) {
@@ -101,14 +66,14 @@ export default function ItemDetalhes() {
         const { data: queryDem, error: queryDemError } = await supabase
           .from('demandas')
           .select('*')
-          .eq('id', itemId)
+          .eq('id', location.pathname.split('/')[2])
           .single();
 
         console.log('📋 Resultado demandas:', { data: queryDem, error: queryDemError });
 
         if (queryDemError || !queryDem) {
-          console.error('❌ Item não encontrado em nenhuma tabela');
-          throw new Error('Item não encontrado em nenhuma tabela');
+          console.error('❌ Item não encontrado em demandas');
+          throw new Error('Item não encontrado em demandas');
         }
 
         query = queryDem;
@@ -116,9 +81,9 @@ export default function ItemDetalhes() {
       }
 
       console.log('✅ Query final bem-sucedida:', query);
-      
-      let itemData = { ...query, tipo };
-      
+
+      const itemData = { ...query, tipo };
+
       // Buscar perfil do criador
       if (itemData.user_id) {
         const { data: creatorData } = await supabase
@@ -126,10 +91,12 @@ export default function ItemDetalhes() {
           .select('full_name, email')
           .eq('id', itemData.user_id)
           .single();
-        
-        itemData.profiles = creatorData;
+
+        if (creatorData) {
+          itemData.profiles = creatorData;
+        }
       }
-      
+
       // Buscar responsável separadamente se existir
       if (itemData.responsavel) {
         const { data: respData } = await supabase
@@ -137,13 +104,15 @@ export default function ItemDetalhes() {
           .select('full_name, email')
           .eq('id', itemData.responsavel)
           .single();
-        
-        itemData.responsavel_profile = respData;
+
+        if (respData) {
+          itemData.responsavel_profile = respData;
+        }
       }
 
       setItem(itemData);
-    } catch (err) {
-      console.error('❌ Erro ao buscar detalhes do item:', err);
+    } catch (error: unknown) {
+      console.error('❌ Erro ao buscar detalhes do item:', error);
       setError('Erro ao carregar detalhes do item');
     } finally {
       setLoading(false);
@@ -173,9 +142,20 @@ export default function ItemDetalhes() {
     return texts[status] || status;
   };
 
+  const verificarAtraso = (status: string, dataContato?: string) => {
+    if (!item) return false;
+    
+    const dataContatoDate = dataContato ? new Date(dataContato) : null;
+    const createdDate = new Date(item.created_at);
+    
+    // Considera atrasado se: status = 'aguardando' E passaram mais de 7 dias desde o contato
+    return status === 'aguardando' && dataContatoDate && 
+           (createdDate.getTime() - dataContatoDate.getTime()) > (7 * 24 * 60 * 60 * 1000);
+  };
+
   useEffect(() => {
     fetchItemDetalhes();
-  }, [itemId, location.hash]);
+  }, [location.hash]);
 
   const estaAtrasado = item ? verificarAtraso(item.status, item.data_contato) : false;
 
@@ -215,31 +195,31 @@ export default function ItemDetalhes() {
             <ArrowLeft className="w-5 h-5 mr-2" />
             Voltar
           </button>
-          
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-2">
-                  <h1 className="text-2xl font-bold text-gray-900">{item.assunto}</h1>
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                    {item.tipo === 'solicitacao' ? 'Solicitação' : 'Demanda'}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(item.status)}`}>
-                    {getStatusText(item.status)}
-                  </span>
-                  {estaAtrasado ? (
-                    <div className="flex items-center space-x-1 bg-red-100 px-3 py-1 rounded-full">
-                      <AlertTriangle className="w-4 h-4 text-red-600" />
-                      <span className="text-sm font-semibold text-red-700">Atrasado</span>
-                    </div>
-                  ) : null}
-                </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center space-x-2 mb-2">
+                <h1 className="text-2xl font-bold text-gray-900">{item.assunto}</h1>
+                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                  {item.tipo === 'solicitacao' ? 'Solicitação' : 'Demanda'}
+                </span>
               </div>
-              <div className="ml-4">
-                <PrintButton item={item} itemType={item.tipo} />
+              <div className="flex items-center space-x-4">
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(item.status)}`}>
+                  {getStatusText(item.status)}
+                </span>
+                {estaAtrasado && (
+                  <div className="flex items-center space-x-1 bg-red-100 px-3 py-1 rounded-full">
+                    <AlertTriangle className="w-4 h-4 text-red-600" />
+                    <span className="text-sm font-semibold text-red-700">Atrasado</span>
+                  </div>
+                )}
               </div>
+            </div>
+            <div className="ml-4">
+              {/* Botão de impressão removido temporariamente */}
             </div>
           </div>
         </div>
@@ -282,17 +262,13 @@ export default function ItemDetalhes() {
 
         {/* Histórico de Procedimentos */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <HistoricoProcedimentos
-            itemId={item.id}
-            itemTipo={item.tipo}
-            disabled={true}
-          />
+          <p className="text-gray-600">Histórico de procedimentos em desenvolvimento...</p>
         </div>
 
         {/* Datas Importantes */}
         {(item.data_inicio || item.data_contato || item.data_finalizado) && (
           <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 border-l-4 border-blue-600 pl-3">
+            <h2 className="font-semibold text-gray-900 mb-4 border-l-4 border-blue-600 pl-3">
               Datas Importantes
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -322,7 +298,7 @@ export default function ItemDetalhes() {
         {(item.endereco_bairro || item.endereco_cep || item.endereco_rua) && (
           <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 border-l-4 border-blue-600 pl-3 flex items-center">
-              <MapPin className="w-5 h-5 mr-2 text-gray-600" />
+              <MapPin className="w-5 h-5 mr-2 text-gray-500" />
               Endereço
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
