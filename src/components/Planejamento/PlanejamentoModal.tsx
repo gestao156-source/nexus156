@@ -56,8 +56,9 @@ export default function PlanejamentoModal({
     etiqueta: tarefa?.etiqueta || '',
     responsavel_id: tarefa?.responsavel_id || '',
     prioridade: tarefa?.prioridade || 'media',
-    data_inicio: tarefa?.data_inicio || new Date().toISOString().split('T')[0], // Data atual automática
+    data_inicio: tarefa?.data_inicio || new Date().toISOString().split('T')[0],
     data_limite: tarefa?.data_limite || '',
+    data_conclusao: tarefa?.data_conclusao || '',
     tags: tarefa?.tags?.join(', ') || ''
   });
 
@@ -74,6 +75,7 @@ export default function PlanejamentoModal({
         prioridade: tarefa.prioridade || 'media',
         data_inicio: tarefa.data_inicio || '',
         data_limite: tarefa.data_limite || '',
+        data_conclusao: tarefa.data_conclusao || '',
         tags: tarefa.tags?.join(', ') || ''
       });
     } else {
@@ -85,8 +87,9 @@ export default function PlanejamentoModal({
         etiqueta: '',
         responsavel_id: '',
         prioridade: 'media',
-        data_inicio: new Date().toISOString().split('T')[0], // Data atual automática
+        data_inicio: new Date().toISOString().split('T')[0],
         data_limite: '',
+        data_conclusao: '',
         tags: ''
       });
     }
@@ -347,7 +350,7 @@ export default function PlanejamentoModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Data Início */}
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
@@ -374,6 +377,24 @@ export default function PlanejamentoModal({
                 onChange={(e) => handleChange('data_limite', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
+            </div>
+
+            {/* Data Conclusão */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <Calendar className="w-4 h-4" />
+                Data Conclusão
+              </label>
+              <input
+                type="date"
+                value={formData.data_conclusao}
+                onChange={(e) => handleChange('data_conclusao', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                disabled={formData.coluna !== 'concluido'}
+              />
+              {formData.coluna !== 'concluido' && (
+                <p className="mt-1 text-xs text-gray-500">Disponível apenas para tarefas concluídas</p>
+              )}
             </div>
           </div>
 

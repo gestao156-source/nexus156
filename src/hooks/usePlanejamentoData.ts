@@ -21,6 +21,11 @@ export function usePlanejamentoData() {
       setLoading(true);
       setError(null);
 
+      // Obter datas do mês atual
+      const now = new Date();
+      const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+      const fimMes = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+
       // Carregar tarefas com informações de responsável e criador (consulta temporária)
       const { data: tarefasData, error: tarefasError } = await supabase
         .from('tarefas_planejamento')
@@ -40,12 +45,26 @@ export function usePlanejamentoData() {
         return;
       }
 
-      // Formatar dados para o formato esperado
-      const tarefasFormatadas = (tarefasData || []).map(tarefa => ({
-        ...tarefa,
-        responsavel_nome: tarefa.profiles?.full_name,
-        criador_nome: tarefa.creator?.full_name
-      }));
+      // Formatar dados e filtrar tarefas concluídas do mês anterior
+      const tarefasFormatadas = (tarefasData || [])
+        .filter(tarefa => {
+          // Se a tarefa está concluída, só mostrar se foi concluída este mês
+          if (tarefa.coluna === 'concluido') {
+            const dataConclusao = tarefa.data_conclusao ? new Date(tarefa.data_conclusao) : null;
+            if (!dataConclusao) return true; // Se não tem data de conclusão, mostrar mesmo assim
+
+            // Comparar se está no intervalo do mês atual
+            const dataStr = dataConclusao.toISOString().split('T')[0];
+            return dataStr >= inicioMes && dataStr <= fimMes;
+          }
+          // Tarefas não-concluídas sempre mostrar
+          return true;
+        })
+        .map(tarefa => ({
+          ...tarefa,
+          responsavel_nome: tarefa.profiles?.full_name,
+          criador_nome: tarefa.creator?.full_name
+        }));
 
       // Carregar profiles para seleção de responsáveis
       const { data: profilesData, error: profilesError } = await supabase
@@ -90,9 +109,9 @@ export function usePlanejamentoData() {
         .eq('coluna', data.coluna || 'backlog')
         .order('ordem', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      const novaOrdem = maxOrdem ? maxOrdem.ordem + 1 : 0;
+      const novaOrdem = maxOrdem?.ordem ? maxOrdem.ordem + 1 : 1;
 
       // Preparar dados apenas com campos válidos do CreateTarefaData
       const novaTarefa: any = {
@@ -104,8 +123,7 @@ export function usePlanejamentoData() {
         criador_id: user.id,
         prioridade: data.prioridade || 'media',
         ordem: novaOrdem,
-        tags: data.tags || [],
-        created_at: new Date().toISOString() // Data de criação automática
+        tags: data.tags || []
       };
 
       // Adicionar campos de data apenas se tiverem valores
@@ -114,8 +132,7 @@ export function usePlanejamentoData() {
 
       const { error } = await supabase
         .from('tarefas_planejamento')
-        .insert(novaTarefa)
-        .select();
+        .insert(novaTarefa);
 
       if (error) {
         console.error('Erro ao criar tarefa:', error);
@@ -148,11 +165,16 @@ export function usePlanejamentoData() {
         updated_at: new Date().toISOString()
       };
 
+      // Se movendo para "concluido", adicionar data de conclusão
+      if (data.coluna === 'concluido' && !data.data_conclusao) {
+        updateData.data_conclusao = new Date().toISOString().split('T')[0];
+      }
+
       // Remover campos vazios para evitar erro de data
       if (!updateData.data_inicio) delete updateData.data_inicio;
       if (!updateData.data_limite) delete updateData.data_limite;
       if (!updateData.data_conclusao) delete updateData.data_conclusao;
-      
+
       // Remover campo action se existir
       delete updateData.action;
 
