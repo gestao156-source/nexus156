@@ -89,6 +89,8 @@ export default function PlanejamentoBoard({
     e.preventDefault();
     setDragOverColumn(null);
 
+    if (!draggedTarefa) return;
+
     // Tentar obter coluna de destino de múltiplas formas
     let colunaDestino = e.currentTarget.getAttribute('data-coluna') as TarefaColuna;
     
@@ -97,7 +99,23 @@ export default function PlanejamentoBoard({
       const target = e.target as HTMLElement;
       colunaDestino = target.closest('[data-coluna]')?.getAttribute('data-coluna') as TarefaColuna;
     }
-    
+
+    if (colunaDestino && colunaDestino !== draggedTarefa.coluna) {
+      try {
+        // Obter próxima ordem na coluna de destino
+        const tarefasNaColuna = tarefas.filter(t => t.coluna === colunaDestino);
+        const novaOrdem = Math.max(...tarefasNaColuna.map(t => t.ordem), -1) + 1;
+        
+        // Atualizar tarefa com nova coluna e ordem
+        await onUpdateTarefa({
+          id: draggedTarefa.id,
+          coluna: colunaDestino,
+          ordem: novaOrdem
+        });
+      } catch (error) {
+        console.error('Erro ao mover tarefa:', error);
+      }
+    }
 
     setDraggedTarefa(null);
   };
@@ -106,12 +124,7 @@ export default function PlanejamentoBoard({
     setDragOverColumn(coluna);
   };
 
-  const handleDragLeave = (coluna: TarefaColuna) => {
-    if (dragOverColumn === coluna) {
-      setDragOverColumn(null);
-    }
-  };
-
+  
   const handleAddTarefa = (coluna: TarefaColuna) => {
     setEditingTarefa(undefined);
     setColunaInicial(coluna);

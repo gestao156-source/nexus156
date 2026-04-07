@@ -75,12 +75,16 @@ export function usePlanejamentoData() {
       // Obter usuário atual
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
+      console.log('Auth check:', { user, authError });
+      
       if (authError) {
-        throw new Error('Usuário não autenticado');
+        console.error('Erro de autenticação:', authError);
+        throw new Error(`Erro de autenticação: ${authError.message}`);
       }
       
       if (!user) {
-        throw new Error('Usuário não encontrado');
+        console.error('Usuário não encontrado');
+        throw new Error('Usuário não autenticado. Faça login novamente.');
       }
 
       // Obter próxima ordem para a coluna
@@ -90,7 +94,7 @@ export function usePlanejamentoData() {
         .eq('coluna', data.coluna || 'backlog')
         .order('ordem', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle(); // Usar maybeSingle para evitar erro quando não há registros
 
       const novaOrdem = maxOrdem ? maxOrdem.ordem + 1 : 0;
 
@@ -100,12 +104,12 @@ export function usePlanejamentoData() {
         descricao: data.descricao || '',
         coluna: data.coluna || 'backlog',
         etiqueta: data.etiqueta || '',
-        responsavel_id: data.responsavel_id || '',
+        responsavel_id: data.responsavel_id || null, // Usar null em vez de string vazia
         criador_id: user.id,
         prioridade: data.prioridade || 'media',
         ordem: novaOrdem,
-        tags: data.tags || [],
-        created_at: new Date().toISOString() // Data de criação automática
+        tags: data.tags || []
+        // Removido created_at para usar default do banco
       };
 
       // Adicionar campos de data apenas se tiverem valores
@@ -119,7 +123,23 @@ export function usePlanejamentoData() {
 
       if (error) {
         console.error('Erro ao criar tarefa:', error);
-        throw error;
+        
+        // Tratar diferentes tipos de erro
+        let errorMessage = 'Não foi possível criar a tarefa';
+        
+        if (error.code === 'PGRST116') {
+          errorMessage = 'Erro de permissão: você não tem permissão para criar tarefas';
+        } else if (error.code === '23514') {
+          errorMessage = 'Dados inválidos: verifique os campos obrigatórios';
+        } else if (error.code === '23505') {
+          errorMessage = 'Tarefa duplicada: já existe uma tarefa com esses dados';
+        } else if (error.message?.includes('406')) {
+          errorMessage = 'Formato de dados não aceito pelo servidor';
+        } else if (error.message?.includes('400')) {
+          errorMessage = 'Requisição inválida: verifique os dados enviados';
+        }
+        
+        throw new Error(errorMessage);
       }
 
       // Recarregar dados para obter informações completas
@@ -152,6 +172,11 @@ export function usePlanejamentoData() {
       if (!updateData.data_inicio) delete updateData.data_inicio;
       if (!updateData.data_limite) delete updateData.data_limite;
       if (!updateData.data_conclusao) delete updateData.data_conclusao;
+      
+      // Tratar campos UUID vazios
+      if (!updateData.responsavel_id || updateData.responsavel_id === '') {
+        delete updateData.responsavel_id;
+      }
       
       // Remover campo action se existir
       delete updateData.action;

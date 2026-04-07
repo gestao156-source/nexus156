@@ -161,6 +161,7 @@ export default function PlanejamentoModal({
     
     const data = {
       ...formData,
+      responsavel_id: formData.responsavel_id || null, // Converter string vazia para null
       tags: formData.tags ? formData.tags.split(',').map((tag: string) => tag.trim()).filter(Boolean) : []
     };
 

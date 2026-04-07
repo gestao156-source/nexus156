@@ -29,8 +29,25 @@ export default function Demandas() {
       const { data, error } = await query;
 
       if (error) throw error;
+      
+      // Filtrar itens finalizados para mostrar apenas do mês atual
+      const dataAtual = new Date();
+      const primeiroDiaMes = new Date(dataAtual.getFullYear(), dataAtual.getMonth(), 1);
+      const ultimoDiaMes = new Date(dataAtual.getFullYear(), dataAtual.getMonth() + 1, 0);
+      
+      const demandasFiltradas = (data || []).map(item => {
+        // Se for finalizado, verificar se está no mês atual
+        if (item.status === 'finalizado') {
+          const dataFinalizado = new Date(item.updated_at || item.created_at);
+          if (dataFinalizado < primeiroDiaMes || dataFinalizado > ultimoDiaMes) {
+            return null; // Não mostrar se não for do mês atual
+          }
+        }
+        return item;
+      }).filter(Boolean); // Remover itens nulos
+      
       // Adicionar tipo 'demanda' aos dados
-      const demandasComTipo = (data || []).map(item => ({
+      const demandasComTipo = demandasFiltradas.map(item => ({
         ...item,
         tipo: 'demanda' as const
       }));
