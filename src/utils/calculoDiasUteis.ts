@@ -40,14 +40,23 @@ export const verificarAtraso = (status: string, dataContato: string | null): num
   const dataContatoDate = new Date(dataContatoOnly + 'T00:00:00');
   const hoje = new Date(hojeOnly + 'T00:00:00');
   
-  // Calcular dias úteis passados (incluindo hoje na contagem para ser mais permissivo)
-  const diasUteisPassados = calcularDiasUteis(dataContatoDate, hoje);
+  // Contar dias úteis a partir do dia seguinte ao da abertura
+  const diaSeguinte = new Date(dataContatoDate);
+  diaSeguinte.setDate(diaSeguinte.getDate() + 1);
+  
+  // Se o dia seguinte for depois de hoje, não há dias úteis passados
+  if (diaSeguinte > hoje) {
+    return 0;
+  }
+  
+  // Calcular dias úteis do dia seguinte até hoje (inclusive)
+  const diasUteisPassados = calcularDiasUteis(diaSeguinte, hoje);
   
   // Aplicar regras de prazo por status
   if (status === 'aguardando') {
-    return Math.max(0, diasUteisPassados - 2); // Atrasa após 1 dia útil (compensando contagem inclusiva)
+    return Math.max(0, diasUteisPassados - 1); // Atrasa após 1 dia útil
   } else if (status === 'em_analise') {
-    return Math.max(0, diasUteisPassados - 2); // Atrasa após 3 dias úteis
+    return Math.max(0, diasUteisPassados - 3); // Atrasa após 3 dias úteis
   }
   
   return 0;
