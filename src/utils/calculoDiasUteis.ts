@@ -45,7 +45,7 @@ export const verificarAtraso = (status: string, dataContato: string | null): num
   
   // Aplicar regras de prazo por status
   if (status === 'aguardando') {
-    return Math.max(0, diasUteisPassados); // Atrasa após 1 dia útil
+    return Math.max(0, diasUteisPassados - 1); // Atrasa após 2 dias úteis (compensando contagem inclusiva)
   } else if (status === 'em_analise') {
     return Math.max(0, diasUteisPassados - 2); // Atrasa após 3 dias úteis
   }
