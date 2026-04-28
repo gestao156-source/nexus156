@@ -183,10 +183,10 @@ export default function DashboardItemModal({
                           </span>
                         </div>
                       </div>
-                      {estaAtrasado ? (
+                      {estaAtrasado > 0 ? (
                         <div className="flex items-center space-x-1 bg-red-100 px-2 py-1 rounded-full">
                           <AlertTriangle className="w-3 h-3 text-red-600" />
-                          <p className="text-xs text-gray-600 line-clamp-2">Atrasado</p>
+                          <p className="text-xs text-gray-600 line-clamp-2">Atrasado ({estaAtrasado} dias)</p>
                         </div>
                       ) : null}
                     </div>

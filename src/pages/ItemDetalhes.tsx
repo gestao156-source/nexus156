@@ -143,21 +143,54 @@ export default function ItemDetalhes() {
   };
 
   const verificarAtraso = (status: string, dataContato?: string) => {
-    if (!item) return false;
-    
-    const dataContatoDate = dataContato ? new Date(dataContato) : null;
-    const createdDate = new Date(item.created_at);
-    
-    // Considera atrasado se: status = 'aguardando' E passaram mais de 7 dias desde o contato
-    return status === 'aguardando' && dataContatoDate && 
-           (createdDate.getTime() - dataContatoDate.getTime()) > (7 * 24 * 60 * 60 * 1000);
+    if (!item) return 0;
+
+    if (status === 'finalizado' || !dataContato) {
+      return 0;
+    }
+
+    const dataContatoOnly = dataContato.split('T')[0];
+    const hojeOnly = new Date().toISOString().split('T')[0];
+
+    if (dataContatoOnly === hojeOnly) {
+      return 0;
+    }
+
+    const dataContatoDate = new Date(dataContatoOnly + 'T00:00:00');
+    const hoje = new Date(hojeOnly + 'T00:00:00');
+
+    const diaSeguinte = new Date(dataContatoDate);
+    diaSeguinte.setDate(diaSeguinte.getDate() + 1);
+
+    if (diaSeguinte > hoje) {
+      return 0;
+    }
+
+    let diasUteisPassados = 0;
+    const dataAtual = new Date(diaSeguinte);
+
+    while (dataAtual <= hoje) {
+      const diaSemana = dataAtual.getDay();
+      if (diaSemana !== 0 && diaSemana !== 6) {
+        diasUteisPassados++;
+      }
+      dataAtual.setDate(dataAtual.getDate() + 1);
+    }
+
+    if (status === 'aguardando') {
+      return Math.max(0, diasUteisPassados - 1);
+    } else if (status === 'em_analise') {
+      return Math.max(0, diasUteisPassados - 3);
+    }
+
+    return 0;
   };
 
   useEffect(() => {
     fetchItemDetalhes();
   }, [location.hash]);
 
-  const estaAtrasado = item ? verificarAtraso(item.status, item.data_contato) : false;
+  const diasAtraso = item ? verificarAtraso(item.status, item.data_contato) : 0;
 
   if (loading) {
     return (
@@ -210,10 +243,10 @@ export default function ItemDetalhes() {
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(item.status)}`}>
                   {getStatusText(item.status)}
                 </span>
-                {estaAtrasado && (
+                {diasAtraso > 0 && (
                   <div className="flex items-center space-x-1 bg-red-100 px-3 py-1 rounded-full">
                     <AlertTriangle className="w-4 h-4 text-red-600" />
-                    <span className="text-sm font-semibold text-red-700">Atrasado</span>
+                    <span className="text-sm font-semibold text-red-700">Atrasado ({diasAtraso} dias)</span>
                   </div>
                 )}
               </div>
