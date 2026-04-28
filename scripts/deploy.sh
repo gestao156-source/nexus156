@@ -38,5 +38,5 @@ git push origin main
 
 echo ""
 echo "🎉 Deploy concluído com sucesso!"
-echo "📦 Projeto disponível em: https://pituc988.github.io/nexus156"
-echo "🔄 Backup disponível em: https://github.com/pituc988/nexus156/tree/main/backups"
+echo "📦 Projeto disponível em: https://nexus156-qo7j.bolt.host/"
+echo "🔄 Backup disponível em: https://github.com/gestao156-source/nexus156/tree/main/backups"
