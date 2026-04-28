@@ -20,10 +20,6 @@ const colunaConfig = {
     cor: 'border-gray-300 bg-gray-50',
     corHeader: 'bg-gray-100 text-gray-700'
   },
-  semana_atual: {
-    cor: 'border-blue-300 bg-blue-50',
-    corHeader: 'bg-blue-100 text-blue-700'
-  },
   em_andamento: {
     cor: 'border-yellow-300 bg-yellow-50',
     corHeader: 'bg-yellow-100 text-yellow-700'
@@ -35,10 +31,6 @@ const colunaConfig = {
   concluido: {
     cor: 'border-green-300 bg-green-50',
     corHeader: 'bg-green-100 text-green-700'
-  },
-  indicadores: {
-    cor: 'border-orange-300 bg-orange-50',
-    corHeader: 'bg-orange-100 text-orange-700'
   }
 };
 

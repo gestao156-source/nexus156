@@ -20,11 +20,9 @@ interface PlanejamentoModalProps {
 
 const colunas: { value: TarefaColuna; label: string }[] = [
   { value: 'backlog', label: '📥 Backlog (ideias e pendências)' },
-  { value: 'semana_atual', label: '🗓️ Semana Atual' },
   { value: 'em_andamento', label: '🚧 Em andamento' },
   { value: 'em_validacao', label: '👀 Em validação' },
-  { value: 'concluido', label: '✅ Concluído' },
-  { value: 'indicadores', label: '📊 Indicadores' }
+  { value: 'concluido', label: '✅ Concluído' }
 ];
 
 const etiquetas: { value: TarefaEtiqueta; label: string }[] = [

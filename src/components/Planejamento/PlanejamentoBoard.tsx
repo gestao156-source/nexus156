@@ -14,11 +14,9 @@ interface PlanejamentoBoardProps {
 
 const colunasConfig = [
   { key: 'backlog' as TarefaColuna, titulo: '📥 Backlog (ideias e pendências)' },
-  { key: 'semana_atual' as TarefaColuna, titulo: '🗓️ Semana Atual' },
   { key: 'em_andamento' as TarefaColuna, titulo: '🚧 Em andamento' },
   { key: 'em_validacao' as TarefaColuna, titulo: '👀 Em validação' },
-  { key: 'concluido' as TarefaColuna, titulo: '✅ Concluído' },
-  { key: 'indicadores' as TarefaColuna, titulo: '📊 Indicadores' }
+  { key: 'concluido' as TarefaColuna, titulo: '✅ Concluído' }
 ];
 
 export default function PlanejamentoBoard({
@@ -39,11 +37,9 @@ export default function PlanejamentoBoard({
   const tarefasPorColuna = useCallback(() => {
     const agrupadas: Record<TarefaColuna, TarefaPlanejamentoExtendida[]> = {
       backlog: [],
-      semana_atual: [],
       em_andamento: [],
       em_validacao: [],
-      concluido: [],
-      indicadores: []
+      concluido: []
     };
 
     // Filtrar por busca se houver

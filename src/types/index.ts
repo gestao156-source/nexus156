@@ -227,7 +227,7 @@ export interface MapaStats {
 }
 
 // Tipos para o sistema de Planejamento
-export type TarefaColuna = 'backlog' | 'semana_atual' | 'em_andamento' | 'em_validacao' | 'concluido' | 'indicadores';
+export type TarefaColuna = 'backlog' | 'em_andamento' | 'em_validacao' | 'concluido';
 export type TarefaEtiqueta = 'diagnostico' | 'padronizacao' | 'capacitacao' | 'monitoramento';
 export type TarefaPrioridade = 'baixa' | 'media' | 'alta' | 'urgente';
 
